@@ -1,0 +1,70 @@
+[
+    {
+        "appName": "Plex",
+        "appUrl": "https://app.plex.tv/desktop/#!/"
+    },
+    {
+        "appName": "Kavita",
+        "appUrl": "https://kav.kianserver.uk/"
+    },
+    {
+        "appName": "Sonarr",
+        "appUrl": "https://sonarr.kianserver.uk/"
+    },
+    {
+        "appName": "Radarr",
+        "appUrl": "https://radarr.kianserver.uk/"
+    },
+    {
+        "appName": "Readarr",
+        "appUrl": "https://readarr.kianserver.uk/"
+    },
+    {
+        "appName": "Youtubedl",
+        "appUrl": "https://ydl.kianserver.uk/"
+    },
+    {
+        "appName": "SABnzbd",
+        "appUrl": "https://sab.kianserver.uk/"
+    },
+    {
+        "appName": "qBittorrent",
+        "appUrl": "https://qbit.kianserver.uk/"
+    },
+    {
+        "appName": "Bazarr",
+        "appUrl": "https://bazarr.kianserver.uk/"
+    },
+    {
+        "appName": "Prowlarr",
+        "appUrl": "https://prowlarr.kianserver.uk/"
+    },
+    {
+        "appName": "Nextcloud",
+        "appUrl": "https://nc.kianserver.uk/"
+    },
+    {
+        "appName": "NZBGeek",
+        "appUrl": "https://nzbgeek.info/"
+    },
+    {
+        "appName": "Test app",
+        "appUrl": "https://test.kianserver.uk/"
+    },
+    {
+        "appName": "Cloudflare",
+        "appUrl": "https://dash.cloudflare.com/"
+    },
+    {
+        "appName": "NEWSDEMON",
+        "appUrl": "https://members.newsdemon.com/members/memlogin.php?_ga=2.64204463.1429284953.1739736645-536380671.1739736645&_gac=1.19557962.1739736645.CjwKCAiAtsa9BhAKEiwAUZAszZ849gxYgdVcwmAR5mjrewRLWPFldyCbo075Yu0rAVHh0kD5Xgs1RhoCINMQAvD_BwE"
+    },
+    {
+        "appName": "Webmin",
+        "appUrl": "https://web.kianserver.uk/"
+    },
+    {
+        "appName": "Filebrowser",
+        "appUrl": "https://file.kianserver.uk/"
+    }
+]

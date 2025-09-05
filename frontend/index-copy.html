@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kianserver Dashboard for monitoring various services and media.">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="icon.ico" type="image/x-icon">
+    <title>Server Dashboard</title>
+</head>
+
+<body>
+    <div id="title-bar">
+        <div id="icon"><img src="icon.ico" alt="Dashboard Icon"></div>
+        <div id="title">Kianserver Dashboard</div>
+        <div id="logout">
+            <a href="https://auth.kianserver.uk" class="btn" target="_blank" aria-label="Logout">
+                <img src="logout.png" alt="Logout Icon">
+            </a>
+        </div>
+    </div>
+
+    <form id="search" action="https://www.google.com/search" method="get">
+        <input type="text" name="q" placeholder="Search the web" aria-label="Search">
+        <button type="submit" aria-label="Submit Search">
+            <img src="search (1).png" alt="Search Icon">
+        </button>
+    </form>
+
+    <div id="container">
+        <div class="column">
+            <div class="heading">Media</div>
+
+            <div class="btn-container" id="column1">
+                <a href="https://app.plex.tv/desktop/#!/" class="btn" id="plex" target="_blank" aria-label="Plex">
+                    <div class="imgDiv"><img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/plex.png"
+                            alt="Plex"></div>
+                    <div class="btnTitle"><span>Plex</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="plex-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="plex-status-remote"></div>
+                    </div>
+
+                </a>
+
+                <a href="https://kav.kianserver.uk" class="btn" target="_blank" aria-label="kavita">
+                    <div class="imgDiv"><img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/kavita.png"
+                            alt="kavita">
+                    </div>
+                    <div class="btnTitle"><span>Kavita</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="kavita-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="kavita-status-remote"></div>
+                    </div>
+                </a>
+
+                <a href="https://sonarr.kianserver.uk" class="btn" target="_blank" aria-label="Sonarr">
+                    <div class="imgDiv"><img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/sonarr.png"
+                            alt="Sonarr"></div>
+                    <div class="btnTitle"><span>Sonarr</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="sonarr-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="sonarr-status-remote"></div>
+                    </div>
+                </a>
+
+                <a href="https://radarr.kianserver.uk" class="btn" target="_blank" aria-label="Radarr">
+                    <div class="imgDiv"><img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/radarr.png"
+                            alt="Radarr"></div>
+                    <div class="btnTitle"><span>Radarr</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="radarr-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="radarr-status-remote"></div>
+                    </div>
+
+                </a>
+                <a href="https://readarr.kianserver.uk" class="btn" target="_blank" aria-label="Readar">
+                    <div class="imgDiv"><img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/readarr.png"
+                            alt="Readarr"></div>
+                    <div class="btnTitle"><span>Readarr</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="readarr-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="readarr-status-remote"></div>
+                    </div>
+
+                </a>
+                <a href="https://ydl.kianserver.uk" class="btn" target="_blank" aria-label="Youtubedl">
+                    <div class="imgDiv"><img src="imgs/youtuebdl.png" alt="Youtubedl"></div>
+                    <div class="btnTitle"><span>Youtubedl</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="youtubedl-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="youtubedl-status-remote"></div>
+                    </div>
+
+                </a>
+            </div>
+
+        </div>
+
+        <div class="column">
+            <div class="heading">Services</div>
+
+            <div class="btn-container">
+                <a href="https://sab.kianserver.uk" class="btn" target="_blank" aria-label="SABnzbd">
+                    <div class="imgDiv"><img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/sabnzbd.png"
+                            alt="SABnzbd"></div>
+                    <div class="btnTitle"><span>SABnzbd</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="sabnzbd-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="sabnzbd-status-remote"></div>
+                    </div>
+
+                </a>
+                <a href="https://qbit.kianserver.uk" class="btn" target="_blank" aria-label="qBittorrent">
+                    <div class="imgDiv"><img
+                            src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/qbittorrent.png"
+                            alt="qBittorrent"></div>
+                    <div class="btnTitle"><span>qBittorrent</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="qbittorrent-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="qbittorrent-status-remote"></div>
+                    </div>
+
+                </a>
+                <a href="https://bazarr.kianserver.uk" class="btn" target="_blank" aria-label="Bazarr">
+                    <div class="imgDiv"><img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/bazarr.png"
+                            alt="bazarr"></div>
+                    <div class="btnTitle"><span>Bazarr</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="bazarr-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="bazarr-status-remote"></div>
+                    </div>
+
+                </a>
+                <a href="https://prowlarr.kianserver.uk" class="btn" target="_blank" aria-label="prowlarr">
+                    <div class="imgDiv"><img
+                            src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/prowlarr.png" alt="prowlarr">
+                    </div>
+                    <div class="btnTitle"><span>Prowlarr</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="prowlarr-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="prowlarr-status-remote"></div>
+                    </div>
+
+                </a>
+                <a href="https://nc.kianserver.uk" class="btn" target="_blank" aria-label="Nextcloud">
+                    <div class="imgDiv"><img
+                            src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/nextcloud.png"
+                            alt="Nextcloud"></div>
+                    <div class="btnTitle"><span>Nextcloud</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="nextcloud-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="nextcloud-status-remote"></div>
+                    </div>
+
+                </a>
+            </div>
+
+        </div>
+
+        <div class="column">
+            <div class="heading">Links</div>
+
+            <div class="btn-container">
+                <a href="https://nzbgeek.info" class="btn" target="_blank" aria-label="NZBGeek">
+                    <div class="imgDiv"><img src="https://asset.brandfetch.io/idSdh8eCdF/idiHpleBzZ.png" alt="NZBGeek">
+                    </div>
+                    <div class="btnTitle"><span>NZBGeek</span></div>
+
+                </a>
+                <a href="https://test.kianserver.uk" class="btn" target="_blank" aria-label="Test Speed">
+                    <div class="imgDiv"><img
+                            src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/openspeedtest.png"
+                            alt="Speed Test"></div>
+                    <div class="btnTitle"><span>Test app</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="test-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="test-status-remote"></div>
+                    </div>
+
+                </a>
+                <a href="https://dash.cloudflare.com" class="btn" target="_blank" aria-label="Cloudflare">
+                    <div class="imgDiv"><img
+                            src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/cloudflare.svg"
+                            alt="Cloudflare"></div>
+                    <div class="btnTitle"><span>Cloudflare</span></div>
+
+                </a>
+                <a href="https://members.newsdemon.com/members/memlogin.php?_ga=2.64204463.1429284953.1739736645-536380671.1739736645&_gac=1.19557962.1739736645.CjwKCAiAtsa9BhAKEiwAUZAszZ849gxYgdVcwmAR5mjrewRLWPFldyCbo075Yu0rAVHh0kD5Xgs1RhoCINMQAvD_BwE"
+                    class="btn" target="_blank" aria-label="Cloudflare">
+                    <div class="imgDiv"><img src="imgs/newsdemon.png" alt="newsdemon"></div>
+                    <div class="btnTitle"><span>NEWSDEMON</span></div>
+
+                </a>
+            </div>
+
+        </div>
+
+        <div class="column">
+            <div class="heading">Admin</div>
+
+            <div class="btn-container">
+                <a href="https://web.kianserver.uk" class="btn" target="_blank" aria-label="Webmin">
+                    <div class="imgDiv"><img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/webmin.png"
+                            alt="Webmin"></div>
+                    <div class="btnTitle"><span>Webmin</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="webmin-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="webmin-status-remote"></div>
+                    </div>
+
+                </a>
+                <a href="https://file.kianserver.uk" class="btn" target="_blank" aria-label="Filebrowser">
+                    <div class="imgDiv"><img
+                            src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/filebrowser.png"
+                            alt="Filebrowser"></div>
+                    <div class="btnTitle"><span>Filebrowser</span></div>
+
+                    <div class="circleDiv">
+                        <div class="circle" id="filebrowser-status-local"></div>
+                    </div>
+                    <div class="circleDiv">
+                        <div class="circle" id="filebrowser-status-remote"></div>
+                    </div>
+
+                </a>
+                <a href="https://auth.kianserver.uk" class="btn" target="_blank" aria-label="Logout">
+                    <div class="imgDiv"><img
+                            src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/authelia.png" alt="Auth">
+                    </div>
+                    <div class="btnTitle"><span>Log out</span></div>
+                </a>
+                <!-- <a href="/admin.html" class="btn" target="_blank" aria-label="Admin Panel">
+                        <img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/plex.png" alt="Admin">
+                        <div class="btnTitle"><span>Admin</span></div>
+                    </a> -->
+            </div>
+
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

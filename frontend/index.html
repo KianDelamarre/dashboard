@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kianserver Dashboard for monitoring various services and media.">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="icon.ico" type="image/x-icon">
+    <title>Server Dashboard</title>
+</head>
+
+<body>
+
+    <div id="loading">
+        <h1>LOADING...</h1>
+    </div>
+    <div id="login">
+        <form id="login-form">
+            <h2>Log In</h2>
+            <input type="text" name="username" class="username" placeholder="Username">
+            <input type="password" name="password" class="password" placeholder="Password">
+            <span id="login-error-msg"></span>
+            <button type="submit">Log In</button>
+
+        </form>
+    </div>
+
+    <div id="dashboard">
+        <div id="title-bar">
+            <div id="icon"><img src="icon.ico" alt="Dashboard Icon"></div>
+            <div id="title">Kianserver Dashboard</div>
+            <div id="logout" class="btn" target="_blank" aria-label="Logout">
+                <img src="logout.png" alt="Logout Icon">
+            </div>
+        </div>
+
+        <form id="search" action="https://www.google.com/search" method="get">
+            <input type="text" name="q" placeholder="Search the web" aria-label="Search">
+            <button type="submit" aria-label="Submit Search">
+                <img src="search (1).png" alt="Search Icon">
+            </button>
+        </form>
+
+        <div id="container">
+            <div class="column">
+                <div class="heading">Media</div>
+
+                <div class="btn-container" id="column1">
+                </div>
+
+            </div>
+            <div class="column">
+                <div class="heading">Services</div>
+
+                <div class="btn-container" id="column2">
+                </div>
+
+            </div>
+            <div class="column">
+                <div class="heading">Links</div>
+
+                <div class="btn-container" id="column3">
+                </div>
+
+            </div>
+            <div class="column">
+                <div class="heading">Admin</div>
+                <div class="btn-container" id="column4">
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

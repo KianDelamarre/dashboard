@@ -1,0 +1,38 @@
+.container{
+    display: flex;
+    justify-content: center;
+}
+
+.toggle{
+    background: lightslategray;
+    border: 0;
+    width: 132px;
+    height: 70px;
+    border-radius: 999px;
+    padding: 4px;
+    position: relative;
+    cursor: pointer;
+}
+.toggle:hover {
+    box-shadow: 0px 10px 10px rgba(0, 0, 0, 0.3);
+    background: rgb(170, 194, 218);
+  }
+
+
+.toggle-circle{
+    background: red;
+    width: 62px;
+    height: 62px;
+    border-radius: 9999px;
+    position: absolute;
+    left: 4px;
+    top: 4px;
+
+    transition: all 350ms ease ;
+}
+
+.toggle.active .toggle-circle{
+    background: green;
+    left: calc(100% - 4px);
+    transform: translateX(-100%);
+}

@@ -61,7 +61,7 @@ document.querySelector('form').addEventListener('submit', function (event) {
 
 
 let refreshLogin = async () => {
-    const response = await fetch('http://localhost:4000/token', {
+    const response = await fetch('https://apiauth.example.com/token', {
         method: 'POST',
         credentials: 'include'
     })
@@ -82,7 +82,7 @@ let refreshLogin = async () => {
 
 let login = async (username, password) => {
     console.log('login method called')
-    const response = await fetch('http://localhost:4000/login', {
+    const response = await fetch('https://apiauth.example.com/login', {
         method: 'POST',
         credentials: "include",
         headers: { 'Content-Type': 'application/json' },
@@ -93,6 +93,7 @@ let login = async (username, password) => {
 
     if (!response.ok) {
         // console.error('error logging in', response.status)
+        loginErrorMsg.style.display = 'flex';
         loginErrorMsg.innerText = `error logging in ${response.status}`
         return;
     }
@@ -107,7 +108,7 @@ let login = async (username, password) => {
 }
 
 let logout = async () => {
-    const response = await fetch('http://localhost:4000/logout', {
+    const response = await fetch('https://apiauth.example.com/logout', {
         method: 'DELETE',
         credentials: "include"
     })
@@ -127,7 +128,7 @@ let logout = async () => {
 let initLinks = async () => {
     if (pageInitialised) return
     pageInitialised = true
-    const response = await fetch('http://localhost:3000/links', {
+    const response = await fetch('https://api.example.com/links', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

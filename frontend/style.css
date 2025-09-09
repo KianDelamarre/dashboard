@@ -99,9 +99,9 @@ form button[type=submit]:hover {
   cursor: pointer;
 }
 
-#open-edit-link-form-buttom {
+/* #open-edit-link-form-buttom {
   display: none;
-}
+} */
 
 #editButtons {
   /* position: absolute; */
@@ -114,6 +114,10 @@ form button[type=submit]:hover {
   height: 100%;
   width: fit-content;
 }
+
+/* #open-edit-link-form-buttom {
+  display: none;
+} */
 
 #open-edit-link-form-buttom,
 #activate-edit-mode-button {

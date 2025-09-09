@@ -66,8 +66,12 @@ app.patch('/link/:id', (req, res) => {
     const id = req.params.id
     const updates = req.body
 
-    const fields = Object.keys(updates)
-    const values = Object.values(updates)
+    // Filter out null or undefined values
+    const filteredUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([_, value]) => value !== null && value !== undefined)
+    );
+    const fields = Object.keys(filteredUpdates)
+    const values = Object.values(filteredUpdates)
 
     if (fields.length == 0) {
         return res.status(400).json({ error: 'no fields to update' })
@@ -84,4 +88,4 @@ app.patch('/link/:id', (req, res) => {
 //reorder endpoint to change the row and column values of links in the database, to use with drag and drop reordering
 
 console.log('listening on port 2001')
-app.listen(2001)
+app.listen(2001, '0.0.0.0', () => console.log('Server running on port 2001'))

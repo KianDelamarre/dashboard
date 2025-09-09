@@ -29,6 +29,8 @@
         <div id="title-bar">
             <div id="icon"><img src="icon.ico" alt="Dashboard Icon"></div>
             <div id="title">Kianserver Dashboard</div>
+            <div id="open-edit-link-form-buttom">NEW</div>
+            <div id="activate-edit-mode-button">EDIT MODE</div>
             <div id="logout" class="btn" target="_blank" aria-label="Logout">
                 <img src="logout.png" alt="Logout Icon">
             </div>
@@ -41,16 +43,17 @@
             </button>
         </form>
 
-        <div id="create-link-div" class="form-div">
-            <form id="create-link-form" class="form">
+        <div id="edit-link-div" class="form-div">
+            <form id="edit-link-form" class="form">
                 <h4>Enter details to create new link</h4>
-                <input type="text" name="name" placeholder="name" required>
-                <input type="text" name="localIp" placeholder="local ip address" required>
-                <input type="text" name="remoteIp" placeholder="remote ip address" required>
-                <input type="text" name="imgUrl" placeholder="image icon url" required>
+                <input type="text" name="name" placeholder="name">
+                <input type="text" name="localIp" placeholder="local ip address">
+                <input type="text" name="remoteIp" placeholder="remote ip address">
+                <input type="text" name="imgUrl" placeholder="image icon url">
                 <button type="submit">Create</button>
             </form>
         </div>
+        <div id="edit-link-buffer"></div>
 
         <div id="container">
             <div class="column">

@@ -8,10 +8,20 @@ let column4 = document.getElementById('col-4')
 
 let loginPage = document.getElementById('login')
 let loginErrorMsg = document.getElementById('login-error-msg')
+
+let openEditLinkFormBtn = document.getElementById('open-edit-link-form-buttom')
+let createLinkForm = document.getElementById('edit-link-div')
+let createLinkBuffer = document.getElementById('edit-link-buffer')
+
 let dashboard = document.getElementById('dashboard')
 const loadingPage = document.getElementById('loading')
 
 const logoutBtn = document.getElementById('logout')
+
+let editMode = false
+
+let editingMode = 'create'
+let idToEdit = ''
 
 let draggedElement = null;
 let offsetX = 0;
@@ -31,6 +41,7 @@ window.onload = async () => {
     // await refreshLogin()
     checkLoggedIn()
 }
+
 
 function checkLoggedIn() {
     // loadingPage.style.display = 'block'
@@ -56,27 +67,66 @@ function showDashBoard() {
     // if (!pageInitialised) initLinks()
 }
 
-document.querySelector('form').addEventListener('submit', function (event) {
+document.getElementById('activate-edit-mode-button').addEventListener('click', () => {
+    if (!editMode) {
+        openEditLinkFormBtn.style.display = 'flex'
+        document.querySelectorAll('.edit-link-btns').forEach(btn => {
+            btn.style.display = 'flex';
+        });
+    }
+    else if (editMode) {
+        openEditLinkFormBtn.style.display = 'none'
+        document.querySelectorAll('.edit-link-btns').forEach(btn => {
+            btn.style.display = 'none';
+        });
+    }
+
+    editMode = !editMode
+})
+
+openEditLinkFormBtn.addEventListener('click', () => {
+    editingMode = 'create'
+    createLinkForm.style.display = 'flex'
+    createLinkBuffer.style.display = 'flex'
+})
+document.getElementById('edit-link-buffer').addEventListener('click', () => {
+    createLinkForm.style.display = 'none'
+    createLinkBuffer.style.display = 'none'
+})
+
+document.getElementById('login-form').addEventListener('submit', function (event) {
     event.preventDefault();
     const username = event.target.username.value
     const password = event.target.password.value
     login(username, password)
 })
 
-document.getElementById('create-link-form').addEventListener('submit', function (event) {
-    // event.preventDefault()
+document.getElementById('edit-link-form').addEventListener('submit', async function (event) {
+    event.preventDefault()
+
     const name = event.target.name.value
     const localIp = event.target.localIp.value
     const remoteIp = event.target.remoteIp.value
     const imgUrl = event.target.imgUrl.value
 
-    createLink(name, localIp, remoteIp, imgUrl)
-    console.log('tried creating element')
+    if (editingMode == 'create') {
+        await createLink(name, localIp, remoteIp, imgUrl)  //await because request needs to finish sending before reloading
+        // console.log('creating')
+    }
+    else if (editingMode == 'edit') {
+        await editLink(idToEdit, name, localIp, remoteIp, imgUrl)
+        // console.log('editing')
+    }
+
+    idToEdit = null
+
+    document.getElementById('edit-link-form').reset();
+    window.location.reload()
+    // console.log('tried creating element')
 })
 
+
 // window.onload(refreshLogin())
-
-
 
 let getLinks = async () => {
     const response = await fetch('http://localhost:2001/links', {
@@ -99,6 +149,7 @@ let getLinks = async () => {
 
 
 let createLink = async (name, localIp, remoteIp, imgUrl) => {
+    console.log('trying to create link')
     const response = await fetch('http://localhost:2001/link', {
         method: "POST",
         headers: { 'content-type': 'application/json' },
@@ -107,7 +158,8 @@ let createLink = async (name, localIp, remoteIp, imgUrl) => {
             'localIp': localIp,
             'remoteIp': remoteIp,
             'imgUrl': imgUrl,
-            'column': 1
+            'column': 1,
+            // 'row': 1
         })
     })
 
@@ -217,11 +269,19 @@ let initLinks = async () => {
 
 let buildDashboardHtml = (array) => {
     for (let i = 0; i < array.length; i++) {
-        console.log(array[i].column)
+        // console.log(array[i].column)
         const columnId = `col-${array[i].column}`
         let columnElement = document.getElementById(columnId)
 
-        console.log(columnId)
+        // console.log(columnId)
+
+        let linkDiv = document.createElement('div')
+        linkDiv.className = 'link-div'
+
+        let editLinkBtns = document.createElement('div')
+        editLinkBtns.className = 'edit-link-btns'
+
+
         let linkA = document.createElement('a')
         linkA.className = 'btn'
         linkA.id = array[i].id
@@ -231,7 +291,7 @@ let buildDashboardHtml = (array) => {
         imgDiv.className = 'imgDiv'
         let img = document.createElement('img')
         img.src = array[i].imgurl
-        console.log(array[i])
+        // console.log(array[i])
 
         imgDiv.appendChild(img)
 
@@ -273,16 +333,28 @@ let buildDashboardHtml = (array) => {
         linkA.appendChild(nameDiv)
         linkA.appendChild(circle1)
         linkA.appendChild(circle2)
-        linkA.appendChild(deleteButton)
-        linkA.appendChild(editButton)
-        columnElement.appendChild(linkA)
+        editLinkBtns.appendChild(deleteButton)
+        editLinkBtns.appendChild(editButton)
+        linkDiv.appendChild(editLinkBtns)
+        linkDiv.appendChild(linkA)
+        columnElement.appendChild(linkDiv)
 
         deleteButton.addEventListener('click', () => {
+            // console.log(linkA.id)
+            deleteLink(linkA)
+        })
+
+        editButton.addEventListener('click', () => {
+            idToEdit = linkA.id
+            editingMode = 'edit'
+            console.log(linkA.id, editingMode)
+            createLinkForm.style.display = 'flex'
+            createLinkBuffer.style.display = 'flex'
 
         })
 
         linkA.addEventListener('mousedown', e => {
-            console.log(`${name} clicked`)
+            // console.log(`${name} clicked`)
             draggedElement = e.currentTarget  //set draggedElement to the element with the eventlistener
             const rect = draggedElement.getBoundingClientRect();
             // console.log(`rect left = ${rect.left}`)
@@ -309,7 +381,7 @@ let buildDashboardHtml = (array) => {
 
 let deleteLink = async (element) => {
     const idToDelete = element.id
-    const response = await fetch(`http://localhost:2001/links/${idToDelete}`, {
+    const response = await fetch(`http://localhost:2001/link/${idToDelete}`, {
         method: 'DELETE'
     })
 
@@ -321,6 +393,25 @@ let deleteLink = async (element) => {
     console.log(`${idToDelete} deleted successfully`)
 
     window.location.reload()
+}
+
+let editLink = async (idToEdit, name, localIp, remoteIp, imgUrl) => {
+
+    const response = await fetch(`http://localhost:2001/link/${idToEdit}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            'name': name || null,
+            'localIp': localIp || null,
+            'remoteIp': remoteIp || null,
+            'imgUrl': imgUrl || null,
+        })
+    })
+    if (!response.ok) {
+        console.error('Error fetching links:', response.status);
+        pageInitialised = false
+        return;
+    };
 }
 
 let moveLink = async (dropTarget, draggedElement) => {

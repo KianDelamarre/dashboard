@@ -57,9 +57,9 @@ app.post('/login', async (req, res) => {
     const refreshToken = jwt.sign(user, process.env.REFRESS_TOKEN_SECRET)
     refreshTokens.push(refreshToken)
     res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "Strict",
+        // httpOnly: true,
+        // secure: true,
+        // sameSite: "Strict",
         path: "/",
         maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
     }
@@ -74,9 +74,9 @@ app.delete('/logout', (req, res) => {
 
     res.clearCookie('refreshToken', {
         path: '/',
-        httpOnly: true,
-        secure: true,
-        sameSite: 'Strict'
+        // httpOnly: true,
+        // secure: true,
+        // sameSite: 'Strict'
     });    //tell the client to delete the token from their cookies
     res.sendStatus(204)
 })

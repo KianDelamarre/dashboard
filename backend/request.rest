@@ -1,3 +1,30 @@
+GET http://localhost:2001/links
+###
+
+POST http://localhost:2001/link
+Content-Type : application/json
+
+{
+    "name":"sabNZBD",
+    "localIp":"127.0.0.1:7878",
+    "remoteIp":"https://sab.example.com/",
+    "imgUrl":"https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/plex.png",
+    "column":"2",
+    "row":"1"
+}
+###
+
+DELETE http://localhost:2001/link/21
+
+###
+PATCH http://localhost:2001/link/22
+Content-Type : application/json
+
+{
+    "imgurl":"https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/sabnzbd.png"
+}
+###
+
 GET http://localhost:3000/links
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoia2lhbjEiLCJpYXQiOjE3NTY4MTY3NjEsImV4cCI6MTc1NzAxNjc2MX0.ihSn_F7MBE9ZQZG2Uof4TLqx382fzgFWYe-DINq7uuI
 ###

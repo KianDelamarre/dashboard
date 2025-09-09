@@ -250,6 +250,10 @@ button[type="submit"] {
 }
 
 .btn-container:hover {
+  /* border: solid thin white; */
+}
+
+.hover:hover {
   border: solid thin white;
 }
 

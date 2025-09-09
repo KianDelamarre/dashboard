@@ -73,12 +73,19 @@ document.getElementById('activate-edit-mode-button').addEventListener('click', (
         document.querySelectorAll('.edit-link-btns').forEach(btn => {
             btn.style.display = 'flex';
         });
+        document.querySelectorAll('.btn-container').forEach(btn => {
+            btn.classList.add('hover')
+        });
     }
     else if (editMode) {
         openEditLinkFormBtn.style.display = 'none'
         document.querySelectorAll('.edit-link-btns').forEach(btn => {
             btn.style.display = 'none';
         });
+        document.querySelectorAll('.btn-container').forEach(btn => {
+            btn.classList.remove('hover')
+        });
+
     }
 
     editMode = !editMode

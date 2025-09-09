@@ -355,6 +355,7 @@ let buildDashboardHtml = (array) => {
 
         linkA.addEventListener('mousedown', e => {
             // console.log(`${name} clicked`)
+            if (!editMode) return // disable draggable if not in edit mode
             draggedElement = e.currentTarget  //set draggedElement to the element with the eventlistener
             const rect = draggedElement.getBoundingClientRect();
             // console.log(`rect left = ${rect.left}`)

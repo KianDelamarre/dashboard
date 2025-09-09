@@ -9,12 +9,12 @@ Content-Type : application/json
     "localIp":"192.168.0.200:7878",
     "remoteIp":"https://sab.kianserver.uk/",
     "imgUrl":"https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/plex.png",
-    "column":"2",
-    "row":"1"
+    "column":"2"
+
 }
 ###
 
-DELETE http://localhost:2001/link/21
+DELETE http://localhost:2001/link/44
 
 ###
 PATCH http://localhost:2001/link/22

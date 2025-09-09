@@ -10,6 +10,7 @@ let loginPage = document.getElementById('login')
 let loginErrorMsg = document.getElementById('login-error-msg')
 
 let openEditLinkFormBtn = document.getElementById('open-edit-link-form-buttom')
+openEditLinkFormBtn.style.display = 'none'
 let createLinkForm = document.getElementById('edit-link-div')
 let createLinkBuffer = document.getElementById('edit-link-buffer')
 

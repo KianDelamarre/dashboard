@@ -16,7 +16,7 @@ const db = new sqlite3.Database('./database.db')
 console.log(links)
 
 const corsOptions = {
-    origin: 'https://kianserver.uk',
+    origin: 'http://localhsot',
     credentials: true,
 }
 

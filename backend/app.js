@@ -217,19 +217,22 @@ async function reorderFunctionsToRepeat(relativeToId, position) {
 async function reorder(relativeToId, position) {
     let { secondRow, originalRow, targetColumn, rowToInsertAt } = await reorderFunctionsToRepeat(relativeToId, position)
 
-    if (rowToInsertAt) { return ({ rowToInsertAt: rowToInsertAt, targetColumn: targetColumn }) }
+
+    console.log('original row = ' + originalRow)
+    console.log('second row = ' + secondRow)
+    console.log('diff = ' + Math.abs(originalRow - secondRow))
+
+
     if (Math.abs(originalRow - secondRow) < 2) {  //if gap between two row values is too small to add another value
         await reIndexRowsForColumn(targetColumn)  //then reindex the row values
+        console.log('reordered');
+        ({ secondRow, originalRow, targetColumn, rowToInsertAt } = await reorderFunctionsToRepeat(relativeToId, position))
     }
-
-    ({ secondRow, originalRow, targetColumn, rowToInsertAt } = await reorderFunctionsToRepeat(relativeToId, position))
-
-    console.log(`got secondRow ${secondRow}`)
-
 
     return ({ rowToInsertAt: rowToInsertAt, targetColumn: targetColumn })
 }
 
+// reIndexRowsForColumn(1)
 
 //reorder endpoint to change the row and column values of links in the database, to use with drag and drop reordering
 

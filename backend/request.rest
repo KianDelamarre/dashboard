@@ -23,8 +23,8 @@ Content-Type : application/json
 
 {
     "idToMove":"70",
-    "relativeToId":"67",
-    "position":"after"
+    "relativeToId":"86",
+    "position":"before"
 }
 ###
 

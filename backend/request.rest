@@ -15,8 +15,22 @@ Content-Type : application/json
 ###
 
 DELETE http://localhost:2001/link/44
-
 ###
+
+
+PATCH http://localhost:2001/links/reorder
+Content-Type : application/json
+
+{
+    "idToMove":"70",
+    "relativeToId":"67",
+    "position":"after"
+}
+###
+
+
+
+
 PATCH http://localhost:2001/link/22
 Content-Type : application/json
 

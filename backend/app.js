@@ -45,7 +45,7 @@ app.post('/link', async (req, res) => {
 
     // console.log(rowToInsertAt)
 
-    const getMaxRow = async () => {
+    const getMaxRowInColumn = async () => {
         return new Promise((resolve, reject) => {
             db.get('SELECT MAX(row) AS max_row FROM links WHERE column = ?', [column], (err, row) => {
                 if (err) reject(err)
@@ -54,8 +54,10 @@ app.post('/link', async (req, res) => {
         })
     }
 
-    const rowToInsertAt = (await getMaxRow() ?? 0) + 10
-    // console.log(rowToInsertAt)
+
+
+    const rowToInsertAt = (await getMaxRowInColumn() ?? 0) + 10
+    console.log(rowToInsertAt)
 
     db.run(`INSERT INTO links
         (name, localip, remoteip, imgurl, column, row) VALUES
@@ -101,16 +103,73 @@ app.patch('/link/:id', (req, res) => {
     })
 })
 
-app.patch('/link/reorder', (req, res) => {
-    const refId = req.body.refId
-    const relativeToId = req.body.relativeToId
-    const targetColumn = req.body.targetColumn
-    const position = req.body.position
+app.patch('/links/reorder', async (req, res) => {
+    const idToMove = Number(req.body.idToMove)
+    const relativeToId = Number(req.body.relativeToId)
+    const position = req.body.position  //'before' or 'after'
 
     //if position == before or after
+    // res.json({ message: req.body.relativeToId })
 
-    db.run(' ')
+    let targetColumn
+    let originalRow
+
+    const getOriginalRow = async () => {
+        return new Promise((resolve, reject) => {
+            db.get('SELECT * FROM links WHERE id = ?', [relativeToId], (err, row) => {
+                if (err) reject(err)
+                else {
+                    targetColumn = row.column
+                    originalRow = row.row
+                    console.log(`got target column ${targetColumn} and original row ${originalRow}`)
+                    resolve()
+                }
+            })
+        })
+    }
+
+    const getNextRow = async (originalRow) => {
+        return new Promise((resolve, reject) => {
+            db.get('SELECT * FROM links where column = ? and row > ? ORDER BY row DESC LIMIT 1', [targetColumn, originalRow], (err, row) => {
+                if (err) reject(err)
+                else {
+                    console.log(`got next row ${row.row}`)
+                    resolve(row.row)
+                }
+            })
+        })
+    }
+
+    const getPrevRow = async (originalRow) => {
+        return new Promise((resolve, reject) => {
+            db.get('SELECT * FROM links where column = ? and row < ? ORDER BY row DESC LIMIT 1', [targetColumn, originalRow], (err, row) => {
+                if (err) reject(err)
+                else {
+                    console.log(`got prev row ${row.row}`)
+                    resolve(row.row)
+                }
+            })
+        })
+    }
+
+    await getOriginalRow()
+    //targetColumn and originalRow now set
+
+    let secondRow
+    if (position == 'before') secondRow = await getPrevRow(originalRow)
+    else if (position == 'after') secondRow = await getNextRow(originalRow)
+    console.log(`got secondRow ${secondRow}`)
+
+    const rowToInsertAt = (originalRow + secondRow) / 2 //get the midpoint between the two rows
+    console.log(rowToInsertAt)
+    db.run('UPDATE links SET row = ?, column = ? WHERE id = ?', [rowToInsertAt, targetColumn, idToMove], (err) => {
+        if (err) throw err
+        res.json({ message: 'reordered successfully' });
+    })
+
 })
+
+
 
 //reorder endpoint to change the row and column values of links in the database, to use with drag and drop reordering
 

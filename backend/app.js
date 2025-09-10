@@ -18,6 +18,8 @@ const corsOptions = {
 app.use(express.json(), cors(corsOptions))
 
 
+
+
 // db.run to change data
 //db.get to get a single row
 //db.all to get multiple rows
@@ -28,24 +30,38 @@ app.get('/links', (req, res) => {
     // res.json(links)
     db.all('SELECT * FROM links ORDER BY column, row', [], (err, rows) => {
         if (err) throw err
-        console.log(rows)
+        // console.log(rows)
         res.json(rows)
     })
 })
 //create a link
-app.post('/link', (req, res) => {
+app.post('/link', async (req, res) => {
     const name = req.body.name
     const localIp = req.body.localIp
     const remoteIp = req.body.remoteIp
     const imgUrl = req.body.imgUrl
     const column = req.body.column
-    const row = req.body.row
+    // let rowToInsertAt
+
+    // console.log(rowToInsertAt)
+
+    const getMaxRow = async () => {
+        return new Promise((resolve, reject) => {
+            db.get('SELECT MAX(row) AS max_row FROM links WHERE column = ?', [column], (err, row) => {
+                if (err) reject(err)
+                else resolve(row.max_row)
+            })
+        })
+    }
+
+    const rowToInsertAt = (await getMaxRow() ?? 0) + 10
+    // console.log(rowToInsertAt)
 
     db.run(`INSERT INTO links
         (name, localip, remoteip, imgurl, column, row) VALUES
-        (?,?,?,?,?,?)`, [name, localIp, remoteIp, imgUrl, column, row], (err, rows) => {
+        (?,?,?,?,?,?)`, [name, localIp, remoteIp, imgUrl, column, rowToInsertAt], (err, rows) => {
         if (err) throw err
-        console.log(rows)
+        // console.log(rows)
         res.json({ message: `successfully added ${name}` })
     })
 })
@@ -83,6 +99,17 @@ app.patch('/link/:id', (req, res) => {
         if (err) return res.status(500).json({ 'error': err.message })
         res.json({ updated: this.changes });
     })
+})
+
+app.patch('/link/reorder', (req, res) => {
+    const refId = req.body.refId
+    const relativeToId = req.body.relativeToId
+    const targetColumn = req.body.targetColumn
+    const position = req.body.position
+
+    //if position == before or after
+
+    db.run(' ')
 })
 
 //reorder endpoint to change the row and column values of links in the database, to use with drag and drop reordering

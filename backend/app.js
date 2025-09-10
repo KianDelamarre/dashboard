@@ -103,6 +103,7 @@ app.patch('/link/:id', (req, res) => {
     })
 })
 
+
 app.patch('/links/reorder', async (req, res) => {
     const idToMove = Number(req.body.idToMove)
     const relativeToId = Number(req.body.relativeToId)
@@ -111,53 +112,18 @@ app.patch('/links/reorder', async (req, res) => {
     //if position == before or after
     // res.json({ message: req.body.relativeToId })
 
-    let targetColumn
-    let originalRow
+    // let targetColumn
+    // let originalRow
+    // let secondRow
 
-    const getOriginalRow = async () => {
-        return new Promise((resolve, reject) => {
-            db.get('SELECT * FROM links WHERE id = ?', [relativeToId], (err, row) => {
-                if (err) reject(err)
-                else {
-                    targetColumn = row.column
-                    originalRow = row.row
-                    console.log(`got target column ${targetColumn} and original row ${originalRow}`)
-                    resolve()
-                }
-            })
-        })
+    let { secondRow, originalRow, targetColumn } = await reorderFunctionsToRepeat(relativeToId, position)
+
+    if (Math.abs(originalRow - secondRow) < 2) {  //if gap between two row values is too small to add another value
+        await reIndexRowsForColumn(targetColumn)  //then reindex the row values
     }
 
-    const getNextRow = async (originalRow) => {
-        return new Promise((resolve, reject) => {
-            db.get('SELECT * FROM links where column = ? and row > ? ORDER BY row DESC LIMIT 1', [targetColumn, originalRow], (err, row) => {
-                if (err) reject(err)
-                else {
-                    console.log(`got next row ${row.row}`)
-                    resolve(row.row)
-                }
-            })
-        })
-    }
+    ({ secondRow, originalRow, targetColumn } = await reorderFunctionsToRepeat(relativeToId, position))
 
-    const getPrevRow = async (originalRow) => {
-        return new Promise((resolve, reject) => {
-            db.get('SELECT * FROM links where column = ? and row < ? ORDER BY row DESC LIMIT 1', [targetColumn, originalRow], (err, row) => {
-                if (err) reject(err)
-                else {
-                    console.log(`got prev row ${row.row}`)
-                    resolve(row.row)
-                }
-            })
-        })
-    }
-
-    await getOriginalRow()
-    //targetColumn and originalRow now set
-
-    let secondRow
-    if (position == 'before') secondRow = await getPrevRow(originalRow)
-    else if (position == 'after') secondRow = await getNextRow(originalRow)
     console.log(`got secondRow ${secondRow}`)
 
     const rowToInsertAt = (originalRow + secondRow) / 2 //get the midpoint between the two rows
@@ -166,10 +132,94 @@ app.patch('/links/reorder', async (req, res) => {
         if (err) throw err
         res.json({ message: 'reordered successfully' });
     })
-
 })
 
 
+
+let reIndexRowsForColumn = async (column) => {
+    let rowNum = 10
+
+    const getRowsToReindex = async (column) => {
+        return new Promise((resolve, reject) => {
+            db.all('SELECT * FROM links WHERE column = ? ORDER by row', [column], (err, rows) => {
+                if (err) reject(err)
+                else resolve(rows)
+            })
+        })
+    }
+
+    const updateRows = async (id, rowNum) => {
+        return new Promise((resolve, reject) => {
+            db.run('UPDATE links SET row = ? WHERE id =?', [rowNum, id], (err) => {
+                if (err) reject(err)
+                else resolve()
+            })
+
+        })
+    }
+
+    const rowsToReindex = await getRowsToReindex(column)
+
+    for (let i = 0; i < rowsToReindex.length; i++) {
+        let id = rowsToReindex[i].id
+        await updateRows(id, rowNum)
+        rowNum += 10
+    }
+}
+
+const getOriginalRow = async (id) => {
+    return new Promise((resolve, reject) => {
+        db.get('SELECT * FROM links WHERE id = ?', [id], (err, row) => {
+            if (err) reject(err)
+            else {
+                let targetColumn = row.column
+                let originalRow = row.row
+                console.log(`got target column ${targetColumn} and original row ${originalRow}`)
+                resolve({ targetColumn: row.column, originalRow: row.row })
+            }
+        })
+    })
+}
+
+
+
+const getNextRow = async (column, row) => {
+    return new Promise((resolve, reject) => {
+        db.get('SELECT * FROM links where column = ? and row > ? ORDER BY row ASC LIMIT 1', [column, row], (err, row) => {
+            if (err) reject(err)
+            else {
+                console.log(`got next row ${row.row}`)
+                resolve(row.row)
+            }
+        })
+    })
+}
+
+const getPrevRow = async (column, row) => {
+    return new Promise((resolve, reject) => {
+        db.get('SELECT * FROM links where column = ? and row < ? ORDER BY row DESC LIMIT 1', [column, row], (err, row) => {
+            if (err) reject(err)
+            else {
+                console.log(`got prev row ${row.row}`)
+                resolve(row.row)
+            }
+        })
+    })
+}
+
+
+async function reorderFunctionsToRepeat(relativeToId, position) {
+
+
+    let { targetColumn, originalRow } = await getOriginalRow(relativeToId)  //return original row and target column
+
+
+    let secondRow
+    if (position == 'before') secondRow = await getPrevRow(targetColumn, originalRow)  //set second row to row before original row
+    else if (position == 'after') secondRow = await getNextRow(targetColumn, originalRow) //set second row to row after original row
+
+    return ({ secondRow: secondRow, originalRow: originalRow, targetColumn: targetColumn })
+}
 
 //reorder endpoint to change the row and column values of links in the database, to use with drag and drop reordering
 

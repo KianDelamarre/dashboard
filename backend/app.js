@@ -109,24 +109,8 @@ app.patch('/links/reorder', async (req, res) => {
     const relativeToId = Number(req.body.relativeToId)
     const position = req.body.position  //'before' or 'after'
 
-    //if position == before or after
-    // res.json({ message: req.body.relativeToId })
+    const { rowToInsertAt, targetColumn } = await reorder(relativeToId, position)
 
-    // let targetColumn
-    // let originalRow
-    // let secondRow
-
-    let { secondRow, originalRow, targetColumn } = await reorderFunctionsToRepeat(relativeToId, position)
-
-    if (Math.abs(originalRow - secondRow) < 2) {  //if gap between two row values is too small to add another value
-        await reIndexRowsForColumn(targetColumn)  //then reindex the row values
-    }
-
-    ({ secondRow, originalRow, targetColumn } = await reorderFunctionsToRepeat(relativeToId, position))
-
-    console.log(`got secondRow ${secondRow}`)
-
-    const rowToInsertAt = (originalRow + secondRow) / 2 //get the midpoint between the two rows
     console.log(rowToInsertAt)
     db.run('UPDATE links SET row = ?, column = ? WHERE id = ?', [rowToInsertAt, targetColumn, idToMove], (err) => {
         if (err) throw err
@@ -215,11 +199,37 @@ async function reorderFunctionsToRepeat(relativeToId, position) {
 
 
     let secondRow
-    if (position == 'before') secondRow = await getPrevRow(targetColumn, originalRow)  //set second row to row before original row
-    else if (position == 'after') secondRow = await getNextRow(targetColumn, originalRow) //set second row to row after original row
+    let rowToInsertAt
 
-    return ({ secondRow: secondRow, originalRow: originalRow, targetColumn: targetColumn })
+    if (position == 'before') {
+        secondRow = await getPrevRow(targetColumn, originalRow)  //set second row to row before original row
+        rowToInsertAt = Math.floor((originalRow + secondRow) / 2)
+    }
+    else if (position == 'after') {
+        secondRow = await getNextRow(targetColumn, originalRow) //set second row to row after original row
+        rowToInsertAt = Math.ceil((originalRow + secondRow) / 2)
+    }
+    if (secondRow == undefined || secondRow == null) return ({ secondRow: secondRow, originalRow: originalRow, targetColumn: targetColumn, rowToInsertAt: 0 })
+
+    return ({ secondRow: secondRow, originalRow: originalRow, targetColumn: targetColumn, rowToInsertAt: rowToInsertAt })
 }
+
+async function reorder(relativeToId, position) {
+    let { secondRow, originalRow, targetColumn, rowToInsertAt } = await reorderFunctionsToRepeat(relativeToId, position)
+
+    if (rowToInsertAt) { return ({ rowToInsertAt: rowToInsertAt, targetColumn: targetColumn }) }
+    if (Math.abs(originalRow - secondRow) < 2) {  //if gap between two row values is too small to add another value
+        await reIndexRowsForColumn(targetColumn)  //then reindex the row values
+    }
+
+    ({ secondRow, originalRow, targetColumn, rowToInsertAt } = await reorderFunctionsToRepeat(relativeToId, position))
+
+    console.log(`got secondRow ${secondRow}`)
+
+
+    return ({ rowToInsertAt: rowToInsertAt, targetColumn: targetColumn })
+}
+
 
 //reorder endpoint to change the row and column values of links in the database, to use with drag and drop reordering
 

@@ -11,7 +11,7 @@ const jwt = require('jsonwebtoken')
 const { writeDataToFile } = require('./utils.js')
 // const usersJson = require('./users.json')
 const corsOptions = {
-    origin: 'https://example.com',
+    origin: 'http://localhost:8080',
     credentials: true,
 }
 
@@ -23,7 +23,7 @@ let refreshTokens = []
 
 
 let users = require('./users.json')
-console.log(users)
+// console.log(users)
 
 app.post('/token', (req, res) => {
     // const refreshToken = req.body.token
@@ -32,7 +32,10 @@ app.post('/token', (req, res) => {
     console.log(req.cookies.refreshToken)
 
 
-    if (refreshToken == null) return res.sendStatus(401) //if null
+    if (refreshToken == null) {
+        console.log('no token')
+        return res.sendStatus(401)
+    } //if null
     if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403)  //if not null but does not exist in refresh token array
 
     jwt.verify(refreshToken, process.env.REFRESS_TOKEN_SECRET, (err, user) => {   //then verify
@@ -76,7 +79,7 @@ app.delete('/logout', (req, res) => {
         path: '/',
         // httpOnly: true,
         // secure: true,
-        // sameSite: 'Strict'
+        // sameSite: 'Strict'[]
     });    //tell the client to delete the token from their cookies
     res.sendStatus(204)
 })
@@ -158,9 +161,17 @@ function authenticateToken(req, res, next) {
 // => user request new access token with refresh token, to revalidate sessions without having to log back in =>
 // => when user logs out, refresh token is delete 
 
+
+
+
+// app.listen(4001)
+
+const port = 4001;
+
+app.listen(port, () => {
+    console.log(`authServer is listening on port ${port}`);
+});
+
 module.exports = {
     authenticateToken
 }
-
-
-app.listen(4001)

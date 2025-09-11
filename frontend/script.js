@@ -1,5 +1,6 @@
 // const { parse } = require("path")
-
+const apiServer = 'http://localhost:3001'
+const authServer = 'http://localhost:4001'
 let column1 = document.getElementById('col-1')
 let column2 = document.getElementById('col-2')
 let column3 = document.getElementById('col-3')
@@ -39,14 +40,15 @@ let pageInitialised = false
 
 
 window.onload = async () => {
-    // await refreshLogin()
-    checkLoggedIn()
+    showLoadingPage()
+    await refreshLogin()
+    // checkLoggedIn()
 }
 
 
 function checkLoggedIn() {
-    // loadingPage.style.display = 'block'
-    if (!accessToken) {
+    showLoadingPage()
+    if (accessToken) {
         showDashBoard()
     }
     else {
@@ -54,18 +56,25 @@ function checkLoggedIn() {
     }
 }
 
+function showLoadingPage() {
+    loadingPage.style.display = 'block'
+    loginPage.style.display = 'none'
+    dashboard.style.display = 'none'
+}
+
 function showLoginPage() {
+    loadingPage.style.display = 'none'
     loginPage.style.display = 'flex'
     dashboard.style.display = 'none'
-    loadingPage.style.display = 'none'
-
 }
 
 function showDashBoard() {
+    loadingPage.style.display = 'none'
     loginPage.style.display = 'none'
     dashboard.style.display = 'flex'
-    loadingPage.style.display = 'none'
-    // if (!pageInitialised) initLinks()
+
+    if (!pageInitialised) getLinks()
+
 }
 
 document.getElementById('activate-edit-mode-button').addEventListener('click', () => {
@@ -144,10 +153,11 @@ document.getElementById('edit-link-form').addEventListener('submit', async funct
 // window.onload(refreshLogin())
 
 let getLinks = async () => {
-    const response = await fetch('http://localhost:2001/links', {
+    const response = await fetch(`${apiServer}/links`, {
         method: 'GET',
         headers: {
-            'content-type': 'application/json'
+            'content-type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
         }
     })
 
@@ -159,15 +169,19 @@ let getLinks = async () => {
     console.log(linksJson)
 
     buildDashboardHtml(linksJson)
+    pageInitialised = true
 }
 
 
 
 let createLink = async (name, localIp, remoteIp, imgUrl) => {
     console.log('trying to create link')
-    const response = await fetch('http://localhost:2001/link', {
+    const response = await fetch(`${apiServer}/link`, {
         method: "POST",
-        headers: { 'content-type': 'application/json' },
+        headers: {
+            'content-type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+        },
         body: JSON.stringify({
             'name': name,
             'localIp': localIp,
@@ -185,12 +199,13 @@ let createLink = async (name, localIp, remoteIp, imgUrl) => {
     console.log(`${name} added`)
 }
 
-getLinks()
+// getLinks()
 // createLink('readarr', '127.0.0.1:8000', 'https://kav.example.com', 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/kavita', '1')
 
 
 let refreshLogin = async () => {
-    const response = await fetch('https://apiauth.example.com/token', {
+
+    const response = await fetch(`${authServer}/token`, {
         method: 'POST',
         credentials: 'include'
     })
@@ -198,9 +213,11 @@ let refreshLogin = async () => {
     if (!response.ok) {
         console.error('error logging in', response.status)
         accessToken = null
+        console.log(response)
         checkLoggedIn()
         return;
     }
+    showLoadingPage()
     const token = await response.json();
     accessToken = token.accessToken
     startRefreshLoginTimer(accessToken)
@@ -211,7 +228,7 @@ let refreshLogin = async () => {
 
 let login = async (username, password) => {
     console.log('login method called')
-    const response = await fetch('https://apiauth.example.com/login', {
+    const response = await fetch(`${authServer}/login`, {
         method: 'POST',
         credentials: "include",
         headers: { 'Content-Type': 'application/json' },
@@ -237,10 +254,12 @@ let login = async (username, password) => {
 }
 
 let logout = async () => {
-    const response = await fetch('https://apiauth.example.com/logout', {
+    const response = await fetch(`${authServer}/logout`, {
         method: 'DELETE',
         credentials: "include"
-    })
+        // headers: { 'Authorization': `Bearer ${accessToken}` }
+    }
+    )
 
     if (!response.ok) {
         console.error('logging out:', response.status);
@@ -257,7 +276,7 @@ let logout = async () => {
 let initLinks = async () => {
     if (pageInitialised) return
     pageInitialised = true
-    const response = await fetch('https://api.example.com/links', {
+    const response = await fetch(`${apiServer}/links`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -284,7 +303,7 @@ let initLinks = async () => {
 
 let buildDashboardHtml = (array) => {
     for (let i = 0; i < array.length; i++) {
-        // console.log(array[i].column)
+        console.log(array[i])
         const columnId = `col-${array[i].column}`
         let columnElement = document.getElementById(columnId)
 
@@ -463,8 +482,9 @@ function makeDraggable(draggables, containers, draggablesClass) {
 
 let deleteLink = async (idToDelete) => {
     // const idToDelete = element.id
-    const response = await fetch(`http://localhost:2001/link/${idToDelete}`, {
-        method: 'DELETE'
+    const response = await fetch(`${apiServer}/link/${idToDelete}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${accessToken}` }
     })
 
     if (!response.ok) {
@@ -479,9 +499,12 @@ let deleteLink = async (idToDelete) => {
 
 let editLink = async (idToEdit, name, localIp, remoteIp, imgUrl) => {
 
-    const response = await fetch(`http://localhost:2001/link/${idToEdit}`, {
+    const response = await fetch(`${apiServer}/link/${idToEdit}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+        },
         body: JSON.stringify({
             'name': name || null,
             'localIp': localIp || null,
@@ -525,9 +548,12 @@ let moveLink = async (draggedElementId, elemtentToPutAboveId, column, position) 
     console.log(draggedElementId, elemtentToPutAboveId, columnNumber, position)
     if (position !== 'before' && position !== 'after') return
 
-    const response = await fetch('http://localhost:2001/links/move', {
+    const response = await fetch(`${apiServer}/links/move`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+        },
         body: JSON.stringify({
             "idToMove": draggedElementId,
             "relativeToId": elemtentToPutAboveId,

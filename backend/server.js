@@ -14,7 +14,7 @@ const jwt = require('jsonwebtoken')
 const links = require('./links.json')
 const db = new sqlite3.Database('./database.db')
 
-console.log(links)
+// console.log(links)
 
 const corsOptions = {
     origin: 'http://localhost:8080',
@@ -23,9 +23,9 @@ const corsOptions = {
 
 app.use(express.json(), cors(corsOptions))
 
-app.get('/links', authenticateToken, (req, res) => {
-    res.json(links)
-})
+// app.get('/links', authenticateToken, (req, res) => {
+//     res.json(links)
+// })
 
 // db.run to change data
 //db.get to get a single row
@@ -263,4 +263,8 @@ async function reorder(relativeToId, position) {
 // request /posts endpiont -> authenticate token function calls => get token from header => decode token producing error and user object(payload) => 
 // =>pass err and payload into callback => send err if persent => if no error create user object in req.user => return posts where username = req.user.username
 
-app.listen(3001)
+const port = 3001;
+
+app.listen(port, () => {
+    console.log(`Server is listening on port ${port}`);
+});

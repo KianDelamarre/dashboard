@@ -22,9 +22,9 @@ PATCH http://localhost:2001/links/reorder
 Content-Type : application/json
 
 {
-    "idToMove":"70",
-    "relativeToId":"86",
-    "position":"before"
+    "idToMove":"85",
+    "relativeToId":"68",
+    "position":"after"
 }
 ###
 

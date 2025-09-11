@@ -167,25 +167,26 @@ const getOriginalRow = async (id) => {
 
 
 
-const getNextRow = async (column, row) => {
+const getNextRow = async (column, originalRow) => {
     return new Promise((resolve, reject) => {
-        db.get('SELECT * FROM links where column = ? and row > ? ORDER BY row ASC LIMIT 1', [column, row], (err, row) => {
+        db.get('SELECT * FROM links where column = ? and row > ? ORDER BY row ASC LIMIT 1', [column, originalRow], (err, row) => {
             if (err) reject(err)
             else {
-                console.log(`got next row ${row.row}`)
-                resolve(row.row)
+                // console.log(`got next row ${row.row}`)
+                resolve(row?.row ?? originalRow)
             }
         })
     })
 }
 
-const getPrevRow = async (column, row) => {
+const getPrevRow = async (column, originalRow) => {
     return new Promise((resolve, reject) => {
-        db.get('SELECT * FROM links where column = ? and row < ? ORDER BY row DESC LIMIT 1', [column, row], (err, row) => {
+        db.get('SELECT * FROM links where column = ? and row < ? ORDER BY row DESC LIMIT 1', [column, originalRow], (err, row) => {
             if (err) reject(err)
             else {
-                console.log(`got prev row ${row.row}`)
-                resolve(row.row)
+                // console.log(`got prev row ${row.row ?? 0}`)
+
+                resolve(row?.row ?? 0)  //return the previous row, or the original row if original row is already the first row
             }
         })
     })
@@ -202,7 +203,7 @@ async function reorderFunctionsToRepeat(relativeToId, position) {
     let rowToInsertAt
 
     if (position == 'before') {
-        secondRow = await getPrevRow(targetColumn, originalRow)  //set second row to row before original row
+        secondRow = await getPrevRow(targetColumn, originalRow) //set second row to row before original row, or to 0 if null or undefined, because that means we're  putting it before the first row
         rowToInsertAt = Math.floor((originalRow + secondRow) / 2)
     }
     else if (position == 'after') {

@@ -320,6 +320,9 @@ let buildDashboardHtml = (array) => {
 
         nameDiv.append(name)
 
+        let circlesDiv = document.createElement('div')
+        circlesDiv.className = 'circlesDiv'
+
         let circle1 = document.createElement('div')
         circle1.className = 'circleDiv'
 
@@ -348,8 +351,10 @@ let buildDashboardHtml = (array) => {
 
         linkA.appendChild(imgDiv)
         linkA.appendChild(nameDiv)
-        linkA.appendChild(circle1)
-        linkA.appendChild(circle2)
+
+        circlesDiv.appendChild(circle1)
+        circlesDiv.appendChild(circle2)
+        linkA.appendChild(circlesDiv)
         editLinkBtns.appendChild(deleteButton)
         editLinkBtns.appendChild(editButton)
         linkDiv.appendChild(editLinkBtns)

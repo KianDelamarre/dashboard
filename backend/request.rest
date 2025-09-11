@@ -18,13 +18,14 @@ DELETE http://localhost:2001/link/44
 ###
 
 
-PATCH http://localhost:2001/links/reorder
+PATCH http://localhost:2001/links/move
 Content-Type : application/json
 
 {
-    "idToMove":"85",
-    "relativeToId":"68",
-    "position":"after"
+    "idToMove":"68",
+    "relativeToId":"",
+    "position":"before",
+    "targetColumn": "3"
 }
 ###
 

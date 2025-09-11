@@ -103,13 +103,24 @@ app.patch('/link/:id', (req, res) => {
     })
 })
 
-
-app.patch('/links/reorder', async (req, res) => {
+//move an id to any position relative to another id and reorder if necesarry, or to an empty column
+app.patch('/links/move', async (req, res) => {
+    // console.log('/link/move');
     const idToMove = Number(req.body.idToMove)
     const relativeToId = Number(req.body.relativeToId)
     const position = req.body.position  //'before' or 'after'
+    let targetColumn = Number(req.body.targetColumn)
 
-    const { rowToInsertAt, targetColumn } = await reorder(relativeToId, position)
+    let rowToInsertAt
+
+    if (relativeToId == (null || undefined || "")) { //if realtiveToId is passed in, then do logic to insert before or after
+        rowToInsertAt = 10
+    }
+    else { //no relative to id so, column must be empty so just insert at first row index on the empty column
+        // console.log('gonna try reorder()');
+        ({ rowToInsertAt, targetColumn } = await reorder(relativeToId, position))
+    }
+
 
     console.log(rowToInsertAt)
     db.run('UPDATE links SET row = ?, column = ? WHERE id = ?', [rowToInsertAt, targetColumn, idToMove], (err) => {
@@ -173,7 +184,7 @@ const getNextRow = async (column, originalRow) => {
             if (err) reject(err)
             else {
                 // console.log(`got next row ${row.row}`)
-                resolve(row?.row ?? originalRow)
+                resolve(row?.row ?? originalRow + 20) //if row.row == null, this creates an artificial next row, so row to insert at can still be originalRow + 10 
             }
         })
     })
@@ -196,7 +207,7 @@ const getPrevRow = async (column, originalRow) => {
 async function reorderFunctionsToRepeat(relativeToId, position) {
 
 
-    let { targetColumn, originalRow } = await getOriginalRow(relativeToId)  //return original row and target column
+    const { targetColumn, originalRow } = await getOriginalRow(relativeToId)  //return original row and target column
 
 
     let secondRow
@@ -210,9 +221,10 @@ async function reorderFunctionsToRepeat(relativeToId, position) {
         secondRow = await getNextRow(targetColumn, originalRow) //set second row to row after original row
         rowToInsertAt = Math.ceil((originalRow + secondRow) / 2)
     }
-    if (secondRow == undefined || secondRow == null) return ({ secondRow: secondRow, originalRow: originalRow, targetColumn: targetColumn, rowToInsertAt: 0 })
+    // if (secondRow == undefined || secondRow == null) return ({ secondRow: secondRow, originalRow: originalRow, targetColumn: targetColumn, rowToInsertAt: 0 })
 
     return ({ secondRow: secondRow, originalRow: originalRow, targetColumn: targetColumn, rowToInsertAt: rowToInsertAt })
+
 }
 
 async function reorder(relativeToId, position) {

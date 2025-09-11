@@ -294,6 +294,7 @@ let buildDashboardHtml = (array) => {
         linkA.className = 'btn'
         linkA.id = array[i].id
         linkA.href = array[i].remoteip
+        linkA.draggable = false
 
         let imgDiv = document.createElement('div')
         imgDiv.className = 'imgDiv'
@@ -423,14 +424,38 @@ let editLink = async (idToEdit, name, localIp, remoteIp, imgUrl) => {
     };
 }
 
+// let moveLink = async (dropTarget, draggedElement) => {
+//     const columnId = dropTarget.id
+//     const columnNumber = columnId.split('-')[1];
+//     const response = await fetch(`http://localhost:2001/link/${draggedElement.id}`, {
+//         method: 'PATCH',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({
+//             'column': columnNumber
+//         })
+//     })
+
+//     if (!response.ok) {
+//         console.error('Error fetching links:', response.status);
+//         pageInitialised = false
+//         return;
+//     };
+
+//     window.location.reload()
+// }
+
 let moveLink = async (dropTarget, draggedElement) => {
+    console.log('tried to move element')
     const columnId = dropTarget.id
     const columnNumber = columnId.split('-')[1];
-    const response = await fetch(`http://localhost:2001/link/${draggedElement.id}`, {
+    const response = await fetch(`http://localhost:2001/links/move`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            'column': columnNumber
+            "idToMove": draggedElement.id,
+            "relativeToId": "",
+            "position": "after",
+            "targetColumn": columnNumber
         })
     })
 

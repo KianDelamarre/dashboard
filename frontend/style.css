@@ -16,7 +16,9 @@ body {
   align-items: center;
 }
 
-#loading {}
+#loading {
+  display: block;
+}
 
 #login,
 .form-div {
@@ -213,7 +215,7 @@ body #title-bar {
 }
 
 #logout {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   margin: 0;
@@ -466,7 +468,7 @@ button[type="submit"] {
     font-size: 1.2rem;
   }
 
-  #activate-edit-mode-button {}
+
 
   #activate-edit-mode-button span,
   #open-edit-link-form-buttom span {

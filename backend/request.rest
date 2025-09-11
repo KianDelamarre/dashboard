@@ -22,9 +22,9 @@ PATCH http://localhost:2001/links/move
 Content-Type : application/json
 
 {
-    "idToMove":"68",
-    "relativeToId":"",
-    "position":"before",
+    "idToMove":"70",
+    "relativeToId":"0",
+    "position":"after",
     "targetColumn": "3"
 }
 ###

@@ -71,12 +71,19 @@ function showDashBoard() {
 document.getElementById('activate-edit-mode-button').addEventListener('click', () => {
     if (!editMode) {
         openEditLinkFormBtn.style.display = 'flex'
+
         document.querySelectorAll('.edit-link-btns').forEach(btn => {
             btn.style.display = 'flex';
         });
         document.querySelectorAll('.btn-container').forEach(btn => {
             btn.classList.add('hover')
         });
+
+        const draggables = document.querySelectorAll('.link-div')
+        const containers = document.querySelectorAll('.btn-container')
+
+        makeDraggable(draggables, containers, '.link-div')
+
     }
     else if (editMode) {
         openEditLinkFormBtn.style.display = 'none'
@@ -285,6 +292,7 @@ let buildDashboardHtml = (array) => {
 
         let linkDiv = document.createElement('div')
         linkDiv.className = 'link-div'
+        linkDiv.id = array[i].id
 
         let editLinkBtns = document.createElement('div')
         editLinkBtns.className = 'edit-link-btns'
@@ -292,9 +300,9 @@ let buildDashboardHtml = (array) => {
 
         let linkA = document.createElement('a')
         linkA.className = 'btn'
-        linkA.id = array[i].id
+        // linkA.id = array[i].id
         linkA.href = array[i].remoteip
-        linkA.draggable = false
+        linkA.draggable = true
 
         let imgDiv = document.createElement('div')
         imgDiv.className = 'imgDiv'
@@ -350,47 +358,106 @@ let buildDashboardHtml = (array) => {
 
         deleteButton.addEventListener('click', () => {
             // console.log(linkA.id)
-            deleteLink(linkA)
+            deleteLink(linkDiv.id)
         })
 
         editButton.addEventListener('click', () => {
-            idToEdit = linkA.id
+            idToEdit = linkDiv.id
             editingMode = 'edit'
-            console.log(linkA.id, editingMode)
+            console.log(linkDiv.id, editingMode)
             createLinkForm.style.display = 'flex'
             createLinkBuffer.style.display = 'flex'
 
         })
 
-        linkA.addEventListener('mousedown', e => {
-            // console.log(`${name} clicked`)
-            if (!editMode) return // disable draggable if not in edit mode
-            draggedElement = e.currentTarget  //set draggedElement to the element with the eventlistener
-            const rect = draggedElement.getBoundingClientRect();
-            // console.log(`rect left = ${rect.left}`)
-            // console.log(`rect top = ${rect.top}`)
-            // console.log(`page x = ${e.pageX}`)
-            // console.log(`page y = ${e.pageY}`)
-            // console.log(`windo page offset x = ${window.pageXOffset}`)  //accounts for number of pixels scrolled left
-            // console.log(`window page offset y = ${window.pageXOffset}`)  //accounts for number of pixels scrolled down
+        // linkA.addEventListener('mousedown', e => {
+        //     // console.log(`${name} clicked`)
+        //     if (!editMode) return // disable draggable if not in edit mode
+        //     draggedElement = e.currentTarget  //set draggedElement to the element with the eventlistener
+        //     const rect = draggedElement.getBoundingClientRect();
+        //     // console.log(`rect left = ${rect.left}`)
+        //     // console.log(`rect top = ${rect.top}`)
+        //     // console.log(`page x = ${e.pageX}`)
+        //     // console.log(`page y = ${e.pageY}`)
+        //     // console.log(`windo page offset x = ${window.pageXOffset}`)  //accounts for number of pixels scrolled left
+        //     // console.log(`window page offset y = ${window.pageXOffset}`)  //accounts for number of pixels scrolled down
 
-            offsetX = e.pageX - (rect.left + window.pageXOffset);
-            offsetY = e.pageY - (rect.top + window.pageYOffset);
+        //     offsetX = e.pageX - (rect.left + window.pageXOffset);
+        //     offsetY = e.pageY - (rect.top + window.pageYOffset);
 
-            draggedElement.style.width = rect.width + 'px';
-            draggedElement.style.height = rect.height + 'px';
-            // console.log(`width = ${linkA.style.width} height = ${linkA.style.height}`)
-            // console.log(`width = ${rect.width} height = ${rect.height}`)
+        //     draggedElement.style.width = rect.width + 'px';
+        //     draggedElement.style.height = rect.height + 'px';
+        //     // console.log(`width = ${linkA.style.width} height = ${linkA.style.height}`)
+        //     // console.log(`width = ${rect.width} height = ${rect.height}`)
 
-            draggedElement.style.position = 'absolute';
-            draggedElement.style.zIndex = 1000;
-            // moveAt(e.pageX, e.pageY)
-        })
+        //     draggedElement.style.position = 'absolute';
+        //     draggedElement.style.zIndex = 1000;
+        //     // moveAt(e.pageX, e.pageY)
+        // })
     }
 }
 
-let deleteLink = async (element) => {
-    const idToDelete = element.id
+function makeDraggable(draggables, containers, draggablesClass) {
+    let afterElement
+    let position
+
+    draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', () => {
+            console.log(`dragging ${draggable.id}`)
+            draggable.classList.add('dragging')
+        })
+
+        draggable.addEventListener('dragend', () => {
+            draggable.classList.remove('dragging')
+            const draggableId = draggable.id
+            const column = draggable.parentElement
+            afterElement = afterElement?.id ?? ""
+            if (draggable) {
+                // console.log(draggableId, afterElement?.id ?? "", column, position);
+                console.log('gonna try api call');
+                moveLink(draggableId, afterElement, column, position);
+            }
+        })
+    })
+
+    containers.forEach(column => {
+        column.addEventListener('dragover', e => {
+            e.preventDefault()  //allows dropping in an element and removes not allowed cursor
+            afterElement = getDragAfterElement(column, e.clientY)
+            const draggable = document.querySelector('.dragging')  //can only drag one element, so the only element with class draggable is the one we are dragging
+            console.log(afterElement)
+            if (afterElement == null) {
+                column.appendChild(draggable)
+                afterElement = column.children[column.children.length - 2]
+                // console.log("before element = " & afterElement)
+                position = 'after'
+            }
+            else {
+                column.insertBefore(draggable, afterElement)
+                position = 'before'
+            }
+        })
+    })
+
+    function getDragAfterElement(column, mouseY) {
+        //return the element positioned right after where the mouse is positioned, to append above that element
+        const draggableElements = [...column.querySelectorAll(`${draggablesClass}:not(.dragging)`)]   //gets every element but the one we're dragging, spreads them to an array
+        return draggableElements.reduce((closest, child) => { //gets the next element after a pa
+            const box = child.getBoundingClientRect()
+            const offset = mouseY - box.top - box.height / 2
+            // console.log(offset)
+            if (offset < 0 && offset > closest.offset) {//so above an element
+                return { offset: offset, element: child }
+            }
+            else {
+                return closest
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element
+    }
+}
+
+let deleteLink = async (idToDelete) => {
+    // const idToDelete = element.id
     const response = await fetch(`http://localhost:2001/link/${idToDelete}`, {
         method: 'DELETE'
     })
@@ -444,59 +511,64 @@ let editLink = async (idToEdit, name, localIp, remoteIp, imgUrl) => {
 //     window.location.reload()
 // }
 
-let moveLink = async (dropTarget, draggedElement) => {
-    console.log('tried to move element')
-    const columnId = dropTarget.id
+let moveLink = async (draggedElementId, elemtentToPutAboveId, column, position) => {
+    console.log('tried to move element');
+
+
+    const columnId = column.id;
     const columnNumber = columnId.split('-')[1];
-    const response = await fetch(`http://localhost:2001/links/move`, {
+    console.log(draggedElementId, elemtentToPutAboveId, columnNumber, position)
+    if (position !== 'before' && position !== 'after') return
+
+    const response = await fetch('http://localhost:2001/links/move', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            "idToMove": draggedElement.id,
-            "relativeToId": "",
-            "position": "after",
+            "idToMove": draggedElementId,
+            "relativeToId": elemtentToPutAboveId,
+            "position": position,
             "targetColumn": columnNumber
         })
     })
 
     if (!response.ok) {
-        console.error('Error fetching links:', response.status);
+        console.log('Error fetching links:', response.status);
         pageInitialised = false
         return;
     };
-
+    console.log('moved element')
     window.location.reload()
 }
 
-document.addEventListener('mousemove', e => {
-    if (!draggedElement) return;
-    moveAt(e.pageX, e.pageY);
-});
+// document.addEventListener('mousemove', e => {
+//     if (!draggedElement) return;
+//     moveAt(e.pageX, e.pageY);
+// });
 
-function moveAt(pageX, pageY) {
-    draggedElement.style.left = pageX - offsetX + 'px';
-    draggedElement.style.top = pageY - offsetY + 'px';
-}
+// function moveAt(pageX, pageY) {
+//     draggedElement.style.left = pageX - offsetX + 'px';
+//     draggedElement.style.top = pageY - offsetY + 'px';
+// }
 
-document.addEventListener('mouseup', e => {
-    if (!draggedElement) return;
+// document.addEventListener('mouseup', e => {
+//     if (!draggedElement) return;
 
-    // Optional: detect which column the mouse is over
-    const dropTarget = document.elementFromPoint(e.clientX, e.clientY)?.closest('.btn-container');
+//     // Optional: detect which column the mouse is over
+//     const dropTarget = document.elementFromPoint(e.clientX, e.clientY)?.closest('.btn-container');
 
-    if (dropTarget) {
-        (moveLink(dropTarget, draggedElement))
-        // console.log(`drop target is ${dropTarget.id}`)
-    }
+//     if (dropTarget) {
+//         (moveLink(dropTarget, draggedElement))
+//         // console.log(`drop target is ${dropTarget.id}`)
+//     }
 
-    // Reset styles
-    draggedElement.style.position = '';
-    draggedElement.style.width = '';
-    draggedElement.style.height = '';
-    draggedElement.style.zIndex = '';
+//     // Reset styles
+//     draggedElement.style.position = '';
+//     draggedElement.style.width = '';
+//     draggedElement.style.height = '';
+//     draggedElement.style.zIndex = '';
 
-    draggedElement = null;
-});
+//     draggedElement = null;
+// });
 
 let buildHtml = (array, start, end, idToAppend) => {
     for (let i = start; i < end; i++) {
@@ -547,9 +619,6 @@ let buildHtml = (array, start, end, idToAppend) => {
 
 }
 
-let changeColumn = () => {
-
-}
 
 function parseJwt(token) {
     const payloadBase64 = token.split('.')[1]   //splits payload into 3 parts and store as an array, jwt consists of header.payload.signature, so [1] gets the payload 

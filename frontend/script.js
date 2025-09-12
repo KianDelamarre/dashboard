@@ -9,8 +9,10 @@ let column4 = document.getElementById('col-4')
 let loginPage = document.getElementById('login')
 let loginErrorMsg = document.getElementById('login-error-msg')
 
-let openEditLinkFormBtn = document.getElementById('open-edit-link-form-buttom')
+let openEditLinkFormBtn = document.getElementById('open-edit-link-form-button')
 openEditLinkFormBtn.style.display = 'none'
+let saveChangesBtn = document.getElementById('save-changes-button')
+saveChangesBtn.style.display = 'none'
 let createLinkForm = document.getElementById('edit-link-div')
 let createLinkBuffer = document.getElementById('edit-link-buffer')
 
@@ -20,6 +22,7 @@ const loadingPage = document.getElementById('loading')
 const logoutBtn = document.getElementById('logout')
 
 let editMode = false
+let arrayOfPositionsForBatchMove = []
 
 let editingMode = 'create'
 let idToEdit = ''
@@ -82,7 +85,9 @@ function showDashBoard() {
 
 document.getElementById('activate-edit-mode-button').addEventListener('click', () => {
     if (!editMode) {
+
         openEditLinkFormBtn.style.display = 'flex'
+        saveChangesBtn.style.display = 'flex'
 
         document.querySelectorAll('.edit-link-btns').forEach(btn => {
             btn.style.display = 'flex';
@@ -99,6 +104,7 @@ document.getElementById('activate-edit-mode-button').addEventListener('click', (
     }
     else if (editMode) {
         openEditLinkFormBtn.style.display = 'none'
+        saveChangesBtn.style.display = 'none'
         document.querySelectorAll('.edit-link-btns').forEach(btn => {
             btn.style.display = 'none';
         });
@@ -150,6 +156,10 @@ document.getElementById('edit-link-form').addEventListener('submit', async funct
     document.getElementById('edit-link-form').reset();
     window.location.reload()
     // console.log('tried creating element')
+})
+
+saveChangesBtn.addEventListener('click', async () => {
+    if (arrayOfPositionsForBatchMove) await batchMoveLinks(arrayOfPositionsForBatchMove)
 })
 
 
@@ -365,13 +375,15 @@ let buildDashboardHtml = (array) => {
         statusRemote.className = 'circle'
         statusRemote.id = `${array[i].remoteip}-status-remote`
 
-        let deleteButton = document.createElement('div')
-        deleteButton.className = 'delete-link'
-        deleteButton.innerText = 'X'
-
         let editButton = document.createElement('div')
         editButton.className = 'edit-link'
-        editButton.innerText = 'Edit'
+        editButton.innerText = 'EDIT'
+
+        let deleteButton = document.createElement('div')
+        deleteButton.className = 'delete-link'
+        deleteButton.innerText = 'DELETE'
+
+
 
         circle2.appendChild(statusRemote)
 
@@ -381,8 +393,9 @@ let buildDashboardHtml = (array) => {
         circlesDiv.appendChild(circle1)
         circlesDiv.appendChild(circle2)
         linkA.appendChild(circlesDiv)
-        editLinkBtns.appendChild(deleteButton)
         editLinkBtns.appendChild(editButton)
+        editLinkBtns.appendChild(deleteButton)
+
         linkDiv.appendChild(editLinkBtns)
         linkDiv.appendChild(linkA)
         columnElement.appendChild(linkDiv)
@@ -443,7 +456,11 @@ function makeDraggable(draggables, containers, draggablesClass) {
             const column = draggable.parentElement
             if (draggable) {
                 console.log("after element " + afterElement?.id ?? undefined);
-                moveLink(draggableId, afterElement?.id ?? undefined, column);
+                const columnId = column.id;
+                const columnNumber = columnId.split('-')[1];
+                arrayOfPositionsForBatchMove.push({ idToMove: draggableId, relativeToId: afterElement?.id ?? undefined, targetColumn: columnNumber })
+                console.log(arrayOfPositionsForBatchMove)
+                // moveLink(draggableId, afterElement?.id ?? undefined, column);
 
             }
         })
@@ -564,6 +581,32 @@ let moveLink = async (draggedElementId, elemtentToPutAboveId, column) => {
             "relativeToId": elemtentToPutAboveId,
             "targetColumn": columnNumber
         })
+    })
+
+    if (!response.ok) {
+        console.log('Error fetching links:', response.status);
+        pageInitialised = false
+        return;
+    };
+    console.log('moved element')
+    window.location.reload()
+}
+
+let batchMoveLinks = async (array) => {
+    console.log('tried to move element');
+    // const columnId = column.id;
+    // const columnNumber = columnId.split('-')[1];
+
+    // console.log(draggedElementId, elemtentToPutAboveId, columnNumber,)
+
+    const response = await fetch(`${apiServer}/links/batchmove`, {
+        method: 'PATCH',
+        credentials: `${credentials}`,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(array)
     })
 
     if (!response.ok) {

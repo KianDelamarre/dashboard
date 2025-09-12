@@ -1,8 +1,9 @@
 // const { parse } = require("path")
-const apiServer = 'http://localhost:3001'
-const authServer = 'http://localhost:4001'
+const apiServer = 'https://api.example.com'
+const authServer = 'https://api.example.com'
 let column1 = document.getElementById('col-1')
 let column2 = document.getElementById('col-2')
+
 let column3 = document.getElementById('col-3')
 let column4 = document.getElementById('col-4')
 
@@ -155,6 +156,7 @@ document.getElementById('edit-link-form').addEventListener('submit', async funct
 let getLinks = async () => {
     const response = await fetch(`${apiServer}/links`, {
         method: 'GET',
+        credentials: 'include',
         headers: {
             'content-type': 'application/json',
             'Authorization': `Bearer ${accessToken}`
@@ -178,6 +180,7 @@ let createLink = async (name, localIp, remoteIp, imgUrl) => {
     console.log('trying to create link')
     const response = await fetch(`${apiServer}/link`, {
         method: "POST",
+        credentials: 'include',
         headers: {
             'content-type': 'application/json',
             'Authorization': `Bearer ${accessToken}`
@@ -278,6 +281,7 @@ let initLinks = async () => {
     pageInitialised = true
     const response = await fetch(`${apiServer}/links`, {
         method: 'GET',
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`
@@ -484,6 +488,7 @@ let deleteLink = async (idToDelete) => {
     // const idToDelete = element.id
     const response = await fetch(`${apiServer}/link/${idToDelete}`, {
         method: 'DELETE',
+        credentials: 'include',
         headers: { 'Authorization': `Bearer ${accessToken}` }
     })
 
@@ -501,6 +506,7 @@ let editLink = async (idToEdit, name, localIp, remoteIp, imgUrl) => {
 
     const response = await fetch(`${apiServer}/link/${idToEdit}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`
@@ -550,6 +556,7 @@ let moveLink = async (draggedElementId, elemtentToPutAboveId, column, position) 
 
     const response = await fetch(`${apiServer}/links/move`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`

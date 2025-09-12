@@ -1,9 +1,7 @@
 // const { parse } = require("path")
-const apiServer = 'https://api.kianserver.uk'
-const authServer = 'https://api.kianserver.uk'
+const apiServer = 'http://localhost:4001'
 let column1 = document.getElementById('col-1')
 let column2 = document.getElementById('col-2')
-
 let column3 = document.getElementById('col-3')
 let column4 = document.getElementById('col-4')
 
@@ -30,6 +28,9 @@ let draggedElement = null;
 let offsetX = 0;
 let offsetY = 0;
 
+
+const credentials = 'omit'     //'include' for auth, 'omit' for no auth
+
 logoutBtn.addEventListener('click', () => {
     logout();
 })
@@ -41,15 +42,16 @@ let pageInitialised = false
 
 
 window.onload = async () => {
-    showLoadingPage()
-    await refreshLogin()
-    // checkLoggedIn()
+    // showLoadingPage()
+    // await refreshLogin()             //enable when reenabling auth
+    checkLoggedIn()                     //disable when reenabling auth
 }
 
 
 function checkLoggedIn() {
-    showLoadingPage()
-    if (accessToken) {
+    showLoadingPage()                    //disable when reenabling auth
+    accessToken = null;                  //disable when reenabling auth
+    if (!accessToken) {                  //remove ! when reenabling auth
         showDashBoard()
     }
     else {
@@ -156,7 +158,7 @@ document.getElementById('edit-link-form').addEventListener('submit', async funct
 let getLinks = async () => {
     const response = await fetch(`${apiServer}/links`, {
         method: 'GET',
-        credentials: 'include',
+        credentials: `${credentials}`,
         headers: {
             'content-type': 'application/json',
             'Authorization': `Bearer ${accessToken}`
@@ -168,7 +170,8 @@ let getLinks = async () => {
         return
     }
     const linksJson = await response.json()
-    console.log(linksJson)
+    // console.log(linksJson)
+    console.log('got links')
 
     buildDashboardHtml(linksJson)
     pageInitialised = true
@@ -180,7 +183,7 @@ let createLink = async (name, localIp, remoteIp, imgUrl) => {
     console.log('trying to create link')
     const response = await fetch(`${apiServer}/link`, {
         method: "POST",
-        credentials: 'include',
+        credentials: `${credentials}`,
         headers: {
             'content-type': 'application/json',
             'Authorization': `Bearer ${accessToken}`
@@ -208,9 +211,9 @@ let createLink = async (name, localIp, remoteIp, imgUrl) => {
 
 let refreshLogin = async () => {
 
-    const response = await fetch(`${authServer}/token`, {
+    const response = await fetch(`${apiServer}/token`, {
         method: 'POST',
-        credentials: 'include'
+        credentials: `${credentials}`
     })
 
     if (!response.ok) {
@@ -231,7 +234,7 @@ let refreshLogin = async () => {
 
 let login = async (username, password) => {
     console.log('login method called')
-    const response = await fetch(`${authServer}/login`, {
+    const response = await fetch(`${apiServer}/login`, {
         method: 'POST',
         credentials: "include",
         headers: { 'Content-Type': 'application/json' },
@@ -257,7 +260,7 @@ let login = async (username, password) => {
 }
 
 let logout = async () => {
-    const response = await fetch(`${authServer}/logout`, {
+    const response = await fetch(`${apiServer}/logout`, {
         method: 'DELETE',
         credentials: "include"
         // headers: { 'Authorization': `Bearer ${accessToken}` }
@@ -281,7 +284,7 @@ let initLinks = async () => {
     pageInitialised = true
     const response = await fetch(`${apiServer}/links`, {
         method: 'GET',
-        credentials: 'include',
+        credentials: `${credentials}`,
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`
@@ -307,7 +310,7 @@ let initLinks = async () => {
 
 let buildDashboardHtml = (array) => {
     for (let i = 0; i < array.length; i++) {
-        console.log(array[i])
+        // console.log(array[i])
         const columnId = `col-${array[i].column}`
         let columnElement = document.getElementById(columnId)
 
@@ -427,7 +430,6 @@ let buildDashboardHtml = (array) => {
 
 function makeDraggable(draggables, containers, draggablesClass) {
     let afterElement
-    let position
 
     draggables.forEach(draggable => {
         draggable.addEventListener('dragstart', () => {
@@ -439,11 +441,10 @@ function makeDraggable(draggables, containers, draggablesClass) {
             draggable.classList.remove('dragging')
             const draggableId = draggable.id
             const column = draggable.parentElement
-            afterElement = afterElement?.id ?? ""
             if (draggable) {
-                // console.log(draggableId, afterElement?.id ?? "", column, position);
-                console.log('gonna try api call');
-                moveLink(draggableId, afterElement, column, position);
+                console.log("after element " + afterElement?.id ?? undefined);
+                moveLink(draggableId, afterElement?.id ?? undefined, column);
+
             }
         })
     })
@@ -453,17 +454,17 @@ function makeDraggable(draggables, containers, draggablesClass) {
             e.preventDefault()  //allows dropping in an element and removes not allowed cursor
             afterElement = getDragAfterElement(column, e.clientY)
             const draggable = document.querySelector('.dragging')  //can only drag one element, so the only element with class draggable is the one we are dragging
-            console.log(afterElement)
+
             if (afterElement == null) {
                 column.appendChild(draggable)
                 afterElement = column.children[column.children.length - 2]
-                // console.log("before element = " & afterElement)
-                position = 'after'
             }
             else {
                 column.insertBefore(draggable, afterElement)
-                position = 'before'
             }
+
+            afterElement = getDragAfterElement(column, e.clientY)  //not sure why but having this here fixed an issue where dragend would only use the first afterElement value set by this dragover
+
         })
     })
 
@@ -488,7 +489,7 @@ let deleteLink = async (idToDelete) => {
     // const idToDelete = element.id
     const response = await fetch(`${apiServer}/link/${idToDelete}`, {
         method: 'DELETE',
-        credentials: 'include',
+        credentials: `${credentials}`,
         headers: { 'Authorization': `Bearer ${accessToken}` }
     })
 
@@ -506,7 +507,7 @@ let editLink = async (idToEdit, name, localIp, remoteIp, imgUrl) => {
 
     const response = await fetch(`${apiServer}/link/${idToEdit}`, {
         method: 'PATCH',
-        credentials: 'include',
+        credentials: `${credentials}`,
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`
@@ -545,18 +546,15 @@ let editLink = async (idToEdit, name, localIp, remoteIp, imgUrl) => {
 //     window.location.reload()
 // }
 
-let moveLink = async (draggedElementId, elemtentToPutAboveId, column, position) => {
+let moveLink = async (draggedElementId, elemtentToPutAboveId, column) => {
     console.log('tried to move element');
-
-
     const columnId = column.id;
     const columnNumber = columnId.split('-')[1];
-    console.log(draggedElementId, elemtentToPutAboveId, columnNumber, position)
-    if (position !== 'before' && position !== 'after') return
+    // console.log(draggedElementId, elemtentToPutAboveId, columnNumber,)
 
     const response = await fetch(`${apiServer}/links/move`, {
         method: 'PATCH',
-        credentials: 'include',
+        credentials: `${credentials}`,
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`
@@ -564,7 +562,6 @@ let moveLink = async (draggedElementId, elemtentToPutAboveId, column, position) 
         body: JSON.stringify({
             "idToMove": draggedElementId,
             "relativeToId": elemtentToPutAboveId,
-            "position": position,
             "targetColumn": columnNumber
         })
     })

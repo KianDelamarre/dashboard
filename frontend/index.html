@@ -30,7 +30,24 @@
             <div id="icon"><img src="icon.ico" alt="Dashboard Icon"></div>
             <div id="title">Kianserver Dashboard</div>
 
+
+            <div id="logout" class="btn" target="_blank" aria-label="Logout">
+                <img src="logout.png" alt="Logout Icon">
+            </div>
+        </div>
+
+        <div id="searchBarAndEditButtons">
+            <form id="search" action="https://www.google.com/search" method="get">
+                <input type="text" name="q" placeholder="Search the web" aria-label="Search">
+                <button type="submit" aria-label="Submit Search">
+                    <img src="search (1).png" alt="Search Icon">
+                </button>
+            </form>
+
             <div id="editButtons">
+                <div id="save-changes-button">
+                    <span>SAVE</span>
+                </div>
 
                 <div id="activate-edit-mode-button">
                     <span>EDIT MODE</span>
@@ -40,22 +57,11 @@
                     <span>NEW</span>
                 </div>
 
-                <div id="save-changes-button">
-                    <span>SAVE</span>
-                </div>
+
 
             </div>
-            <div id="logout" class="btn" target="_blank" aria-label="Logout">
-                <img src="logout.png" alt="Logout Icon">
-            </div>
+
         </div>
-
-        <form id="search" action="https://www.google.com/search" method="get">
-            <input type="text" name="q" placeholder="Search the web" aria-label="Search">
-            <button type="submit" aria-label="Submit Search">
-                <img src="search (1).png" alt="Search Icon">
-            </button>
-        </form>
 
         <div id="edit-link-div" class="form-div">
             <form id="edit-link-form" class="form">
@@ -67,6 +73,10 @@
                 <button type="submit">Create</button>
             </form>
         </div>
+
+
+
+
         <div id="edit-link-buffer"></div>
 
         <div id="container">

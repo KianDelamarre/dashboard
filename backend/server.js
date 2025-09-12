@@ -4,7 +4,7 @@ const express = require('express')
 const cors = require('cors')
 const sqlite3 = require('sqlite3').verbose();
 
-const { authenticateToken, generateAccessToken, generateResetToken, authenticateUser } = require('./authServer.js')
+const { authenticateToken, generateAccessToken, generateResetToken, authenticateUser } = require('./utils/auth.js')
 
 const app = express()
 
@@ -20,11 +20,11 @@ const db = new sqlite3.Database('./database.db')
 // console.log(links)
 
 const corsOptions = {
-    origin: 'https://example.com',
+    origin: '*',
     credentials: true,
 }
 
-app.use(express.json(), cors({ origin: 'https://example.com', credentials: true }), cookieParser())
+app.use(express.json(), cors({ origin: '*', credentials: false }), cookieParser())
 
 let refreshTokens = []
 
@@ -134,13 +134,6 @@ app.put('/reset-password', authenticateToken, (req, res) => { ///need a differen
 // => when user logs out, refresh token is delete 
 
 
-
-
-
-
-
-
-
 // app.get('/links', authenticateToken, (req, res) => {
 //     res.json(links)
 // })
@@ -151,7 +144,7 @@ app.put('/reset-password', authenticateToken, (req, res) => { ///need a differen
 
 
 //get all links
-app.get('/links', authenticateToken, (req, res) => {
+app.get('/links', (req, res) => {
     // res.json(links)
     db.all('SELECT * FROM links ORDER BY column, row', [], (err, rows) => {
         if (err) throw err
@@ -160,7 +153,7 @@ app.get('/links', authenticateToken, (req, res) => {
     })
 })
 //create a link
-app.post('/link', authenticateToken, async (req, res) => {
+app.post('/link', async (req, res) => {
     const name = req.body.name
     const localIp = req.body.localIp
     const remoteIp = req.body.remoteIp
@@ -169,7 +162,6 @@ app.post('/link', authenticateToken, async (req, res) => {
     // let rowToInsertAt
 
     // console.log(rowToInsertAt)
-
     const getMaxRowInColumn = async () => {
         return new Promise((resolve, reject) => {
             db.get('SELECT MAX(row) AS max_row FROM links WHERE column = ?', [column], (err, row) => {
@@ -178,8 +170,6 @@ app.post('/link', authenticateToken, async (req, res) => {
             })
         })
     }
-
-
 
     const rowToInsertAt = (await getMaxRowInColumn() ?? 0) + 10
     console.log(rowToInsertAt)
@@ -194,7 +184,7 @@ app.post('/link', authenticateToken, async (req, res) => {
 })
 
 //delete a link
-app.delete('/link/:id', authenticateToken, (req, res) => {
+app.delete('/link/:id', (req, res) => {
     const id = req.params.id
 
     db.run('DELETE FROM links WHERE id = ?', [id], (err) => {
@@ -205,7 +195,7 @@ app.delete('/link/:id', authenticateToken, (req, res) => {
 
 
 //update any columns for a link
-app.patch('/link/:id', authenticateToken, (req, res) => {
+app.patch('/link/:id', (req, res) => {
     const id = req.params.id
     const updates = req.body
 
@@ -229,22 +219,21 @@ app.patch('/link/:id', authenticateToken, (req, res) => {
 })
 
 //move an id to any position relative to another id and reorder if necesarry, or to an empty column
-app.patch('/links/move', authenticateToken, async (req, res) => {
+app.patch('/links/move', async (req, res) => {
     // console.log('/link/move');
     const idToMove = Number(req.body.idToMove)
     const relativeToId = Number(req.body.relativeToId)
-    const position = req.body.position  //'before' or 'after'
     let targetColumn = Number(req.body.targetColumn)
 
     let rowToInsertAt
 
-    if (relativeToId == (null || undefined || "")) { //if realtiveToId is passed in, then do logic to insert before or after
-        rowToInsertAt = 10
-    }
-    else { //no relative to id so, column must be empty so just insert at first row index on the empty column
-        // console.log('gonna try reorder()');
-        ({ rowToInsertAt, targetColumn } = await reorder(relativeToId, position))
-    }
+    // if (relativeToId == (null || undefined || "")) { //if realtiveToId is passed in, then do logic to insert before or after
+    //     rowToInsertAt = 10
+    // }
+    // else { //no relative to id so, column must be empty so just insert at first row index on the empty column
+    // console.log('gonna try reorder()');
+    ({ rowToInsertAt, targetColumn } = await calculateInsertPosition(relativeToId, targetColumn)) //outputs the target row and column, if no relativeToId, it calculates the last row of a column or first row of a columna accordingly
+    // }
 
 
     console.log(rowToInsertAt)
@@ -287,35 +276,22 @@ let reIndexRowsForColumn = async (column) => {
     }
 }
 
-const getOriginalRow = async (id) => {
+const getRowAndColumnForId = async (id) => {
     return new Promise((resolve, reject) => {
         db.get('SELECT * FROM links WHERE id = ?', [id], (err, row) => {
             if (err) reject(err)
             else {
-                let targetColumn = row.column
-                let originalRow = row.row
-                console.log(`got target column ${targetColumn} and original row ${originalRow}`)
-                resolve({ targetColumn: row.column, originalRow: row.row })
+                // let targetColumn = row.column
+                // let originalRow = row.row
+                console.log(`got target column ${row.column} and original row ${row.row}`)
+                resolve({ targetColumn: row.column, row: row.row })
             }
         })
     })
 }
 
 
-
-const getNextRow = async (column, originalRow) => {
-    return new Promise((resolve, reject) => {
-        db.get('SELECT * FROM links where column = ? and row > ? ORDER BY row ASC LIMIT 1', [column, originalRow], (err, row) => {
-            if (err) reject(err)
-            else {
-                // console.log(`got next row ${row.row}`)
-                resolve(row?.row ?? originalRow + 20) //if row.row == null, this creates an artificial next row, so row to insert at can still be originalRow + 10 
-            }
-        })
-    })
-}
-
-const getPrevRow = async (column, originalRow) => {
+const getPrevRow = async (column, originalRow) => { //get the row of the id before relativeToId in order to later calcate halfway between the two
     return new Promise((resolve, reject) => {
         db.get('SELECT * FROM links where column = ? and row < ? ORDER BY row DESC LIMIT 1', [column, originalRow], (err, row) => {
             if (err) reject(err)
@@ -328,50 +304,45 @@ const getPrevRow = async (column, originalRow) => {
     })
 }
 
-
-async function reorderFunctionsToRepeat(relativeToId, position) {
-
-
-    const { targetColumn, originalRow } = await getOriginalRow(relativeToId)  //return original row and target column
-
-
-    let secondRow
-    let rowToInsertAt
-
-    if (position == 'before') {
-        secondRow = await getPrevRow(targetColumn, originalRow) //set second row to row before original row, or to 0 if null or undefined, because that means we're  putting it before the first row
-        rowToInsertAt = Math.floor((originalRow + secondRow) / 2)
-    }
-    else if (position == 'after') {
-        secondRow = await getNextRow(targetColumn, originalRow) //set second row to row after original row
-        rowToInsertAt = Math.ceil((originalRow + secondRow) / 2)
-    }
-    // if (secondRow == undefined || secondRow == null) return ({ secondRow: secondRow, originalRow: originalRow, targetColumn: targetColumn, rowToInsertAt: 0 })
-
-    return ({ secondRow: secondRow, originalRow: originalRow, targetColumn: targetColumn, rowToInsertAt: rowToInsertAt })
-
+const getLastRowInColumn = async (column) => {
+    return new Promise((resolve, reject) => {
+        db.get('SELECT * FROM links WHERE column = ? ORDER BY row DESC LIMIT 1', [column], (err, row) => {
+            if (err) reject(err)
+            else resolve(row?.row ?? 0)
+        })
+    })
 }
 
-async function reorder(relativeToId, position) {
-    let { secondRow, originalRow, targetColumn, rowToInsertAt } = await reorderFunctionsToRepeat(relativeToId, position)
 
+async function calculateInsertPosition(relativeToId, targetColumn) {
+    // let targetColumn
 
-    console.log('original row = ' + originalRow)
-    console.log('second row = ' + secondRow)
-    console.log('diff = ' + Math.abs(originalRow - secondRow))
+    let rowToInsertAt
 
+    if (!relativeToId) { //if no relative to id, then we're placing either at the end of a row, or at the start of a new row
+        //calucalte target Columns length and largest row number
+        const lastRowNumber = await getLastRowInColumn(targetColumn)
+        rowToInsertAt = lastRowNumber + 10  //can insert at end of row, or start of new row, as when at start of new row, lastRowNumber = 0, so will insert at row 10
+        return ({ rowToInsertAt: rowToInsertAt, targetColumn: targetColumn })
+    }
 
-    if (Math.abs(originalRow - secondRow) < 2) {  //if gap between two row values is too small to add another value
+    let relativeToIdRow
+    ({ targetColumn, relativeToIdRow } = await getRowAndColumnForId(relativeToId))  //return original row and target column
+
+    let prevRow = await getPrevRow(targetColumn, relativeToIdRow) //set second row to row before original row, or to 0 if null or undefined, because that means we're  putting it before the first row
+
+    if (Math.abs(relativeToIdRow - prevRow) < 2) {  //if gap between two row values is too small to add another value
         await reIndexRowsForColumn(targetColumn)  //then reindex the row values
         console.log('reordered');
-        ({ secondRow, originalRow, targetColumn, rowToInsertAt } = await reorderFunctionsToRepeat(relativeToId, position))
+
+        await calculateInsertPosition(relativeToId, targetColumn)
+        return
     }
+
+    rowToInsertAt = Math.floor((relativeToIdRow + prevRow) / 2)
 
     return ({ rowToInsertAt: rowToInsertAt, targetColumn: targetColumn })
 }
-
-
-
 
 
 // login flow 

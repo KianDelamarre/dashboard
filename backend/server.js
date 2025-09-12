@@ -20,11 +20,11 @@ const db = new sqlite3.Database('./database.db')
 // console.log(links)
 
 const corsOptions = {
-    origin: '*',
+    origin: 'https://example.com',
     credentials: true,
 }
 
-app.use(express.json(), cors({ origin: '*', credentials: false }), cookieParser())
+app.use(express.json(), cors({ origin: 'https://example.com', credentials: true }), cookieParser())
 
 let refreshTokens = []
 
@@ -143,7 +143,7 @@ app.put('/reset-password', authenticateToken, (req, res) => { ///need a differen
 
 
 //get all links
-app.get('/links', (req, res) => {
+app.get('/links', authenticateToken, (req, res) => {
     // res.json(links)
     db.all('SELECT * FROM links ORDER BY column, row', [], (err, rows) => {
         if (err) throw err
@@ -152,7 +152,7 @@ app.get('/links', (req, res) => {
     })
 })
 //create a link
-app.post('/link', async (req, res) => {
+app.post('/link', authenticateToken, async (req, res) => {
     const name = req.body.name
     const localIp = req.body.localIp
     const remoteIp = req.body.remoteIp
@@ -183,7 +183,7 @@ app.post('/link', async (req, res) => {
 })
 
 //delete a link
-app.delete('/link/:id', (req, res) => {
+app.delete('/link/:id', authenticateToken, (req, res) => {
     const id = req.params.id
 
     db.run('DELETE FROM links WHERE id = ?', [id], (err) => {
@@ -194,7 +194,7 @@ app.delete('/link/:id', (req, res) => {
 
 
 //update any columns for a link
-app.patch('/link/:id', (req, res) => {
+app.patch('/link/:id', authenticateToken, (req, res) => {
     const id = req.params.id
     const updates = req.body
 
@@ -218,7 +218,7 @@ app.patch('/link/:id', (req, res) => {
 })
 
 //move an id to any position relative to another id and reorder if necesarry, or to an empty column
-app.patch('/links/move', async (req, res) => {
+app.patch('/links/move', authenticateToken, async (req, res) => {
     const idToMove = Number(req.body.idToMove)
     const relativeToId = Number(req.body.relativeToId)
     let targetColumn = Number(req.body.targetColumn)
@@ -242,7 +242,7 @@ app.patch('/links/move', async (req, res) => {
     res.status(200).json({ "message": `${idToMove} succesfully moved` })
 })
 
-app.patch('/links/batchmove', async (req, res) => {
+app.patch('/links/batchmove', authenticateToken, async (req, res) => {
     arrayOfidToMovesRelativeToIdsandTargetColumns = req.body
     // console.log(arrayOfidToMovesRelativeToIdsandTargetColumns[0])
 

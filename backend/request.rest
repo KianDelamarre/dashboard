@@ -29,6 +29,17 @@ Content-Type : application/json
 }
 ###
 
+PATCH http://localhost:4001/links/batchmove
+Content-Type : application/json
+[
+{
+    "idToMove":"88",
+    "relativeToId":"91",
+    "targetColumn": "3"
+}
+]
+###
+
 
 
 

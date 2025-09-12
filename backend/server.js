@@ -119,7 +119,6 @@ app.put('/reset-password', authenticateToken, (req, res) => { ///need a differen
 
 })
 
-
 // login flow
 // authenticate user => make user object using the request.body.username => create a token and sign using user object and secret key
 
@@ -220,27 +219,46 @@ app.patch('/link/:id', (req, res) => {
 
 //move an id to any position relative to another id and reorder if necesarry, or to an empty column
 app.patch('/links/move', async (req, res) => {
-    // console.log('/link/move');
     const idToMove = Number(req.body.idToMove)
     const relativeToId = Number(req.body.relativeToId)
     let targetColumn = Number(req.body.targetColumn)
+    console.log(idToMove, relativeToId, targetColumn);
 
-    let rowToInsertAt
+    // await reIndexRowsForColumn(1)
+    // await reIndexRowsForColumn(2)
+    // await reIndexRowsForColumn(3)
+    // await reIndexRowsForColumn(4)
 
-    // if (relativeToId == (null || undefined || "")) { //if realtiveToId is passed in, then do logic to insert before or after
-    //     rowToInsertAt = 10
+
+
+    // const { rowToInsertAt, FinaltargetColumn } = await calculateInsertPosition(relativeToId, targetColumn) //outputs the target row and column, if no relativeToId, it calculates the last row of a column or first row of a columna accordingly
+
+    // // console.log(rowToInsertAt)
+    // db.run('UPDATE links SET row = ?, column = ? WHERE id = ?', [rowToInsertAt, FinaltargetColumn, idToMove], (err) => {
+    //     if (err) throw err
+    //     res.json({ message: 'reordered successfully' });
+    // })
+    await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn);
+    res.status(200).json({ "message": `${idToMove} succesfully moved` })
+})
+
+app.patch('/links/batchmove', async (req, res) => {
+    arrayOfidToMovesRelativeToIdsandTargetColumns = req.body
+    // console.log(arrayOfidToMovesRelativeToIdsandTargetColumns[0])
+
+    batchInsert(req.body)
+    res.sendStatus(200)
+
+    // const { arrayOfInsertPositions, arrayLength } = await calculateInsertPosition(relativeToId, targetColumn) //outputs the target row and column, if no relativeToId, it calculates the last row of a column or first row of a columna accordingly
+
+    // console.log(rowToInsertAt)
+    // for (let i = 0; i < arrayLength; i++) {
+    //     return new Promise()
     // }
-    // else { //no relative to id so, column must be empty so just insert at first row index on the empty column
-    // console.log('gonna try reorder()');
-    ({ rowToInsertAt, targetColumn } = await calculateInsertPosition(relativeToId, targetColumn)) //outputs the target row and column, if no relativeToId, it calculates the last row of a column or first row of a columna accordingly
-    // }
-
-
-    console.log(rowToInsertAt)
-    db.run('UPDATE links SET row = ?, column = ? WHERE id = ?', [rowToInsertAt, targetColumn, idToMove], (err) => {
-        if (err) throw err
-        res.json({ message: 'reordered successfully' });
-    })
+    // db.run('UPDATE links SET row = ?, column = ? WHERE id = ?', [rowToInsertAt, FinaltargetColumn, idToMove], (err) => {
+    //     if (err) throw err
+    //     res.json({ message: 'reordered successfully' });
+    // })
 })
 
 
@@ -263,7 +281,6 @@ let reIndexRowsForColumn = async (column) => {
                 if (err) reject(err)
                 else resolve()
             })
-
         })
     }
 
@@ -284,7 +301,7 @@ const getRowAndColumnForId = async (id) => {
                 // let targetColumn = row.column
                 // let originalRow = row.row
                 console.log(`got target column ${row.column} and original row ${row.row}`)
-                resolve({ targetColumn: row.column, row: row.row })
+                resolve({ targetColumn: row.column, relativeToIdRow: row.row })
             }
         })
     })
@@ -313,18 +330,31 @@ const getLastRowInColumn = async (column) => {
     })
 }
 
+const moveIdToPosition = async (idToMove, rowToInsertAt, FinaltargetColumn) => {
+    return new Promise((resolve, reject) => {
+        db.run('UPDATE links SET row = ?, column = ? WHERE id = ?', [rowToInsertAt, FinaltargetColumn, idToMove], (err) => {
+            if (err) reject(err)
+            resolve(`${idToMove} moved to ${rowToInsertAt}`)
+        })
+    })
+}
 
-async function calculateInsertPosition(relativeToId, targetColumn) {
-    // let targetColumn
+
+async function moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn) {
 
     let rowToInsertAt
+
 
     if (!relativeToId) { //if no relative to id, then we're placing either at the end of a row, or at the start of a new row
         //calucalte target Columns length and largest row number
         const lastRowNumber = await getLastRowInColumn(targetColumn)
         rowToInsertAt = lastRowNumber + 10  //can insert at end of row, or start of new row, as when at start of new row, lastRowNumber = 0, so will insert at row 10
-        return ({ rowToInsertAt: rowToInsertAt, targetColumn: targetColumn })
+        console.log('row to insert at is ' + rowToInsertAt)
+        return await moveIdToPosition(idToMove, rowToInsertAt, targetColumn)
+        //({ rowToInsertAt: rowToInsertAt, targetColumn: targetColumn })
     }
+    // console.log('row to insert at is ' + rowToInsertAt)
+
 
     let relativeToIdRow
     ({ targetColumn, relativeToIdRow } = await getRowAndColumnForId(relativeToId))  //return original row and target column
@@ -334,14 +364,36 @@ async function calculateInsertPosition(relativeToId, targetColumn) {
     if (Math.abs(relativeToIdRow - prevRow) < 2) {  //if gap between two row values is too small to add another value
         await reIndexRowsForColumn(targetColumn)  //then reindex the row values
         console.log('reordered');
+        return await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn)
 
-        await calculateInsertPosition(relativeToId, targetColumn)
-        return
     }
 
     rowToInsertAt = Math.floor((relativeToIdRow + prevRow) / 2)
 
-    return ({ rowToInsertAt: rowToInsertAt, targetColumn: targetColumn })
+    console.log("relative to id row = " + relativeToIdRow)
+    console.log("prev row is =" + prevRow)
+    console.log('row to insert at is ' + rowToInsertAt)
+    // console.log(idToMove, rowToInsertAt, targetColumn)
+    return await moveIdToPosition(idToMove, rowToInsertAt, targetColumn)
+
+
+    return ({ rowToInsertAt: rowToInsertAt, FinaltargetColumn: targetColumn })
+}
+
+
+async function batchInsert(arrayOfidToMovesRelativeToIdsandTargetColumns) {
+    // [{relativeToId : ?, FinaltargetColumn: ?}, {relativeToId : ?, FinaltargetColumn: ?}]
+    const arrayLength = arrayOfidToMovesRelativeToIdsandTargetColumns.length
+
+    for (let i = 0; i < arrayLength; i++) {
+        let idToMove = arrayOfidToMovesRelativeToIdsandTargetColumns[i].idToMove
+        let relativeToId = arrayOfidToMovesRelativeToIdsandTargetColumns[i].relativeToId
+        let targetColumn = arrayOfidToMovesRelativeToIdsandTargetColumns[i].targetColumn
+        console.log(idToMove, relativeToId, targetColumn)
+        await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn)
+    }
+
+    return
 }
 
 

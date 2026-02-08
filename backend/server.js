@@ -224,20 +224,6 @@ app.patch('/links/move', authenticateToken, async (req, res) => {
     let targetColumn = Number(req.body.targetColumn)
     console.log(idToMove, relativeToId, targetColumn);
 
-    // await reIndexRowsForColumn(1)
-    // await reIndexRowsForColumn(2)
-    // await reIndexRowsForColumn(3)
-    // await reIndexRowsForColumn(4)
-
-
-
-    // const { rowToInsertAt, FinaltargetColumn } = await calculateInsertPosition(relativeToId, targetColumn) //outputs the target row and column, if no relativeToId, it calculates the last row of a column or first row of a columna accordingly
-
-    // // console.log(rowToInsertAt)
-    // db.run('UPDATE links SET row = ?, column = ? WHERE id = ?', [rowToInsertAt, FinaltargetColumn, idToMove], (err) => {
-    //     if (err) throw err
-    //     res.json({ message: 'reordered successfully' });
-    // })
     await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn);
     res.status(200).json({ "message": `${idToMove} succesfully moved` })
 })
@@ -245,9 +231,36 @@ app.patch('/links/move', authenticateToken, async (req, res) => {
 app.patch('/links/batchmove', authenticateToken, async (req, res) => {
     arrayOfidToMovesRelativeToIdsandTargetColumns = req.body
     // console.log(arrayOfidToMovesRelativeToIdsandTargetColumns[0])
+    // {
+    //     "toMove": [
+    //         {
+    //             "idToMove": "93",
+    //             "relativeToId": "89",
+    //             "targetColumn": "3"
+    //         },
+    //         {
+    //             "idToMove": "91",
+    //             "relativeToId": "89",
+    //             "targetColumn": "3"
+    //         }
+    //     ],
+    //         "toDelete": [
+    //             {
+    //                 "idToDelete": "100"
+    //             },
+    //             {
+    //                 "idToDelete": "27"
+    //             }
+    //         ]
+    // }
 
-    batchInsert(req.body)
+    await batchInsert(req.body)
     res.sendStatus(200)
+
+    // await batchInsert(req.body.moves)
+    await batchEdit(arrayOfIdsToEdit)
+    await batchDelete(arrayOfIdsToDelete)
+
 
     // const { arrayOfInsertPositions, arrayLength } = await calculateInsertPosition(relativeToId, targetColumn) //outputs the target row and column, if no relativeToId, it calculates the last row of a column or first row of a columna accordingly
 
@@ -394,6 +407,15 @@ async function batchInsert(arrayOfidToMovesRelativeToIdsandTargetColumns) {
     }
 
     return
+}
+
+async function batchDelete(arrayOfIdsToDelete) {
+    for (let i = 0; i < arrayOfIdsToDelete.length; i++) {
+        const id = arrayOfIdsToDelete[i].id
+        db.run('DELETE FROM links WHERE id = ?', [id], (err) => {
+            if (err) throw err
+        })
+    }
 }
 
 

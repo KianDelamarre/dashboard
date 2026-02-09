@@ -439,7 +439,6 @@ let deleteLink = async (idToDelete) => {
 }
 
 let editLink = async (idToEdit, name, localIp, remoteIp, imgUrl) => {
-
     const response = await fetch(`${apiServer}/link/${idToEdit}`, {
         method: 'PATCH',
         credentials: `${credentials}`,
@@ -461,43 +460,37 @@ let editLink = async (idToEdit, name, localIp, remoteIp, imgUrl) => {
     };
 }
 
+// let moveLink = async (draggedElementId, elemtentToPutAboveId, column) => {
+//     console.log('tried to move element');
+//     const columnId = column.id;
+//     const columnNumber = columnId.split('-')[1];
+//     // console.log(draggedElementId, elemtentToPutAboveId, columnNumber,)
 
-let moveLink = async (draggedElementId, elemtentToPutAboveId, column) => {
-    console.log('tried to move element');
-    const columnId = column.id;
-    const columnNumber = columnId.split('-')[1];
-    // console.log(draggedElementId, elemtentToPutAboveId, columnNumber,)
+//     const response = await fetch(`${apiServer}/links/move`, {
+//         method: 'PATCH',
+//         credentials: `${credentials}`,
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'Authorization': `Bearer ${accessToken}`
+//         },
+//         body: JSON.stringify({
+//             "idToMove": draggedElementId,
+//             "relativeToId": elemtentToPutAboveId,
+//             "targetColumn": columnNumber
+//         })
+//     })
 
-    const response = await fetch(`${apiServer}/links/move`, {
-        method: 'PATCH',
-        credentials: `${credentials}`,
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({
-            "idToMove": draggedElementId,
-            "relativeToId": elemtentToPutAboveId,
-            "targetColumn": columnNumber
-        })
-    })
-
-    if (!response.ok) {
-        console.log('Error fetching links:', response.status);
-        pageInitialised = false
-        return;
-    };
-    // console.log('moved element')
-    window.location.reload()
-}
+//     if (!response.ok) {
+//         console.log('Error fetching links:', response.status);
+//         pageInitialised = false
+//         return;
+//     };
+//     // console.log('moved element')
+//     window.location.reload()
+// }
 
 let batchMoveLinks = async (array) => {
     console.log('tried to move element');
-    // const columnId = column.id;
-    // const columnNumber = columnId.split('-')[1];
-
-    // console.log(draggedElementId, elemtentToPutAboveId, columnNumber,)
-
     const response = await fetch(`${apiServer}/links/batchmove`, {
         method: 'PATCH',
         credentials: `${credentials}`,

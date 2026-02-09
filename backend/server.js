@@ -17,14 +17,34 @@ const jwt = require('jsonwebtoken')
 const links = require('./links.json')
 const db = new sqlite3.Database('./database.db')
 
-// console.log(links)
+const dev_mode = process.env.DEV_MODE
+let cookieOptions = {}
+if (dev_mode === 'true') {
+    cookieOptions = {
+        httpOnly: true,
+        path: '/',
+        sameSite: 'lax',
+        secure: false,
+    }
 
+
+}
+else { //production mode
+    cookieOptions = {
+        httpOnly: true,
+        path: '/',
+        sameSite: 'lax',
+        secure: true
+    }
+}
+// console.log(links)
 const corsOptions = {
-    origin: 'https://example.com',
+    origin: process.env.ALLOWED_ORIGINS,
     credentials: true,
 }
 
-app.use(express.json(), cors({ origin: 'https://example.com', credentials: true }), cookieParser())
+
+app.use(express.json(), cors(corsOptions), cookieParser())
 
 let refreshTokens = []
 
@@ -66,10 +86,7 @@ app.post('/login', async (req, res) => {
     const refreshToken = jwt.sign(user, process.env.REFRESS_TOKEN_SECRET)
     refreshTokens.push(refreshToken)
     res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: true,
-        // sameSite: "Strict",
-        path: "/",
+        ...cookieOptions,
         maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
     }
     )
@@ -82,10 +99,7 @@ app.delete('/logout', (req, res) => {
     refreshTokens = refreshTokens.filter(token => token !== req.cookies.refreshToken) ///remove the refresh token from the list of refresh tokens
 
     res.clearCookie('refreshToken', {
-        path: '/',
-        httpOnly: true,
-        secure: true,
-        // sameSite: "Strict"
+        ...cookieOptions
     });    //tell the client to delete the token from their cookies
     res.sendStatus(204)
 })

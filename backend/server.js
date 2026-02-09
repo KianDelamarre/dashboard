@@ -5,6 +5,8 @@ const cors = require('cors')
 const sqlite3 = require('sqlite3').verbose();
 
 const { authenticateToken, generateAccessToken, generateResetToken, authenticateUser } = require('./utils/auth.js')
+const batchInsert = require('./utils/reorder.js')
+const { createLink, updateLink, deleteLink, getLinks } = require('./utils/utils.js')
 
 const app = express()
 
@@ -26,8 +28,6 @@ if (dev_mode === 'true') {
         sameSite: 'lax',
         secure: false,
     }
-
-
 }
 else { //production mode
     cookieOptions = {
@@ -42,6 +42,8 @@ const corsOptions = {
     origin: process.env.ALLOWED_ORIGINS,
     credentials: true,
 }
+
+console.log(corsOptions)
 
 
 app.use(express.json(), cors(corsOptions), cookieParser())
@@ -144,228 +146,40 @@ app.delete('/logout', (req, res) => {
 // => when user logs out, refresh token is delete 
 
 //get all links
-app.get('/links', authenticateToken, (req, res) => {
-    // res.json(links)
-    db.all('SELECT * FROM links ORDER BY column, row', [], (err, rows) => {
-        if (err) throw err
-        // console.log(rows)
-        res.json(rows)
-    })
-})
+app.get('/links', authenticateToken, getLinks)
 
 app.get('/links/status', (req, res) => {
 
 })
 
 //create a link
-app.post('/link', authenticateToken, async (req, res) => {
-    const name = req.body.name
-    const localIp = req.body.localIp
-    const remoteIp = req.body.remoteIp
-    const imgUrl = req.body.imgUrl
-    const column = req.body.column
-    // let rowToInsertAt
-
-    // console.log(rowToInsertAt)
-    const getMaxRowInColumn = async () => {
-        return new Promise((resolve, reject) => {
-            db.get('SELECT MAX(row) AS max_row FROM links WHERE column = ?', [column], (err, row) => {
-                if (err) reject(err)
-                else resolve(row.max_row)
-            })
-        })
-    }
-
-    const rowToInsertAt = (await getMaxRowInColumn() ?? 0) + 10
-    console.log(rowToInsertAt)
-
-    db.run(`INSERT INTO links
-        (name, localip, remoteip, imgurl, column, row) VALUES
-        (?,?,?,?,?,?)`, [name, localIp, remoteIp, imgUrl, column, rowToInsertAt], (err, rows) => {
-        if (err) throw err
-        // console.log(rows)
-        res.json({ message: `successfully added ${name}` })
-    })
-})
+app.post('/link', authenticateToken, createLink)
 
 //delete a link
-app.delete('/link/:id', authenticateToken, (req, res) => {
-    const id = req.params.id
+app.delete('/link/:id', authenticateToken, deleteLink)
 
-    db.run('DELETE FROM links WHERE id = ?', [id], (err) => {
-        if (err) throw err
-    })
-    res.json(`${id} deleted`)
-})
+//update a links name, urls and or image
+app.patch('/link/:id', authenticateToken, updateLink)
 
-//update any columns for a link
-app.patch('/link/:id', authenticateToken, (req, res) => {
-    const id = req.params.id
-    const updates = req.body
+// //move an id to any position relative to another id and reorder if necesarry, or to an empty column
+// app.patch('/links/move', authenticateToken, async (req, res) => {
+//     const idToMove = Number(req.body.idToMove)
+//     const relativeToId = Number(req.body.relativeToId)
+//     let targetColumn = Number(req.body.targetColumn)
+//     console.log(idToMove, relativeToId, targetColumn);
 
-    // Filter out null or undefined values
-    const filteredUpdates = Object.fromEntries(
-        Object.entries(updates).filter(([_, value]) => value !== null && value !== undefined)
-    );
-    const fields = Object.keys(filteredUpdates)
-    const values = Object.values(filteredUpdates)
-
-    if (fields.length == 0) {
-        return res.status(400).json({ error: 'no fields to update' })
-    }
-
-    const setClause = fields.map(field => `${field} = ?`).join(', ');
-    const sql = `UPDATE links SET ${setClause} WHERE id = ?`;
-    db.run(sql, [...values, id], function (err) {
-        if (err) return res.status(500).json({ 'error': err.message })
-        res.json({ updated: this.changes });
-    })
-})
-
-//move an id to any position relative to another id and reorder if necesarry, or to an empty column
-app.patch('/links/move', authenticateToken, async (req, res) => {
-    const idToMove = Number(req.body.idToMove)
-    const relativeToId = Number(req.body.relativeToId)
-    let targetColumn = Number(req.body.targetColumn)
-    console.log(idToMove, relativeToId, targetColumn);
-
-    await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn);
-    res.status(200).json({ "message": `${idToMove} succesfully moved` })
-})
+//     await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn);
+//     res.status(200).json({ "message": `${idToMove} succesfully moved` })
+// })
 
 
 app.patch('/links/batchmove', authenticateToken, async (req, res) => {
-    arrayOfidToMovesRelativeToIdsandTargetColumns = req.body
-
-    await batchInsert(req.body)
+    await batchInsert(req)
     res.sendStatus(200)
 })
 
 
-let reIndexRowsForColumn = async (column) => {
-    let rowNum = 10
 
-    const getRowsToReindex = async (column) => {
-        return new Promise((resolve, reject) => {
-            db.all('SELECT * FROM links WHERE column = ? ORDER by row', [column], (err, rows) => {
-                if (err) reject(err)
-                else resolve(rows)
-            })
-        })
-    }
-
-    const updateRows = async (id, rowNum) => {
-        return new Promise((resolve, reject) => {
-            db.run('UPDATE links SET row = ? WHERE id =?', [rowNum, id], (err) => {
-                if (err) reject(err)
-                else resolve()
-            })
-        })
-    }
-
-    const rowsToReindex = await getRowsToReindex(column)
-
-    for (let i = 0; i < rowsToReindex.length; i++) {
-        let id = rowsToReindex[i].id
-        await updateRows(id, rowNum)
-        rowNum += 10
-    }
-}
-
-const getRowAndColumnForId = async (id) => {
-    return new Promise((resolve, reject) => {
-        db.get('SELECT * FROM links WHERE id = ?', [id], (err, row) => {
-            if (err) reject(err)
-            else {
-                // let targetColumn = row.column
-                // let originalRow = row.row
-                console.log(`got target column ${row.column} and original row ${row.row}`)
-                resolve({ targetColumn: row.column, relativeToIdRow: row.row })
-            }
-        })
-    })
-}
-
-const getPrevRow = async (column, originalRow) => { //get the row of the id before relativeToId in order to later calcate halfway between the two
-    return new Promise((resolve, reject) => {
-        db.get('SELECT * FROM links where column = ? and row < ? ORDER BY row DESC LIMIT 1', [column, originalRow], (err, row) => {
-            if (err) reject(err)
-            else {
-                // console.log(`got prev row ${row.row ?? 0}`)
-
-                resolve(row?.row ?? 0)  //return the previous row, or the original row if original row is already the first row
-            }
-        })
-    })
-}
-
-const getLastRowInColumn = async (column) => {
-    return new Promise((resolve, reject) => {
-        db.get('SELECT * FROM links WHERE column = ? ORDER BY row DESC LIMIT 1', [column], (err, row) => {
-            if (err) reject(err)
-            else resolve(row?.row ?? 0)
-        })
-    })
-}
-
-const moveIdToPosition = async (idToMove, rowToInsertAt, FinaltargetColumn) => {
-    return new Promise((resolve, reject) => {
-        db.run('UPDATE links SET row = ?, column = ? WHERE id = ?', [rowToInsertAt, FinaltargetColumn, idToMove], (err) => {
-            if (err) reject(err)
-            resolve(`${idToMove} moved to ${rowToInsertAt}`)
-        })
-    })
-}
-
-async function moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn) {
-
-    let rowToInsertAt
-    if (!relativeToId) { //if no relative to id, then we're placing either at the end of a row, or at the start of a new row
-        //calucalte target Columns length and largest row number
-        const lastRowNumber = await getLastRowInColumn(targetColumn)
-        rowToInsertAt = lastRowNumber + 10  //can insert at end of row, or start of new row, as when at start of new row, lastRowNumber = 0, so will insert at row 10
-        console.log('row to insert at is ' + rowToInsertAt)
-        return await moveIdToPosition(idToMove, rowToInsertAt, targetColumn)
-        //({ rowToInsertAt: rowToInsertAt, targetColumn: targetColumn })
-    }
-    // console.log('row to insert at is ' + rowToInsertAt)
-
-
-    let relativeToIdRow
-    ({ targetColumn, relativeToIdRow } = await getRowAndColumnForId(relativeToId))  //return original row and target column
-
-    let prevRow = await getPrevRow(targetColumn, relativeToIdRow) //set second row to row before original row, or to 0 if null or undefined, because that means we're  putting it before the first row
-
-    if (Math.abs(relativeToIdRow - prevRow) < 2) {  //if gap between two row values is too small to add another value
-        await reIndexRowsForColumn(targetColumn)  //then reindex the row values
-        console.log('reordered');
-        return await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn)
-    }
-    rowToInsertAt = Math.floor((relativeToIdRow + prevRow) / 2)
-
-    console.log("relative to id row = " + relativeToIdRow)
-    console.log("prev row is =" + prevRow)
-    console.log('row to insert at is ' + rowToInsertAt)
-    // console.log(idToMove, rowToInsertAt, targetColumn)
-    return await moveIdToPosition(idToMove, rowToInsertAt, targetColumn)
-    // return ({ rowToInsertAt: rowToInsertAt, FinaltargetColumn: targetColumn })
-}
-
-
-async function batchInsert(arrayOfidToMovesRelativeToIdsandTargetColumns) {
-    // [{relativeToId : ?, FinaltargetColumn: ?}, {relativeToId : ?, FinaltargetColumn: ?}]
-    const arrayLength = arrayOfidToMovesRelativeToIdsandTargetColumns.length
-
-    for (let i = 0; i < arrayLength; i++) {
-        let idToMove = arrayOfidToMovesRelativeToIdsandTargetColumns[i].idToMove
-        let relativeToId = arrayOfidToMovesRelativeToIdsandTargetColumns[i].relativeToId
-        let targetColumn = arrayOfidToMovesRelativeToIdsandTargetColumns[i].targetColumn
-        console.log(idToMove, relativeToId, targetColumn)
-        await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn)
-    }
-
-    return
-}
 
 async function batchDelete(arrayOfIdsToDelete) {
     for (let i = 0; i < arrayOfIdsToDelete.length; i++) {

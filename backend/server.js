@@ -90,34 +90,31 @@ app.delete('/logout', (req, res) => {
     res.sendStatus(204)
 })
 
-app.post('/request-reset', (req, res) => {
-    const username = req.body.username
-    if (!username || !users.includes(username)) res.sendStatus(401)
+// app.post('/request-reset', (req, res) => {
+//     const username = req.body.username
+//     if (!username || !users.includes(username)) res.sendStatus(401)
 
-    const resetToken = generateResetToken(username)
+//     const resetToken = generateResetToken(username)
 
-    //hash and add reset token to database allong with used bool and link to user its for
+//     //hash and add reset token to database allong with used bool and link to user its for
 
-    const resetPasswordUrl = `https://kianserver.uk/reset?token=${resetToken}` //takes the client to the location on the frontend to make reset their password, on reset, the form will be submitted to the /resetpassword endpoint
+//     const resetPasswordUrl = `https://kianserver.uk/reset?token=${resetToken}` //takes the client to the location on the frontend to make reset their password, on reset, the form will be submitted to the /resetpassword endpoint
 
-    ///email resetPasswordUrl to email, should probably switch from username to email in this case
+//     ///email resetPasswordUrl to email, should probably switch from username to email in this case
 
-    //frontend needs to extract resetToken from url then send it in the resetpassword request as authorisation header
-})
+//     //frontend needs to extract resetToken from url then send it in the resetpassword request as authorisation header
+// })
 
-app.put('/reset-password', authenticateToken, (req, res) => { ///need a different authenticateToken as this one uses the accessToken secret, not the reset token secret
-    const user = req.body.user
-    const newPassword = req.body.password
-    const resetToken = req.body.token
+// app.put('/reset-password', authenticateToken, (req, res) => { ///need a different authenticateToken as this one uses the accessToken secret, not the reset token secret
+//     const user = req.body.user
+//     const newPassword = req.body.password
+//     const resetToken = req.body.token
+//     //first select the row where username = user and resetToken = reset token, return bad status code if no ecntry
+//     //first check token used status, if used then return bad status code ( this is just for if two reset requests come at the same time)
+//     //   if token not used, set to used
 
-    //first select the row where username = user and resetToken = reset token, return bad status code if no ecntry
-    //first check token used status, if used then return bad status code ( this is just for if two reset requests come at the same time)
-    //   if token not used, set to used
-
-    //since token and user match and token unused, newPassword and change it for the user
-
-
-})
+//     //since token and user match and token unused, newPassword and change it for the user
+// })
 
 // login flow
 // authenticate user => make user object using the request.body.username => create a token and sign using user object and secret key
@@ -132,16 +129,6 @@ app.put('/reset-password', authenticateToken, (req, res) => { ///need a differen
 // => user request new access token with refresh token, to revalidate sessions without having to log back in =>
 // => when user logs out, refresh token is delete 
 
-
-// app.get('/links', authenticateToken, (req, res) => {
-//     res.json(links)
-// })
-
-// db.run to change data
-//db.get to get a single row
-//db.all to get multiple rows
-
-
 //get all links
 app.get('/links', authenticateToken, (req, res) => {
     // res.json(links)
@@ -151,6 +138,11 @@ app.get('/links', authenticateToken, (req, res) => {
         res.json(rows)
     })
 })
+
+app.get('/links/status', (req, res) => {
+
+})
+
 //create a link
 app.post('/link', authenticateToken, async (req, res) => {
     const name = req.body.name
@@ -192,7 +184,6 @@ app.delete('/link/:id', authenticateToken, (req, res) => {
     res.json(`${id} deleted`)
 })
 
-
 //update any columns for a link
 app.patch('/link/:id', authenticateToken, (req, res) => {
     const id = req.params.id
@@ -228,52 +219,13 @@ app.patch('/links/move', authenticateToken, async (req, res) => {
     res.status(200).json({ "message": `${idToMove} succesfully moved` })
 })
 
+
 app.patch('/links/batchmove', authenticateToken, async (req, res) => {
     arrayOfidToMovesRelativeToIdsandTargetColumns = req.body
-    // console.log(arrayOfidToMovesRelativeToIdsandTargetColumns[0])
-    // {
-    //     "toMove": [
-    //         {
-    //             "idToMove": "93",
-    //             "relativeToId": "89",
-    //             "targetColumn": "3"
-    //         },
-    //         {
-    //             "idToMove": "91",
-    //             "relativeToId": "89",
-    //             "targetColumn": "3"
-    //         }
-    //     ],
-    //         "toDelete": [
-    //             {
-    //                 "idToDelete": "100"
-    //             },
-    //             {
-    //                 "idToDelete": "27"
-    //             }
-    //         ]
-    // }
 
     await batchInsert(req.body)
     res.sendStatus(200)
-
-    // await batchInsert(req.body.moves)
-    await batchEdit(arrayOfIdsToEdit)
-    await batchDelete(arrayOfIdsToDelete)
-
-
-    // const { arrayOfInsertPositions, arrayLength } = await calculateInsertPosition(relativeToId, targetColumn) //outputs the target row and column, if no relativeToId, it calculates the last row of a column or first row of a columna accordingly
-
-    // console.log(rowToInsertAt)
-    // for (let i = 0; i < arrayLength; i++) {
-    //     return new Promise()
-    // }
-    // db.run('UPDATE links SET row = ?, column = ? WHERE id = ?', [rowToInsertAt, FinaltargetColumn, idToMove], (err) => {
-    //     if (err) throw err
-    //     res.json({ message: 'reordered successfully' });
-    // })
 })
-
 
 
 let reIndexRowsForColumn = async (column) => {
@@ -320,7 +272,6 @@ const getRowAndColumnForId = async (id) => {
     })
 }
 
-
 const getPrevRow = async (column, originalRow) => { //get the row of the id before relativeToId in order to later calcate halfway between the two
     return new Promise((resolve, reject) => {
         db.get('SELECT * FROM links where column = ? and row < ? ORDER BY row DESC LIMIT 1', [column, originalRow], (err, row) => {
@@ -352,12 +303,9 @@ const moveIdToPosition = async (idToMove, rowToInsertAt, FinaltargetColumn) => {
     })
 }
 
-
 async function moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn) {
 
     let rowToInsertAt
-
-
     if (!relativeToId) { //if no relative to id, then we're placing either at the end of a row, or at the start of a new row
         //calucalte target Columns length and largest row number
         const lastRowNumber = await getLastRowInColumn(targetColumn)
@@ -378,9 +326,7 @@ async function moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn) 
         await reIndexRowsForColumn(targetColumn)  //then reindex the row values
         console.log('reordered');
         return await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn)
-
     }
-
     rowToInsertAt = Math.floor((relativeToIdRow + prevRow) / 2)
 
     console.log("relative to id row = " + relativeToIdRow)
@@ -388,9 +334,7 @@ async function moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn) 
     console.log('row to insert at is ' + rowToInsertAt)
     // console.log(idToMove, rowToInsertAt, targetColumn)
     return await moveIdToPosition(idToMove, rowToInsertAt, targetColumn)
-
-
-    return ({ rowToInsertAt: rowToInsertAt, FinaltargetColumn: targetColumn })
+    // return ({ rowToInsertAt: rowToInsertAt, FinaltargetColumn: targetColumn })
 }
 
 

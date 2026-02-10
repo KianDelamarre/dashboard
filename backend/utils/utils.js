@@ -1,12 +1,13 @@
 const fs = require('fs')
 const db = require('./db.js');
 
-function getLinks(req, res) {
-    db.all('SELECT * FROM links ORDER BY column, row', [], (err, rows) => {
+async function getLinks(req, res) {
+    db.all('SELECT * FROM links WHERE user_id = ? ORDER BY column, row', [req.user.id], (err, rows) => {
         if (err) throw err
         res.json(rows)
     })
 }
+
 async function createLink(req, res) {
     const name = req.body.name
     const localIp = req.body.localIp
@@ -29,8 +30,8 @@ async function createLink(req, res) {
     console.log(rowToInsertAt)
 
     db.run(`INSERT INTO links
-        (name, localip, remoteip, imgurl, column, row) VALUES
-        (?,?,?,?,?,?)`, [name, localIp, remoteIp, imgUrl, column, rowToInsertAt], (err, rows) => {
+        (name, user_id, localip, remoteip, imgurl, column, row) VALUES
+        (?,?,?,?,?,?,?)`, [name, req.user.id, localIp, remoteIp, imgUrl, column, rowToInsertAt], (err, rows) => {
         if (err) throw err
         // console.log(rows)
         res.json({ message: `successfully added ${name}` })
@@ -40,7 +41,7 @@ async function createLink(req, res) {
 function deleteLink(req, res) {
     const id = req.params.id;
 
-    db.run('DELETE FROM links WHERE id = ?', [id], function (err) {
+    db.run('DELETE FROM links WHERE id = ? AND user_id = ?', [id, req.user.id], function (err) {
         if (err) {
             console.error(err);
             return res.status(500).json({ error: 'Failed to delete link' });
@@ -68,8 +69,8 @@ function updateLink(req, res) {
     }
 
     const setClause = fields.map(field => `${field} = ?`).join(', ');
-    const sql = `UPDATE links SET ${setClause} WHERE id = ?`;
-    db.run(sql, [...values, id], function (err) {
+    const sql = `UPDATE links SET ${setClause} WHERE id = ? AND user_id = ?`;
+    db.run(sql, [...values, id, req.user.id], function (err) {
         if (err) return res.status(500).json({ 'error': err.message })
         res.json({ updated: this.changes });
     })

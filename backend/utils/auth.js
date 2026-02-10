@@ -7,6 +7,7 @@ const db = require('./db.js');
 
 async function login(req, res, cookieOptions) {
     //authenticate user
+    // await hashPassword("12345")
     let user;
     try {
         user = await authenticateUser(req.body.username, req.body.password)
@@ -193,11 +194,18 @@ function authenticateToken(req, res, next) {
     //if error object isnt null, then payload (user) will be null, as the token or secret key arent valid
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if (err) return res.sendStatus(403) //return 403 in the case that their token is invalid
-        // console.log(req.user)
+        // console.log(user)
         req.user = user //when the token is valid, add the user object to the request
         req.token = token ///lazy but add token to request body to be used when resetting password
         next() //tells outer function to move onto the next middleware to continue the request
     })
+}
+
+async function hashPassword(password) {
+    const saltRounds = 10; // cost factor, 10 is standard
+
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    console.log(hashedPassword)
 }
 
 setInterval(() => {

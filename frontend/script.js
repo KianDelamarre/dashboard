@@ -1,6 +1,7 @@
 // const { parse } = require("path")
-const apiServer = 'https://api.kianserver.uk'
-const credentials = 'include'     //'include' for auth, 'omit' for no auth
+// const apiServer = 'https://api.kianserver.uk'
+const apiServer = 'http://localhost:4001'
+const credentials = 'omit'     //'include' for auth, 'omit' for no auth
 let column1 = document.getElementById('col-1')
 let column2 = document.getElementById('col-2')
 let column3 = document.getElementById('col-3')
@@ -31,8 +32,6 @@ let idToEdit = ''
 let draggedElement = null;
 let offsetX = 0;
 let offsetY = 0;
-
-
 
 
 

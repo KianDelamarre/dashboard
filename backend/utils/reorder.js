@@ -34,10 +34,9 @@ const getRowAndColumnForId = async (id) => {
     return new Promise((resolve, reject) => {
         db.get('SELECT * FROM links WHERE id = ?', [id], (err, row) => {
             if (err) reject(err)
+            if (!row) return reject(new Error(`Row with id ${id} not found`));
             else {
-                // let targetColumn = row.column
-                // let originalRow = row.row
-                console.log(`got target column ${row.column} and original row ${row.row}`)
+                // console.log(`got target column ${row.column} and original row ${row.row}`)
                 resolve({ targetColumn: row.column, relativeToIdRow: row.row })
             }
         })
@@ -112,18 +111,21 @@ async function moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn) 
 
 async function batchMove(req, res) {
     // [{relativeToId : ?, FinaltargetColumn: ?}, {relativeToId : ?, FinaltargetColumn: ?}]
-    const arrayOfidToMovesRelativeToIdsandTargetColumns = req.body
-    const arrayLength = arrayOfidToMovesRelativeToIdsandTargetColumns.length
 
-    for (let i = 0; i < arrayLength; i++) {
-        let idToMove = arrayOfidToMovesRelativeToIdsandTargetColumns[i].idToMove
-        let relativeToId = arrayOfidToMovesRelativeToIdsandTargetColumns[i].relativeToId
-        let targetColumn = arrayOfidToMovesRelativeToIdsandTargetColumns[i].targetColumn
-        console.log(idToMove, relativeToId, targetColumn)
-        await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn)
+    try{
+        const moves = req.body
+        for (const move of moves) {
+            const {idToMove, relativeToId, targetColumn } = move
+            if (!idToMove || !targetColumn) throw new Error(`Invalid move: ${JSON.stringify(move)}`);
+            console.log(idToMove, relativeToId, targetColumn)
+            await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn)
+        }
+        res.sendStatus(200)
     }
-
-    res.sendStatus(200)
+    catch(err){
+        console.error('Batch move failed:', err);
+        res.status(500).json({ error: 'Failed to reorder links', details: err.message });
+    }
 }
 
 // async function batchDelete(arrayOfIdsToDelete) {

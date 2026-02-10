@@ -45,25 +45,26 @@
             </form>
 
             <div id="editButtons">
-                <div id="save-changes-button">
-                    <span>SAVE</span>
+                <div class="admin-btns" id="save-changes-button">
+                    SAVE
                 </div>
 
-                <div id="activate-edit-mode-button">
-                    <span>EDIT MODE</span>
+                <div class="admin-btns" id="activate-edit-mode-button">
+                    EDIT MODE
                 </div>
 
-                <div id="open-edit-link-form-button">
-                    <span>NEW</span>
+                <div class="admin-btns" id="open-edit-link-form-button">
+                    NEW
                 </div>
 
-
-
+                <div class="admin-btns" id="create-user-button">
+                    CREATE USER
+                </div>
             </div>
 
         </div>
 
-        <div id="edit-link-div" class="form-div">
+        <div id="edit-link-div" class="form-div hidden-form">
             <form id="edit-link-form" class="form">
                 <h4>Enter details to create new link</h4>
                 <input type="text" name="name" placeholder="name">
@@ -73,11 +74,20 @@
                 <button type="submit">Create</button>
             </form>
         </div>
+        <div id="edit-link-buffer" class="form-buffer"></div>
+
+        <div id="create-user-div" class="form-div hidden-form">
+            <form id="create-user-form" class="form">
+                <h4>Enter details to create new user</h4>
+                <input type="text" name="username" placeholder="username">
+                <input type="password" name="password" placeholder="password">
+                <button type="submit">Create</button>
+            </form>
+        </div>
+        <div id="create-user-div-buffer" class="form-buffer"></div>
 
 
 
-
-        <div id="edit-link-buffer"></div>
 
         <div id="container">
             <div class="column">

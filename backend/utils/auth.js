@@ -38,6 +38,29 @@ async function login(req, res, cookieOptions) {
 }
 
 
+async function register(req, res) {
+    const userNameToCreate = req.body.username
+    const passwordToCreate = req.body.password
+    if (req.user.id != 1) {
+        res.sendStatus(400)
+        return
+    }//hard block anyone but user 1 from creating new users for now
+
+    if (!userNameToCreate || !passwordToCreate) {
+        res.sendStatus(400)
+        return
+    }
+    const password_hash = await hashPassword(passwordToCreate)
+
+    try {
+        await registerNewUser(userNameToCreate, password_hash)
+
+    }
+    catch (err) {
+        res.status(500).json({ message: err.message || err });
+    }
+}
+
 
 async function logout(req, res, cookieOptions) {
     const refreshToken = req.cookies.refreshToken
@@ -86,6 +109,15 @@ async function requestNewToken(req, res) {
         console.log('user trying to reauthenticate without valid token, make sure credentials true')
         return res.sendStatus(403)
     }
+}
+
+async function registerNewUser(username, passowrd_hash) {
+    return new Promise((resolve, reject) => {
+        db.run('INSERT INTO users (username, password_hash) VALUES (?,?)', [username, passowrd_hash], (err) => {
+            if (err) reject(err)
+            resolve(this.lastID)
+        })
+    })
 }
 
 async function storeRefreshToken(userId, refreshTokenHash) {
@@ -206,6 +238,8 @@ async function hashPassword(password) {
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     console.log(hashedPassword)
+    return hashedPassword
+
 }
 
 setInterval(() => {
@@ -235,5 +269,5 @@ setInterval(() => {
 // => when user logs out, refresh token is delete 
 
 module.exports = {
-    authenticateToken, login, logout, requestNewToken
+    authenticateToken, login, logout, requestNewToken, register
 }

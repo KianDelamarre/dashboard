@@ -1,21 +1,96 @@
 require('dotenv').config()
-
-const express = require('express')
-const app = express()
-const cors = require('cors')
-const cookieParser = require('cookie-parser')
-
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 const { writeDataToFile } = require('./utils.js')
+const db = require('./db.js');
 
 
 
 let refreshTokens = []
-
-
 let users = require('../users.json')
+
+
+async function login(req, res, cookieOptions){
+    //authenticate user
+    const username = req.body.username;
+    const password = req.body.password;
+    await authenticateUser(req, res, username, password)
+
+    const user = { name: username }
+
+    // sign the access token using the user(payload) and access token secret
+    const accessToken = generateAccessToken(user)
+    const refreshToken = jwt.sign(user, process.env.REFRESS_TOKEN_SECRET)
+    refreshTokens.push(refreshToken)
+    res.cookie("refreshToken", refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
+    }
+    )
+    res.json({ accessToken: accessToken })
+}
+
+function logout(req, res, cookieOptions){
+    const token = req.cookies.refreshToken
+    if (!token || !refreshTokens.includes(token)) res.sendStatus(401)
+    refreshTokens = refreshTokens.filter(token => token !== req.cookies.refreshToken) ///remove the refresh token from the list of refresh tokens
+
+    res.clearCookie('refreshToken', {
+        ...cookieOptions
+    });    //tell the client to delete the token from their cookies
+    res.sendStatus(204)
+}
+
+function requestNewToken(req, res){
+        // const refreshToken = req.body.token
+        const refreshToken = req.cookies.refreshToken
+        // console.log(`cookie = ${req.cookies}`)
+        console.log(req.cookies.refreshToken)
+    
+    
+        if (refreshToken == null) {
+            console.log('no token')
+            return res.sendStatus(401)
+        } //if null
+        if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403)  //if not null but does not exist in refresh token array
+    
+        jwt.verify(refreshToken, process.env.REFRESS_TOKEN_SECRET, (err, user) => {   //then verify
+    
+            if (err) return res.sendStatus(403)
+            const accessToken = generateAccessToken({ name: user.name })
+    
+            res.json({ accessToken: accessToken })
+        })
+}
+
+
+// function requestPasswordReset(req, res) {
+//     const username = req.body.username
+//     if (!username || !users.includes(username)) res.sendStatus(401)
+
+//     const resetToken = generateResetToken(username)
+
+//     //hash and add reset token to database allong with used bool and link to user its for
+
+//     const resetPasswordUrl = `https://example.com/reset?token=${resetToken}` //takes the client to the location on the frontend to make reset their password, on reset, the form will be submitted to the /resetpassword endpoint
+
+//     ///email resetPasswordUrl to email, should probably switch from username to email in this case
+
+//     //frontend needs to extract resetToken from url then send it in the resetpassword request as authorisation header
+// })
+
+// fucntion resetPassword() { ///need a different authenticateToken as this one uses the accessToken secret, not the reset token secret
+//     const user = req.body.user
+//     const newPassword = req.body.password
+//     const resetToken = req.body.token
+//     //first select the row where username = user and resetToken = reset token, return bad status code if no ecntry
+//     //first check token used status, if used then return bad status code ( this is just for if two reset requests come at the same time)
+//     //   if token not used, set to used
+
+//     //since token and user match and token unused, newPassword and change it for the user
+// })
+
 
 
 
@@ -66,5 +141,5 @@ function authenticateToken(req, res, next) {
 // => when user logs out, refresh token is delete 
 
 module.exports = {
-    authenticateToken, generateAccessToken, generateResetToken, authenticateUser
+    authenticateToken, login, logout, requestNewToken
 }

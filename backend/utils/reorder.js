@@ -110,7 +110,7 @@ async function moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn) 
 }
 
 
-async function batchInsert(req) {
+async function batchMove(req, res) {
     // [{relativeToId : ?, FinaltargetColumn: ?}, {relativeToId : ?, FinaltargetColumn: ?}]
     const arrayOfidToMovesRelativeToIdsandTargetColumns = req.body
     const arrayLength = arrayOfidToMovesRelativeToIdsandTargetColumns.length
@@ -123,7 +123,16 @@ async function batchInsert(req) {
         await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn)
     }
 
-    return
+    res.sendStatus(200)
 }
 
-module.exports = batchInsert
+// async function batchDelete(arrayOfIdsToDelete) {
+//     for (let i = 0; i < arrayOfIdsToDelete.length; i++) {
+//         const id = arrayOfIdsToDelete[i].id
+//         db.run('DELETE FROM links WHERE id = ?', [id], (err) => {
+//             if (err) throw err
+//         })
+//     }
+// }
+
+module.exports = {batchMove}

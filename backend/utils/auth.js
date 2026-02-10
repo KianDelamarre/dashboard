@@ -11,27 +11,28 @@ let refreshTokens = []
 let users = require('../users.json')
 
 
-async function login(req, res, cookieOptions){
+async function login(req, res, cookieOptions) {
     //authenticate user
-    const username = req.body.username;
-    const password = req.body.password;
-    await authenticateUser(req, res, username, password)
-
-    const user = { name: username }
-
-    // sign the access token using the user(payload) and access token secret
-    const accessToken = generateAccessToken(user)
-    const refreshToken = jwt.sign(user, process.env.REFRESS_TOKEN_SECRET)
-    refreshTokens.push(refreshToken)
-    res.cookie("refreshToken", refreshToken, {
-        ...cookieOptions,
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
+    try {
+        const user = await authenticateUser(req.body.username, req.body.password)
+        // sign the access token using the user(payload) and access token secret
+        const accessToken = generateAccessToken(user)
+        const refreshToken = jwt.sign(user, process.env.REFRESS_TOKEN_SECRET)
+        refreshTokens.push(refreshToken)
+        res.cookie("refreshToken", refreshToken, {
+            ...cookieOptions,
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
+        }
+        )
+        res.json({ accessToken: accessToken })
     }
-    )
-    res.json({ accessToken: accessToken })
+    catch (err) {
+        res.status(401).json({ message: 'Invalid username or password' });
+    }
+
 }
 
-function logout(req, res, cookieOptions){
+function logout(req, res, cookieOptions) {
     const token = req.cookies.refreshToken
     if (!token || !refreshTokens.includes(token)) res.sendStatus(401)
     refreshTokens = refreshTokens.filter(token => token !== req.cookies.refreshToken) ///remove the refresh token from the list of refresh tokens
@@ -42,26 +43,26 @@ function logout(req, res, cookieOptions){
     res.sendStatus(204)
 }
 
-function requestNewToken(req, res){
-        // const refreshToken = req.body.token
-        const refreshToken = req.cookies.refreshToken
-        // console.log(`cookie = ${req.cookies}`)
-        console.log(req.cookies.refreshToken)
-    
-    
-        if (refreshToken == null) {
-            console.log('no token')
-            return res.sendStatus(401)
-        } //if null
-        if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403)  //if not null but does not exist in refresh token array
-    
-        jwt.verify(refreshToken, process.env.REFRESS_TOKEN_SECRET, (err, user) => {   //then verify
-    
-            if (err) return res.sendStatus(403)
-            const accessToken = generateAccessToken({ name: user.name })
-    
-            res.json({ accessToken: accessToken })
-        })
+function requestNewToken(req, res) {
+    // const refreshToken = req.body.token
+    const refreshToken = req.cookies.refreshToken
+    // console.log(`cookie = ${req.cookies}`)
+    console.log(req.cookies.refreshToken)
+
+
+    if (refreshToken == null) {
+        console.log('no token')
+        return res.sendStatus(401)
+    } //if null
+    if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403)  //if not null but does not exist in refresh token array
+
+    jwt.verify(refreshToken, process.env.REFRESS_TOKEN_SECRET, (err, user) => {   //then verify
+
+        if (err) return res.sendStatus(403)
+        const accessToken = generateAccessToken({ name: user.name })
+
+        res.json({ accessToken: accessToken })
+    })
 }
 
 
@@ -102,12 +103,22 @@ function generateResetToken(user) {
     return jwt.sign(user, process.env.RESET_TOKEN_SECRET, { expiresIn: '300s' }) //shorter expiration time and will be single use
 }
 
-async function authenticateUser(req, res, username, password) {
-    const user = users.find(u => u.username === username)
-    if (!user) return res.sendStatus(401)
+async function authenticateUser(username, password) {
+    const storedHash = await getPasswordHash(username);
+    const validPassword = await bcrypt.compare(password, storedHash)
+    if (!validPassword) throw new Error('invalid username or password')
+    return { name: username };
+}
 
-    const validPassword = await bcrypt.compare(password, user.password)
-    if (!validPassword) return res.sendStatus(401);
+async function getPasswordHash(username) {
+    return new Promise((resolve, reject) => {
+        db.get('SELECT password_hash FROM users WHERE username = ?', [username], (err, row) => {
+            if (err) reject(err)
+            if (!row) reject(new Error('User not found'));
+
+            else resolve(row.password_hash)
+        })
+    })
 }
 
 function authenticateToken(req, res, next) {

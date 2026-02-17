@@ -18,6 +18,11 @@ saveChangesBtn.style.display = 'none'
 let createLinkForm = document.getElementById('edit-link-div')
 let createLinkBuffer = document.getElementById('edit-link-buffer')
 
+let openCreateUserBtn = document.getElementById('create-user-button')
+let createUserForm = document.getElementById('create-user-div')
+let createUserFormBuffer = document.getElementById('create-user-div-buffer')
+
+
 let dashboard = document.getElementById('dashboard')
 const loadingPage = document.getElementById('loading')
 
@@ -97,6 +102,15 @@ document.getElementById('edit-link-buffer').addEventListener('click', () => {
     createLinkBuffer.style.display = 'none'
 })
 
+openCreateUserBtn.addEventListener('click', () => {
+    createUserForm.style.display = 'flex';
+    createUserFormBuffer.style.display = 'flex'
+})
+createUserFormBuffer.addEventListener('click', () => {
+    createUserForm.style.display = 'none'
+    createUserFormBuffer.style.display = 'none'
+})
+
 document.getElementById('login-form').addEventListener('submit', function (event) {
     event.preventDefault();
     const username = event.target.username.value
@@ -126,6 +140,14 @@ document.getElementById('edit-link-form').addEventListener('submit', async funct
     document.getElementById('edit-link-form').reset();
     window.location.reload()
     // console.log('tried creating element')
+})
+
+document.getElementById('create-user-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const username = event.target.username.value
+    const password = event.target.password.value
+    await createUser(username, password)
+    console.log("successfully created user")
 })
 
 saveChangesBtn.addEventListener('click', async () => {
@@ -176,6 +198,28 @@ let createLink = async (name, localIp, remoteIp, imgUrl) => {
             'imgUrl': imgUrl,
             'column': 1,
             // 'row': 1
+        })
+    })
+
+    if (!response.ok) {
+        console.error(response.status)
+        return
+    }
+    console.log(`${name} added`)
+}
+
+let createUser = async (username, password) => {
+    console.log('trying to create user')
+    const response = await fetch(`${apiServer}/register`, {
+        method: "POST",
+        credentials: `${credentials}`,
+        headers: {
+            'content-type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+            'username': username,
+            'password': password,
         })
     })
 

@@ -39,6 +39,7 @@ console.log(corsOptions)
 app.use(express.json(), cors(corsOptions), cookieParser())
 
 app.post('/token', auth.requestNewToken)
+app.post('/register', auth.authenticateToken, auth.register)
 app.post('/login', (req, res) => { auth.login(req, res, cookieOptions) })
 app.delete('/logout', (req, res) => { auth.logout(req, res, cookieOptions) })
 // app.post('/request-reset', requestPasswordReset )

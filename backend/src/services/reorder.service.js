@@ -1,4 +1,4 @@
-const db = require('../db/db.js');
+import db from '../db/db.js'
 
 let reIndexRowsForColumn = async (column) => {
     let rowNum = 10
@@ -109,20 +109,20 @@ async function moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn) 
 }
 
 
-async function batchMoveService(moves){
-    if(!moves){
+export async function batchMoveService(moves) {
+    if (!moves) {
         throw new Error('invalid input')
     }
-    
-    try{
+
+    try {
         for (const move of moves) {
-            const {idToMove, relativeToId, targetColumn } = move
+            const { idToMove, relativeToId, targetColumn } = move
             if (!idToMove || !targetColumn) throw new Error(`Invalid move: ${JSON.stringify(move)}`);
             console.log(idToMove, relativeToId, targetColumn)
             await moveIdToPositionAndReindex(idToMove, relativeToId, targetColumn)
         }
     }
-    catch(err){
+    catch (err) {
         console.error('Batch move failed:', err);
         throw err;
     }
@@ -137,5 +137,3 @@ async function batchMoveService(moves){
 //         })
 //     }
 // }
-
-module.exports = {batchMoveService}

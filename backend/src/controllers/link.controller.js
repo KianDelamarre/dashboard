@@ -1,21 +1,19 @@
-const fs = require('fs')
-const { getLinksService, createLinkService, deleteLinkService, updateLinkService } = require('../services/link.service')
+import { getLinksService, createLinkService, deleteLinkService, updateLinkService } from '../services/link.service.js'
 
-
-async function getLinksController(req, res) {
-    try{
+export async function getLinksController(req, res) {
+    try {
         const userId = req.user.id
         const links = await getLinksService(userId)
         res.json(links)
     }
-    catch(err){
-        res.status(400).json({ message: err.message});
+    catch (err) {
+        res.status(400).json({ message: err.message });
     }
 
 }
 
-async function createLinkController(req, res) {
-    try{
+export async function createLinkController(req, res) {
+    try {
         const link = {
             name: req.body.name,
             localIp: req.body.localIp,
@@ -27,24 +25,24 @@ async function createLinkController(req, res) {
         await createLinkService(link)
         res.json({ message: `successfully added ${link.name}` })
     }
-    catch(err){
-        res.status(400).json({ message: err.message});
+    catch (err) {
+        res.status(400).json({ message: err.message });
     }
 }
 
-async function deleteLinkController(req, res) {
-    try{
+export async function deleteLinkController(req, res) {
+    try {
         const linkId = req.params.id;
         const userId = req.user.id
 
         await deleteLinkService(linkId, userId)
     }
-    catch(err){
+    catch (err) {
         res.status(400).json({ message: err.message || err })
     }
 }
 
-async function updateLinkController(req, res) {
+export async function updateLinkController(req, res) {
     try {
         const linkId = req.params.id;
         const userId = req.user.id;
@@ -60,15 +58,6 @@ async function updateLinkController(req, res) {
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
-}
-
-
-function writeDataToFile(filename, content) {
-    fs.writeFileSync(filename, JSON.stringify(content), 'utf8', (err) => {
-        if (err) {
-            console.log(err);
-        }
-    })
 }
 
 // function getNoteData(req) {
@@ -92,7 +81,3 @@ function writeDataToFile(filename, content) {
 //         }
 //     })
 // }
-
-module.exports = {
-    writeDataToFile, getLinksController, createLinkController, updateLinkController, deleteLinkController
-}

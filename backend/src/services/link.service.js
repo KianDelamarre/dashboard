@@ -1,32 +1,31 @@
-const fs = require('fs')
-const db = require('../db/db.js');
+import db from '../db/db.js'
 
-async function getLinksService(userId) {
-    if(!userId){
+export async function getLinksService(userId) {
+    if (!userId) {
         throw new Error('invalid input')
     }
 
-    return new Promise ((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         db.all('SELECT * FROM links WHERE user_id = ? ORDER BY column, row', [userId], (err, rows) => {
-            if (err) return reject (err)
+            if (err) return reject(err)
             resolve(rows)
         })
     })
 }
 
 
-async function createLinkService(link) {
-    if(!link.name || !link.userId) throw new Error('invalid input')
-    try{
+export async function createLinkService(link) {
+    if (!link.name || !link.userId) throw new Error('invalid input')
+    try {
         const newRow = await rowToInsertAt(link.column)
         await insertLink(link, newRow)
     }
-    catch(err){
+    catch (err) {
         throw err
     }
 }
 
-async function rowToInsertAt(column){
+export async function rowToInsertAt(column) {
     const row = await new Promise((resolve, reject) => {
         db.get('SELECT MAX(row) AS max_row FROM links WHERE column = ?', [column], (err, row) => {
             if (err) return reject(err)
@@ -35,39 +34,39 @@ async function rowToInsertAt(column){
     })
 
     //if no rows then return 10, else return row + 10 to insert at 10 after max row
-    if(!row) return 10
+    if (!row) return 10
     return (row + 10)
 }
 
-async function insertLink(link, rowToInsertAt){
-    return new Promise ((resolve, reject) =>{
+export async function insertLink(link, rowToInsertAt) {
+    return new Promise((resolve, reject) => {
         db.run(`INSERT INTO links
             (name, user_id, localip, remoteip, imgurl, column, row) VALUES
             (?,?,?,?,?,?,?)`, [link.name, link.userId, link.localIp, link.remoteIp, link.imgUrl, link.column, rowToInsertAt], (err, rows) => {
-                if (err) reject (err)
-                // console.log(rows)
-                resolve()
-            })
+            if (err) reject(err)
+            // console.log(rows)
+            resolve()
         })
+    })
 }
 
 
 
-async function deleteLinkService(linkId, userId) {
-    if(!userId || !linkId){
+export async function deleteLinkService(linkId, userId) {
+    if (!userId || !linkId) {
         throw new Error('Failed to delete link')
     }
 
     return await new Promise((resolve, reject) => {
         db.run('DELETE FROM links WHERE id = ? AND user_id = ?', [linkId, userId], function (err) {
-            if (err || this.changes === 0) reject ('Failed to delete link')
+            if (err || this.changes === 0) reject('Failed to delete link')
             resolve()
         });
     })
 }
 
 
-function updateLinkService(linkId, userId, updates) {
+export function updateLinkService(linkId, userId, updates) {
     if (!linkId || !userId || !updates) {
         throw new Error('Invalid input');
     }
@@ -95,15 +94,6 @@ function updateLinkService(linkId, userId, updates) {
     });
 }
 
-
-function writeDataToFile(filename, content) {
-    fs.writeFileSync(filename, JSON.stringify(content), 'utf8', (err) => {
-        if (err) {
-            console.log(err);
-        }
-    })
-}
-
 // function getNoteData(req) {
 //     return new Promise((resolve, reject) => {
 //         try {
@@ -125,7 +115,3 @@ function writeDataToFile(filename, content) {
 //         }
 //     })
 // }
-
-module.exports = {
-    writeDataToFile, getLinksService, createLinkService, updateLinkService, deleteLinkService
-}

@@ -1,16 +1,14 @@
-// require('dotenv').config()
+import 'dotenv/config'
+import express from 'express'
+import cors from 'cors'
+import cookieParser from 'cookie-parser'
 
-const express = require('express')
-const cors = require('cors')
-
-const {loginController, requestNewAccessTokencontroller, logoutController, registerController} = require('./controllers/auth.controller.js')
-const {authenticateToken} = require('./middleware/auth.middleware.js')
-const {batchMoveController} = require('./controllers/reorder.controller.js')
-const { getLinksController, createLinkController, deleteLinkController, updateLinkController } = require('./controllers/link.controller.js')
+import { loginController, requestNewAccessTokencontroller, logoutController, registerController } from './controllers/auth.controller.js'
+import { authenticateToken } from './middleware/auth.middleware.js'
+import { batchMoveController } from './controllers/reorder.controller.js'
+import { getLinksController, createLinkController, deleteLinkController, updateLinkController } from './controllers/link.controller.js'
 
 const app = express()
-
-const cookieParser = require('cookie-parser')
 
 const dev_mode = process.env.DEV_MODE
 let cookieOptions = {}
@@ -41,7 +39,7 @@ app.use(express.json(), cors(corsOptions), cookieParser())
 
 app.post('/token', requestNewAccessTokencontroller)
 app.post('/register', authenticateToken, registerController)
-app.post('/login', (req, res) => {loginController(req, res, cookieOptions) })
+app.post('/login', (req, res) => { loginController(req, res, cookieOptions) })
 app.delete('/logout', (req, res) => { logoutController(req, res, cookieOptions) })
 // app.post('/request-reset', requestPasswordReset )
 // app.put('/reset-password', authenticateToken, resetPassword)

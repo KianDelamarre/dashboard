@@ -1,11 +1,11 @@
-require('dotenv').config()
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
+import 'dotenv/config'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 
-const { writeDataToFile } = require('../utils/utils.js')
-const db = require('../db/db.js');
+import db from '../db/db.js'
 
-async function loginService(username, password) {
+
+export async function loginService(username, password) {
     if (!username || !password)
         throw new Error('invalid username or password')
 
@@ -28,7 +28,7 @@ async function loginService(username, password) {
 
 }
 
-async function requestNewAccessTokenService(refreshToken) {
+export async function requestNewAccessTokenService(refreshToken) {
     if (!refreshToken) {
         throw new Error('invalid token')
     }
@@ -44,7 +44,7 @@ async function requestNewAccessTokenService(refreshToken) {
     }
 }
 
-async function logoutService(refreshToken) {
+export async function logoutService(refreshToken) {
     if (!refreshToken) {
         throw new Error('invalid token')
     }
@@ -57,7 +57,7 @@ async function logoutService(refreshToken) {
     }
 }
 
-async function registerService(userNameToCreate, passwordToCreate) {
+export async function registerService(userNameToCreate, passwordToCreate) {
     if (!userNameToCreate || !passwordToCreate) {
         throw new Error('invalid input')
     }
@@ -73,27 +73,33 @@ async function registerService(userNameToCreate, passwordToCreate) {
 }
 
 
-async function registerNewUser(username, passowrd_hash) {
+export async function registerNewUser(username, password_hash) {
     return new Promise((resolve, reject) => {
-        db.run('INSERT INTO users (username, password_hash) VALUES (?,?)', [username, passowrd_hash], (err) => {
-            if (err) reject(err)
-            resolve(this.lastID)
-        })
+        db.run(
+            'INSERT INTO users (username, password_hash) VALUES (?,?)',
+            [username, password_hash],
+            function (err) {       // regular function here
+                if (err) return reject(err)
+                resolve(this.lastID)  // now this is correct
+            }
+        )
     })
 }
 
-async function storeRefreshToken(userId, refreshTokenHash) {
+
+export async function storeRefreshToken(userId, refreshTokenHash) {
     return new Promise((resolve, reject) => {
         db.run(`INSERT INTO sessions
             (user_id, refresh_token_hash, expires_at) 
-            VALUES (?,?,?)`, [userId, refreshTokenHash, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()], (err) => {
-            if (err) reject(err);
-            resolve(this.lastID)
-        })
+            VALUES (?,?,?)`, [userId, refreshTokenHash, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()],
+            function (err) {
+                if (err) reject(err);
+                resolve(this.lastID)
+            })
     })
 }
 
-async function checkRefreshToken(token) {
+export async function checkRefreshToken(token) {
     const session = await new Promise((resolve, reject) => {
         db.get(`SELECT refresh_token_hash FROM sessions WHERE refresh_token_hash = ?`, [token], (err, row) => {
             if (err) reject(err);
@@ -106,13 +112,14 @@ async function checkRefreshToken(token) {
     }
 }
 
-async function deleteRefreshToken(token) {
+export async function deleteRefreshToken(token) {
     return new Promise((resolve, reject) => {
-        db.run(`DELETE FROM sessions WHERE refresh_token_hash = ?`, [token], (err) => {
-            if (err) reject(err);
-            if (this.changes === 0) return reject(new Error('Token not found'));
-            resolve(this.changes);
-        })
+        db.run(`DELETE FROM sessions WHERE refresh_token_hash = ?`, [token],
+            function (err) {
+                if (err) reject(err);
+                if (this.changes === 0) return reject(new Error('Token not found'));
+                resolve(this.changes);
+            })
     })
 }
 
@@ -162,7 +169,7 @@ function generateResetToken(user) {
     return jwt.sign(payload, process.env.RESET_TOKEN_SECRET, { expiresIn: '300s' }) //shorter expiration time and will be single use
 }
 
-async function authenticateUser(username, password) {
+export async function authenticateUser(username, password) {
     if (!username || !password) throw new Error('invalid username or passsword')
     try {
         const user = await getUser(username);
@@ -175,7 +182,7 @@ async function authenticateUser(username, password) {
     }
 }
 
-async function getUser(username) {
+export async function getUser(username) {
     return new Promise((resolve, reject) => {
         db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
             if (err) reject(err)
@@ -186,7 +193,7 @@ async function getUser(username) {
 }
 
 // auth.service.js
-function verifyAccessToken(token) {
+export function verifyAccessToken(token) {
     try {
         return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     } catch {
@@ -211,16 +218,15 @@ async function hashPassword(password) {
     return hashedPassword
 }
 
-async function verifyPassword(password, storedHash) {
+export async function verifyPassword(password, storedHash) {
     if (!password || !storedHash) {
         throw new Error('invalid password')
     }
-    try {
-        await bcrypt.compare(password, storedHash)
+
+    if (await bcrypt.compare(password, storedHash)) {
+        return true
     }
-    catch (err) {
-        throw err
-    }
+    throw new Error('invalid password')
 }
 
 setInterval(() => {
@@ -248,17 +254,3 @@ setInterval(() => {
 // on login user is given refresh token => when access token expires => 
 // => user request new access token with refresh token, to revalidate sessions without having to log back in =>
 // => when user logs out, refresh token is delete 
-
-module.exports = {
-    loginService,
-    requestNewAccessTokenService,
-    logoutService,
-    registerService,
-    verifyAccessToken,
-    authenticateUser,
-    storeRefreshToken,
-    generateAccessToken,
-    generateRefreshToken,
-    getUser,
-    verifyPassword
-}

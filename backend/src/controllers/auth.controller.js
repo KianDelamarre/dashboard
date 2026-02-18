@@ -1,15 +1,11 @@
-require('dotenv').config()
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const {loginService, requestNewAccessTokenService, logoutService} = require('../services/auth.service.js')
+import 'dotenv/config'
 
-const { writeDataToFile } = require('../utils/utils.js')
-const db = require('../db/db.js');
+import { loginService, requestNewAccessTokenService, logoutService } from '../services/auth.service.js'
 
-async function loginController(req, res, cookieOptions) {
+export async function loginController(req, res, cookieOptions) {
     try {
-        const {username, password} = req.body
-        const {accessToken, refreshToken} = await loginService(username, password)
+        const { username, password } = req.body
+        const { accessToken, refreshToken } = await loginService(username, password)
         // refreshTokens.push(refreshToken)
         res.cookie("refreshToken", refreshToken, {
             ...cookieOptions,
@@ -23,7 +19,7 @@ async function loginController(req, res, cookieOptions) {
     }
 }
 
-async function requestNewAccessTokencontroller(req, res) {
+export async function requestNewAccessTokencontroller(req, res) {
     try {
         const refreshToken = req.cookies.refreshToken
         const accessToken = await requestNewAccessTokenService(refreshToken)
@@ -34,7 +30,7 @@ async function requestNewAccessTokencontroller(req, res) {
     }
 }
 
-async function logoutController(req, res, cookieOptions) {
+export async function logoutController(req, res, cookieOptions) {
     try {
         const refreshToken = req.cookies.refreshToken
         await logoutService(refreshToken)
@@ -48,7 +44,7 @@ async function logoutController(req, res, cookieOptions) {
     }
 }
 
-async function registerController(req, res) {
+export async function registerController(req, res) {
     //hard block anyone but user 1 from creating new users for now
     if (req.user.id != 1) {
         res.sendStatus(403)
@@ -64,10 +60,6 @@ async function registerController(req, res) {
     catch (err) {
         res.status(400).json({ message: err.message || err });
     }
-}
-
-module.exports = {
-    loginController, logoutController, requestNewAccessTokencontroller, registerController
 }
 
 // login flow

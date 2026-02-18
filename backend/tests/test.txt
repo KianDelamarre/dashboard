@@ -1,0 +1,90 @@
+Checklist for Any Service Function
+    When writing a test for a service, ask:
+        What invalid inputs can break this?
+        What is the expected success output?
+        What branches exist?
+        What side effects happen?
+        What security rules apply?
+
+✅ 1. Input Validation
+
+    Test that invalid inputs fail correctly.
+        Examples:
+            Missing username
+            Empty password
+            Invalid token format
+            Null/undefined IDs
+
+    You’re verifying:
+        It throws
+        It throws the right type (usually Error)
+        It doesn’t continue execution
+
+You don’t need to obsess over exact error strings unless they’re part of API contract.
+
+✅ 2. Happy Path (Correct Behavior)
+
+    Test the “normal working” scenario.
+
+    Example for login:
+        User exists
+        Password matches
+        Refresh token stored
+        Tokens returned
+        
+    You verify:
+        Correct return shape
+        Dependencies were called
+        Called with correct arguments
+
+✅ 3. Failure Paths (Branch Coverage)
+
+    Every conditional branch should have a test.
+
+    If your function does:
+
+        if (!user) throw ...
+        if (!passwordMatch) throw ...
+
+    You want:
+
+        Test: user not found
+        Test: password mismatch
+
+    This is extremely important in auth logic.
+
+✅ 4. Side Effects
+
+    Services often cause side effects:
+        Storing refresh token
+        Deleting token on logout
+        Updating DB rows
+
+    Test that:
+        The side-effect function was called
+        It was called with correct parameters
+
+    Not that the DB actually changed — that’s integration testing.
+
+✅ 5. Security-Sensitive Behavior
+
+    In auth specifically, test:
+        Expired tokens rejected
+        Invalid tokens rejected
+        Refresh token rotation works
+        Old refresh tokens cannot be reused (if you implement that)
+        Security logic deserves extra tests.
+
+❌ What You Should NOT Test
+
+    Don’t test:
+        That bcrypt hashes correctly
+        That jsonwebtoken signs correctly
+        That SQLite returns rows correctly
+        That Express works
+    Those are library responsibilities.
+    
+    Mock them and trust them.
+
+
+

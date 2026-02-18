@@ -6,22 +6,23 @@ const { writeDataToFile } = require('../utils/utils.js')
 const db = require('../db/db.js');
 
 async function loginService(username, password) {
-    if(!username || !password)
+    if (!username || !password)
         throw new Error('invalid username or password')
 
-    try{
+    try {
         //authenticate user
         const user = await authenticateUser(username, password)
         //generate access token
         const accessToken = generateAccessToken(user)
         //generate refresh token
-        const refreshToken =  generateRefreshToken(user)
+        const refreshToken = generateRefreshToken(user)
         //store refresh token
         await storeRefreshToken(user.id, refreshToken)
         //return both tokens
-        return {accessToken, refreshToken}
+        console.log(accessToken, refreshToken)
+        return { accessToken, refreshToken }
     }
-    catch(err){
+    catch (err) {
         throw new Error('invalid username or password')
     }
 
@@ -30,7 +31,7 @@ async function loginService(username, password) {
 async function requestNewAccessTokenService(refreshToken) {
     if (!refreshToken) {
         throw new Error('invalid token')
-    } 
+    }
 
     try {
         await checkRefreshToken(refreshToken) //validate token in db
@@ -46,7 +47,7 @@ async function requestNewAccessTokenService(refreshToken) {
 async function logoutService(refreshToken) {
     if (!refreshToken) {
         throw new Error('invalid token')
-    } 
+    }
 
     try {
         await deleteRefreshToken(refreshToken)
@@ -60,9 +61,14 @@ async function registerService(userNameToCreate, passwordToCreate) {
     if (!userNameToCreate || !passwordToCreate) {
         throw new Error('invalid input')
     }
+    try {
+        const password_hash = await hashPassword(passwordToCreate)
+        await registerNewUser(userNameToCreate, password_hash)
+    }
+    catch (err) {
+        throw err
+    }
 
-    const password_hash = await hashPassword(passwordToCreate)
-    await registerNewUser(userNameToCreate, password_hash)
 
 }
 
@@ -95,7 +101,7 @@ async function checkRefreshToken(token) {
         })
     })
 
-    if(!session){
+    if (!session) {
         throw new Error('Invalid or revoked refresh token')
     }
 }
@@ -157,11 +163,16 @@ function generateResetToken(user) {
 }
 
 async function authenticateUser(username, password) {
-    const user = await getUser(username);
-    const storedHash = user.password_hash
-    const validPassword = await bcrypt.compare(password, storedHash)
-    if (!validPassword) throw new Error('invalid username or password')
-    return user;
+    if (!username || !password) throw new Error('invalid username or passsword')
+    try {
+        const user = await getUser(username);
+        const storedHash = user.password_hash
+        await verifyPassword(password, storedHash)
+        return user;
+    }
+    catch (err) {
+        throw new Error('invalid username or passsword')
+    }
 }
 
 async function getUser(username) {
@@ -198,7 +209,18 @@ async function hashPassword(password) {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     console.log(hashedPassword)
     return hashedPassword
+}
 
+async function verifyPassword(password, storedHash) {
+    if (!password || !storedHash) {
+        throw new Error('invalid password')
+    }
+    try {
+        await bcrypt.compare(password, storedHash)
+    }
+    catch (err) {
+        throw err
+    }
 }
 
 setInterval(() => {
@@ -228,5 +250,15 @@ setInterval(() => {
 // => when user logs out, refresh token is delete 
 
 module.exports = {
-    loginService, requestNewAccessTokenService, logoutService, registerService, verifyAccessToken
+    loginService,
+    requestNewAccessTokenService,
+    logoutService,
+    registerService,
+    verifyAccessToken,
+    authenticateUser,
+    storeRefreshToken,
+    generateAccessToken,
+    generateRefreshToken,
+    getUser,
+    verifyPassword
 }

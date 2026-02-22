@@ -2,11 +2,12 @@
   "name": "jwt-test",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "devStart": "nodemon server.js",
+    "devStart": "nodemon ./src/server.js",
     "devStartAuth": "nodemon authServer.js",
     "startApp": "nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +24,8 @@
     "sqlite3": "^5.1.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "supertest": "^7.2.2",
+    "vitest": "^4.0.18"
   }
 }

@@ -1,0 +1,63 @@
+import 'dotenv/config'
+import express from 'express'
+import cors from 'cors'
+import cookieParser from 'cookie-parser'
+
+import { loginController, requestNewAccessTokencontroller, logoutController, registerController } from './auth/auth.controller.js'
+import { authenticateToken } from './auth/auth.middleware.js'
+import { batchMoveController } from './reorder/reorder.controller.js'
+import { getLinksController, createLinkController, deleteLinkController, updateLinkController } from './link/link.controller.js'
+
+const app = express()
+
+const dev_mode = process.env.DEV_MODE
+let cookieOptions = {}
+if (dev_mode === 'true') {
+    cookieOptions = {
+        httpOnly: true,
+        path: '/',
+        sameSite: 'lax',
+        secure: false,
+    }
+}
+else { //production mode
+    cookieOptions = {
+        httpOnly: true,
+        path: '/',
+        sameSite: 'lax',
+        secure: true
+    }
+}
+// console.log(links)
+const corsOptions = {
+    origin: process.env.ALLOWED_ORIGINS,
+    credentials: true,
+}
+console.log(corsOptions)
+
+app.use(express.json(), cors(corsOptions), cookieParser())
+
+app.post('/token', requestNewAccessTokencontroller)
+app.post('/register', authenticateToken, registerController)
+app.post('/login', (req, res) => { loginController(req, res, cookieOptions) })
+app.delete('/logout', (req, res) => { logoutController(req, res, cookieOptions) })
+// app.post('/request-reset', requestPasswordReset )
+// app.put('/reset-password', authenticateToken, resetPassword)
+
+//get all links
+app.get('/links', authenticateToken, getLinksController)
+//ping links to check up status
+app.get('/links/status')
+//create a link
+app.post('/link', authenticateToken, createLinkController)
+//delete a link
+app.delete('/link/:id', authenticateToken, deleteLinkController)
+//update a links name, urls and or image
+app.patch('/link/:id', authenticateToken, updateLinkController)
+//to reorder multiple links at the same time
+app.patch('/links/batchmove', authenticateToken, batchMoveController)
+
+const port = 4001;
+app.listen(port, () => {
+    console.log(`Server is listening on port ${port}`);
+});

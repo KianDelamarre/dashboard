@@ -1,4 +1,4 @@
-import { verifyAccessToken } from '../services/auth.service.js'
+import { verifyAccessToken } from './auth.repository.js'
 
 export function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization']  //gets the authorisation header

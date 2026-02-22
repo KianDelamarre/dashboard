@@ -4,75 +4,6 @@ import jwt from 'jsonwebtoken'
 
 import db from '../db/db.js'
 
-
-export async function loginService(username, password) {
-    if (!username || !password)
-        throw new Error('invalid username or password')
-
-    try {
-        //authenticate user
-        const user = await authenticateUser(username, password)
-        //generate access token
-        const accessToken = generateAccessToken(user)
-        //generate refresh token
-        const refreshToken = generateRefreshToken(user)
-        //store refresh token
-        await storeRefreshToken(user.id, refreshToken)
-        //return both tokens
-        console.log(accessToken, refreshToken)
-        return { accessToken, refreshToken }
-    }
-    catch (err) {
-        throw new Error('invalid username or password')
-    }
-
-}
-
-export async function requestNewAccessTokenService(refreshToken) {
-    if (!refreshToken) {
-        throw new Error('invalid token')
-    }
-
-    try {
-        await checkRefreshToken(refreshToken) //validate token in db
-        const accessToken = generateAccessToken(user)
-        return accessToken
-    }
-    catch (err) {
-        console.log('user trying to reauthenticate without valid token, make sure credentials true')
-        throw new Error('invalid token')
-    }
-}
-
-export async function logoutService(refreshToken) {
-    if (!refreshToken) {
-        throw new Error('invalid token')
-    }
-
-    try {
-        await deleteRefreshToken(refreshToken)
-    }
-    catch (err) {
-        throw new Error('invalid token')
-    }
-}
-
-export async function registerService(userNameToCreate, passwordToCreate) {
-    if (!userNameToCreate || !passwordToCreate) {
-        throw new Error('invalid input')
-    }
-    try {
-        const password_hash = await hashPassword(passwordToCreate)
-        await registerNewUser(userNameToCreate, password_hash)
-    }
-    catch (err) {
-        throw err
-    }
-
-
-}
-
-
 export async function registerNewUser(username, password_hash) {
     return new Promise((resolve, reject) => {
         db.run(
@@ -86,7 +17,6 @@ export async function registerNewUser(username, password_hash) {
     })
 }
 
-
 export async function storeRefreshToken(userId, refreshTokenHash) {
     return new Promise((resolve, reject) => {
         db.run(`INSERT INTO sessions
@@ -94,6 +24,7 @@ export async function storeRefreshToken(userId, refreshTokenHash) {
             VALUES (?,?,?)`, [userId, refreshTokenHash, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()],
             function (err) {
                 if (err) reject(err);
+                if (this.changes === 0) return reject(new Error('Could not store token in db'));
                 resolve(this.lastID)
             })
     })
@@ -154,17 +85,17 @@ export async function deleteRefreshToken(token) {
 
 
 
-function generateAccessToken(user) {
+export function generateAccessToken(user) {
     const payload = { id: user.id, username: user.username };
     return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '300s' })
 }
-function generateRefreshToken(user) {
+export function generateRefreshToken(user) {
     const payload = { id: user.id, username: user.username };
     return jwt.sign(payload, process.env.REFRESS_TOKEN_SECRET)
 
 }
 
-function generateResetToken(user) {
+export function generateResetToken(user) {
     const payload = { id: user.id, username: user.username };
     return jwt.sign(payload, process.env.RESET_TOKEN_SECRET, { expiresIn: '300s' }) //shorter expiration time and will be single use
 }
@@ -201,7 +132,7 @@ export function verifyAccessToken(token) {
     }
 }
 
-function verifyRefreshToken(token) {
+export function verifyRefreshToken(token) {
     try {
         return jwt.verify(token, process.env.REFRESS_TOKEN_SECRET_TOKEN_SECRET);
     } catch {
@@ -210,7 +141,7 @@ function verifyRefreshToken(token) {
 }
 
 
-async function hashPassword(password) {
+export async function hashPassword(password) {
     const saltRounds = 10; // cost factor, 10 is standard
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);

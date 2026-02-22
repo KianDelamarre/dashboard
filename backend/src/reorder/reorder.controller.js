@@ -1,4 +1,4 @@
-import { batchMoveService } from '../services/reorder.service.js'
+import { batchMoveService } from './reorder.service.js'
 
 export async function batchMoveController(req, res) {
 

@@ -1,4 +1,4 @@
-import { getLinksService, createLinkService, deleteLinkService, updateLinkService } from '../services/link.service.js'
+import { getLinksService, createLinkService, deleteLinkService, updateLinkService } from './link.service.js'
 
 export async function getLinksController(req, res) {
     try {

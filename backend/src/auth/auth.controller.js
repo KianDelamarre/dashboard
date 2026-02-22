@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-import { loginService, requestNewAccessTokenService, logoutService } from '../services/auth.service.js'
+import { loginService, requestNewAccessTokenService, logoutService } from './auth.service.js'
 
 export async function loginController(req, res, cookieOptions) {
     try {

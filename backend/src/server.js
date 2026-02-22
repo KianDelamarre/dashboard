@@ -3,10 +3,10 @@ import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 
-import { loginController, requestNewAccessTokencontroller, logoutController, registerController } from './controllers/auth.controller.js'
-import { authenticateToken } from './middleware/auth.middleware.js'
-import { batchMoveController } from './controllers/reorder.controller.js'
-import { getLinksController, createLinkController, deleteLinkController, updateLinkController } from './controllers/link.controller.js'
+import { loginController, requestNewAccessTokencontroller, logoutController, registerController } from './auth/auth.controller.js'
+import { authenticateToken } from './auth/auth.middleware.js'
+import { batchMoveController } from './reorder/reorder.controller.js'
+import { getLinksController, createLinkController, deleteLinkController, updateLinkController } from './link/link.controller.js'
 
 const app = express()
 

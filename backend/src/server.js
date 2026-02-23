@@ -2,18 +2,10 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
-import fs from "fs";
-
 // Load keys
-
-// import { loginController, requestNewAccessTokencontroller, logoutController, registerController } from './auth/auth.controller.js'
-// import { authenticateToken } from './auth/auth.middleware.js'
 import { createIdpClient, createLoginController,createAuthMiddleware, createRequestNewAccessTokencontroller,createLogoutController, getPublicKeyFromIdp } from 'idp-client';
 import { batchMoveController } from './reorder/reorder.controller.js'
 import { getLinksController, createLinkController, deleteLinkController, updateLinkController } from './link/link.controller.js'
-
-import { requestTokens } from './auth/auth.repository.js'
-import { get } from 'http';
 
 const app = express()
 
@@ -42,9 +34,7 @@ const corsOptions = {
 }
 console.log(corsOptions)
 const idp_url = process.env.IDP_URL
-// const publicKey = fs.readFileSync("./public.key", "utf8");
 const publicKey = await getPublicKeyFromIdp(idp_url)
-// const pubblicKey = 'hi'
 const idp = createIdpClient({
   baseUrl: idp_url,
   publicKey: publicKey,

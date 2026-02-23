@@ -1,4 +1,3 @@
-import { requestNewAccessToken } from '../auth/auth.repository.js'
 import { getLinksService, createLinkService, deleteLinkService, updateLinkService } from './link.service.js'
 
 export async function getLinksController(req, res) {

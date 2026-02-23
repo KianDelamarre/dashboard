@@ -1,9 +1,13 @@
+import { requestNewAccessToken } from '../auth/auth.repository.js'
 import { getLinksService, createLinkService, deleteLinkService, updateLinkService } from './link.service.js'
 
 export async function getLinksController(req, res) {
     try {
         const userId = req.user.id
+        console.log(req)
+
         const links = await getLinksService(userId)
+        console.log('should have links')
         res.json(links)
     }
     catch (err) {

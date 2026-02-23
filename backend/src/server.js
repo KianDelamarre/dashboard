@@ -2,11 +2,17 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import fs from "fs";
 
-import { loginController, requestNewAccessTokencontroller, logoutController, registerController } from './auth/auth.controller.js'
-import { authenticateToken } from './auth/auth.middleware.js'
+// Load keys
+
+// import { loginController, requestNewAccessTokencontroller, logoutController, registerController } from './auth/auth.controller.js'
+// import { authenticateToken } from './auth/auth.middleware.js'
+import { createIdpClient, createLoginController,createAuthMiddleware, createRequestNewAccessTokencontroller,createLogoutController } from 'idp-client';
 import { batchMoveController } from './reorder/reorder.controller.js'
 import { getLinksController, createLinkController, deleteLinkController, updateLinkController } from './link/link.controller.js'
+
+import { requestTokens } from './auth/auth.repository.js'
 
 const app = express()
 
@@ -35,27 +41,39 @@ const corsOptions = {
 }
 console.log(corsOptions)
 
-app.use(express.json(), cors(corsOptions), cookieParser())
+const publicKey = fs.readFileSync("./public.key", "utf8");
+const idp = createIdpClient({
+  baseUrl: 'http://localhost:4002',
+  publicKey: publicKey,
+});
 
-app.post('/token', requestNewAccessTokencontroller)
-app.post('/register', authenticateToken, registerController)
-app.post('/login', (req, res) => { loginController(req, res, cookieOptions) })
-app.delete('/logout', (req, res) => { logoutController(req, res, cookieOptions) })
+
+// requestTokens('kian1', '1234')
+
+app.use(express.json(), cors(corsOptions), cookieParser());
+app.post('/refresh', createRequestNewAccessTokencontroller({ client: idp }));
+// app.post('/token', requestNewAccessTokencontroller)
+// app.post('/register', authenticateToken, registerController)
+app.post('/login', createLoginController({ client: idp, cookieOptions}));
+// app.post('/login', (req, res) => { loginController(req, res, cookieOptions) })
+// app.delete('/logout', (req, res) => { logoutController(req, res, cookieOptions) })
 // app.post('/request-reset', requestPasswordReset )
 // app.put('/reset-password', authenticateToken, resetPassword)
 
+// Protect routes
+app.use(createAuthMiddleware({ client: idp }));
 //get all links
-app.get('/links', authenticateToken, getLinksController)
+app.get('/links', getLinksController)
 //ping links to check up status
 app.get('/links/status')
 //create a link
-app.post('/link', authenticateToken, createLinkController)
+app.post('/link', createLinkController)
 //delete a link
-app.delete('/link/:id', authenticateToken, deleteLinkController)
+app.delete('/link/:id', deleteLinkController)
 //update a links name, urls and or image
-app.patch('/link/:id', authenticateToken, updateLinkController)
+app.patch('/link/:id', updateLinkController)
 //to reorder multiple links at the same time
-app.patch('/links/batchmove', authenticateToken, batchMoveController)
+app.patch('/links/batchmove', batchMoveController)
 
 const port = 4001;
 app.listen(port, () => {

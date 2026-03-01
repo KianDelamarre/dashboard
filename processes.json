@@ -1,0 +1,16 @@
+[
+  {
+    "name": "backend",
+    "cwd": "/app/backend",
+    "script": "npm",
+    "args": "run devStart",
+    "watch": true
+  },
+  {
+    "name": "frontend",
+    "cwd": "/app/frontend",
+    "script": "npx",
+    "args": "serve . -p 3000",
+    "watch": true
+  }
+]

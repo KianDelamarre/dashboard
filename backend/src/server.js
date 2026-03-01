@@ -3,9 +3,18 @@ import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 // Load keys
-import { createIdpClient, createLoginController,createAuthMiddleware, createRequestNewAccessTokencontroller,createLogoutController, getPublicKeyFromIdp } from 'idp-client';
+import { createIdpClient, createLoginController,createAuthMiddleware, createRequestNewAccessTokencontroller,createLogoutController, getPublicKeyFromIdp } from '@kiansd/idp-client';
 import { batchMoveController } from './reorder/reorder.controller.js'
 import { getLinksController, createLinkController, deleteLinkController, updateLinkController } from './link/link.controller.js'
+
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+
+
+// // Required to use __dirname with ES modules
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+// const frontendPath = path.join(__dirname, '..', '..', 'frontend')
 
 const app = express()
 
@@ -44,6 +53,15 @@ const idp = createIdpClient({
 // requestTokens('kian1', '1234')
 
 app.use(express.json(), cors(corsOptions), cookieParser());
+
+// // Serve frontend static files
+// app.use(express.static(frontendPath));
+
+// // Fallback: for all other requests not hitting an API route, serve index.html
+// app.get(/^(?!\/(links|link|login|refresh)).*$/, (req, res) => {
+//   res.sendFile(path.join(frontendPath, 'index.html'));
+// });
+
 app.post('/refresh', createRequestNewAccessTokencontroller({ client: idp }));
 // app.post('/token', requestNewAccessTokencontroller)
 // app.post('/register', authenticateToken, registerController)

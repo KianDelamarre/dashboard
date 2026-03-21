@@ -3,7 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 // Load keys
-import { createIdpClient, createLoginController,createAuthMiddleware, createRequestNewAccessTokencontroller,createLogoutController, getPublicKeyFromIdp } from '@kiansd/idp-client';
+import { createIdpClient, createLoginController, createAuthMiddleware, createRequestNewAccessTokencontroller, createLogoutController, getPublicKeyFromIdp } from '@kiansd/idp-client';
 import { batchMoveController } from './reorder/reorder.controller.js'
 import { getLinksController, createLinkController, deleteLinkController, updateLinkController } from './link/link.controller.js'
 
@@ -45,8 +45,8 @@ console.log(corsOptions)
 const idp_url = process.env.IDP_URL
 const publicKey = await getPublicKeyFromIdp(idp_url)
 const idp = createIdpClient({
-  baseUrl: idp_url,
-  publicKey: publicKey,
+    baseUrl: idp_url,
+    publicKey: publicKey,
 });
 
 
@@ -65,7 +65,7 @@ app.use(express.json(), cors(corsOptions), cookieParser());
 app.post('/refresh', createRequestNewAccessTokencontroller({ client: idp }));
 // app.post('/token', requestNewAccessTokencontroller)
 // app.post('/register', authenticateToken, registerController)
-app.post('/login', createLoginController({ client: idp, cookieOptions}));
+app.post('/login', createLoginController({ client: idp, cookieOptions }));
 // app.post('/login', (req, res) => { loginController(req, res, cookieOptions) })
 // app.delete('/logout', (req, res) => { logoutController(req, res, cookieOptions) })
 // app.post('/request-reset', requestPasswordReset )

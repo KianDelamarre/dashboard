@@ -12,114 +12,104 @@
 
 <body>
 
-    <div id="loading">
-        <h1>LOADING...</h1>
+    <!-- Loading State -->
+    <div id="loading" class="loading">
+        <h1 class="loading__text">LOADING...</h1>
     </div>
-    <div id="login">
-        <form id="login-form">
-            <h4>SIGN IN TO CONTINUE</h4>
-            <input type="text" name="username" class="username" placeholder="Username" required>
-            <input type="password" name="password" class="password" placeholder="Password" required>
-            <div id="login-error-msg"></div>
-            <button type="submit">Login</button>
+
+    <!-- Auth Section -->
+    <div id="login" class="auth">
+        <form id="login-form" class="auth__form card">
+            <h2 class="auth__title">Sign In</h2>
+            <p class="auth__subtitle">Enter your credentials to continue</p>
+            <div class="auth__field">
+                <input type="text" name="username" class="auth__input" placeholder="Username" required>
+            </div>
+            <div class="auth__field">
+                <input type="password" name="password" class="auth__input" placeholder="Password" required>
+            </div>
+            <div id="login-error-msg" class="auth__error"></div>
+            <button type="submit" class="btn btn--primary btn--full">Login</button>
         </form>
     </div>
 
-    <div id="dashboard">
-        <div id="title-bar">
-            <div id="icon"><img src="icon.ico" alt="Dashboard Icon"></div>
-            <div id="title">Kianserver Dashboard</div>
-
-
-            <div id="logout" class="btn" target="_blank" aria-label="Logout">
-                <img src="logout.png" alt="Logout Icon">
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <header class="dashboard__header">
+            <div class="dashboard__logo">
+                <img src="icon.ico" alt="Logo" class="dashboard__logo-img">
+                <span class="dashboard__logo-text">Kianserver</span>
             </div>
-        </div>
+            
+            <div class="dashboard__search-container">
+                <form id="search" class="search-bar" action="https://www.google.com/search" method="get">
+                    <input type="text" name="q" class="search-bar__input" placeholder="Search the web" aria-label="Search">
+                    <button type="submit" class="search-bar__button" aria-label="Submit Search">
+                        <img src="search (1).png" alt="Search">
+                    </button>
+                </form>
+            </div>
 
-        <div id="searchBarAndEditButtons">
-            <form id="search" action="https://www.google.com/search" method="get">
-                <input type="text" name="q" placeholder="Search the web" aria-label="Search">
-                <button type="submit" aria-label="Submit Search">
-                    <img src="search (1).png" alt="Search Icon">
+            <div class="dashboard__actions">
+                <div id="editButtons" class="admin-panel">
+                    <button id="save-changes-button" class="btn btn--success btn--sm admin-btn">Save</button>
+                    <button id="activate-edit-mode-button" class="btn btn--accent btn--sm admin-btn">Edit Mode</button>
+                    <button id="open-edit-link-form-button" class="btn btn--primary btn--sm admin-btn">New Link</button>
+                    <button id="create-user-button" class="btn btn--secondary btn--sm admin-btn">New User</button>
+                </div>
+                <button id="logout" class="btn btn--icon" aria-label="Logout">
+                    <img src="logout.png" alt="Logout">
                 </button>
-            </form>
-
-            <div id="editButtons">
-                <div class="admin-btns" id="save-changes-button">
-                    SAVE
-                </div>
-
-                <div class="admin-btns" id="activate-edit-mode-button">
-                    EDIT MODE
-                </div>
-
-                <div class="admin-btns" id="open-edit-link-form-button">
-                    NEW
-                </div>
-
-                <div class="admin-btns" id="create-user-button">
-                    CREATE USER
-                </div>
             </div>
+        </header>
 
-        </div>
+        <main class="dashboard__content">
+            <div id="container" class="grid-layout">
+                <section class="column">
+                    <h3 class="column__title">Media</h3>
+                    <div id="col-1" class="column__content btn-container"></div>
+                </section>
+                <section class="column">
+                    <h3 class="column__title">Services</h3>
+                    <div id="col-2" class="column__content btn-container"></div>
+                </section>
+                <section class="column">
+                    <h3 class="column__title">Links</h3>
+                    <div id="col-3" class="column__content btn-container"></div>
+                </section>
+                <section class="column">
+                    <h3 class="column__title">Admin</h3>
+                    <div id="col-4" class="column__content btn-container"></div>
+                </section>
+            </div>
+        </main>
 
-        <div id="edit-link-div" class="form-div hidden-form">
-            <form id="edit-link-form" class="form">
-                <h4>Enter details to create new link</h4>
-                <input type="text" name="name" placeholder="name">
-                <input type="text" name="localIp" placeholder="local ip address">
-                <input type="text" name="remoteIp" placeholder="remote ip address">
-                <input type="text" name="imgUrl" placeholder="image icon url">
-                <button type="submit">Create</button>
-            </form>
-        </div>
-        <div id="edit-link-buffer" class="form-buffer"></div>
+        <!-- Modals/Forms Overlay -->
+        <div id="modal-overlay" class="modal-overlay"></div>
 
-        <div id="create-user-div" class="form-div hidden-form">
-            <form id="create-user-form" class="form">
-                <h4>Enter details to create new user</h4>
-                <input type="text" name="username" placeholder="username">
-                <input type="password" name="password" placeholder="password">
-                <button type="submit">Create</button>
+        <div id="edit-link-div" class="modal card">
+            <form id="edit-link-form" class="modal__form">
+                <h3 class="modal__title">Link Details</h3>
+                <input type="text" name="name" class="modal__input" placeholder="Name">
+                <input type="text" name="localIp" class="modal__input" placeholder="Local IP Address">
+                <input type="text" name="remoteIp" class="modal__input" placeholder="Remote IP Address">
+                <input type="text" name="imgUrl" class="modal__input" placeholder="Icon URL">
+                <button type="submit" class="btn btn--primary btn--full">Create</button>
             </form>
         </div>
-        <div id="create-user-div-buffer" class="form-buffer"></div>
 
-
-
-
-        <div id="container">
-            <div class="column">
-                <div class="heading">Media</div>
-
-                <div class="btn-container" id="col-1">
-                </div>
-
-            </div>
-            <div class="column">
-                <div class="heading">Services</div>
-
-                <div class="btn-container" id="col-2">
-                </div>
-
-            </div>
-            <div class="column">
-                <div class="heading">Links</div>
-
-                <div class="btn-container" id="col-3">
-                </div>
-
-            </div>
-            <div class="column">
-                <div class="heading">Admin</div>
-                <div class="btn-container" id="col-4">
-                </div>
-
-            </div>
+        <div id="create-user-div" class="modal card">
+            <form id="create-user-form" class="modal__form">
+                <h3 class="modal__title">New User</h3>
+                <input type="text" name="username" class="modal__input" placeholder="Username">
+                <input type="password" name="password" class="modal__input" placeholder="Password">
+                <button type="submit" class="btn btn--primary btn--full">Create</button>
+            </form>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
+
 
 </html>

@@ -66,7 +66,7 @@ app.get(/^(?!\/(links|link|login|refresh)).*$/, (req, res) => {
 app.post('/token', createRequestNewAccessTokencontroller({ client: idp }))
 // app.post('/register', authenticateToken, registerController)
 app.post('/login', createLoginController({ client: idp, cookieOptions }));
-app.post('/logout', createLogoutController({ client: idp, cookieOptions }));
+app.delete('/logout', createLogoutController({ client: idp, cookieOptions }));
 // app.post('/login', (req, res) => { loginController(req, res, cookieOptions) })
 // app.delete('/logout', (req, res) => { logoutController(req, res, cookieOptions) })
 // app.post('/request-reset', requestPasswordReset )

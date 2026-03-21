@@ -3,7 +3,7 @@ FROM node:20-slim
 WORKDIR /app
 
 # Install PM2 globally
-RUN npm install -g pm2
+# RUN npm install -g pm2
 
 # Copy backend & frontend
 COPY backend ./backend
@@ -17,12 +17,13 @@ RUN npm install
 # WORKDIR /app/frontend
 # RUN npm install
 
-# Back to root
-WORKDIR /app
+# Back to backend for command execution
+# WORKDIR /app/backend
 
 # Copy PM2 config
-COPY processes.json .
+# COPY processes.json .
 
-EXPOSE 4001 3000
+# EXPOSE 4001 3000
 
-CMD ["pm2-runtime", "processes.json"]
+# CMD ["pm2-runtime", "processes.json"]
+CMD ["npm", "run", "devStart"]

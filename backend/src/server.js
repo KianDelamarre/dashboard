@@ -7,14 +7,14 @@ import { createIdpClient, createLoginController, createAuthMiddleware, createReq
 import { batchMoveController } from './reorder/reorder.controller.js'
 import { getLinksController, createLinkController, deleteLinkController, updateLinkController } from './link/link.controller.js'
 
-// import path from 'path';
-// import { fileURLToPath } from 'url';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 
-// // Required to use __dirname with ES modules
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
-// const frontendPath = path.join(__dirname, '..', '..', 'frontend')
+// Required to use __dirname with ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendPath = path.join(__dirname, '..', '..', 'frontend')
 
 const app = express()
 
@@ -54,16 +54,16 @@ const idp = createIdpClient({
 
 app.use(express.json(), cors(corsOptions), cookieParser());
 
-// // Serve frontend static files
-// app.use(express.static(frontendPath));
+// Serve frontend static files
+app.use(express.static(frontendPath));
 
-// // Fallback: for all other requests not hitting an API route, serve index.html
-// app.get(/^(?!\/(links|link|login|refresh)).*$/, (req, res) => {
-//   res.sendFile(path.join(frontendPath, 'index.html'));
-// });
+// Fallback: for all other requests not hitting an API route, serve index.html
+app.get(/^(?!\/(links|link|login|refresh)).*$/, (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+});
 
-app.post('/refresh', createRequestNewAccessTokencontroller({ client: idp }));
-// app.post('/token', requestNewAccessTokencontroller)
+// app.post('/refresh', createRequestNewAccessTokencontroller({ client: idp }));
+app.post('/token', createRequestNewAccessTokencontroller({ client: idp }))
 // app.post('/register', authenticateToken, registerController)
 app.post('/login', createLoginController({ client: idp, cookieOptions }));
 // app.post('/login', (req, res) => { loginController(req, res, cookieOptions) })

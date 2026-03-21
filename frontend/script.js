@@ -1,5 +1,6 @@
-const apiServer = 'http://localhost:4001';
-const credentials = 'omit'; // 'include' for auth, 'omit' for no auth
+// const apiServer = 'http://localhost:4001';
+const apiServer = '';
+const credentials = 'include'; // 'include' for auth, 'omit' for no auth
 
 // DOM Elements
 const columns = [
@@ -319,7 +320,7 @@ function buildDashboardHtml(links) {
 function toggleEditMode() {
     editMode = !editMode;
     dashboard.classList.toggle('dashboard--edit-mode', editMode);
-    
+
     openEditLinkBtn.style.display = editMode ? 'inline-flex' : 'none';
     saveChangesBtn.style.display = editMode ? 'inline-flex' : 'none';
 

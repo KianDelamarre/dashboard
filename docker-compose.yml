@@ -2,17 +2,18 @@ version: "1.0"
 
 services:
   dashboard:
-    image: dashboard-app:dev
-    container_name: dashboard-dev
+    image: kiansd/dashboard:latest
+    container_name: dashboard
     ports:
       - "4001:4001" # backend API
-      - "3001:3000" # frontend dev server
+      # - "3001:3000" # frontend dev server
     environment:
-      - DEV_MODE=true
-      - ALLOWED_ORIGINS=http://localhost:3001
+      - DEV_MODE=false
+      - ALLOWED_ORIGINS=http://localhost:4001
       - IDP_URL=http://127.0.0.1:4002
     volumes:
       - ./backend:/app/backend # optional: live code updates
       - ./frontend:/app/frontend # optional: live frontend updates
       - ./processes.json:/app/processes.json # optional: live PM2 config updates
-    command: pm2-runtime /app/processes.json
+    # command: pm2-runtime /app/processes.json
+

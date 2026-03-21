@@ -97,7 +97,7 @@ async function logout() {
         await fetch(`${apiServer}/logout`, { method: 'DELETE', credentials: `${credentials}` });
         accessToken = null;
         // checkLoggedIn();
-        // window.location.reload();
+        window.location.reload();
     } catch (error) {
         console.error('Logout error:', error);
     }
@@ -260,6 +260,7 @@ async function createUser(username, password) {
 async function batchMoveLinks(array) {
     await fetch(`${apiServer}/links/batchmove`, {
         method: 'PATCH',
+        credentials: `${credentials}`,
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`
@@ -325,6 +326,7 @@ function toggleEditMode() {
 
     openEditLinkBtn.style.display = editMode ? 'inline-flex' : 'none';
     saveChangesBtn.style.display = editMode ? 'inline-flex' : 'none';
+    openCreateUserBtn.style.display = editMode ? 'inline-flex' : 'none';
 
     document.querySelectorAll('.link-card').forEach(card => {
         card.classList.toggle('link-card--edit-mode', editMode);
@@ -342,10 +344,11 @@ function initDragAndDrop() {
 
     draggables.forEach(draggable => {
         draggable.addEventListener('dragstart', () => draggable.classList.add('dragging'));
-        draggable.addEventListener('dragend', () => {
-            draggable.classList.remove('dragging');
-            const columnId = draggable.parentElement.id.split('-')[1];
+        draggable.addEventListener('dragend', (event) => {
             const afterElement = getAfterElement(draggable.parentElement, event.clientY);
+            draggable.classList.remove('dragging');
+
+            const columnId = draggable.parentElement.id.split('-')[1];
             arrayOfPositionsForBatchMove.push({
                 idToMove: draggable.id,
                 relativeToId: afterElement ? afterElement.id : undefined,

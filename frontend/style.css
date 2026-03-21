@@ -258,6 +258,12 @@ a {
   gap: var(--space-sm);
 }
 
+#save-changes-button,
+#open-edit-link-form-button,
+#create-user-button {
+  display: none;
+}
+
 /* Grid Layout */
 .dashboard__content {
   padding: var(--space-xl);

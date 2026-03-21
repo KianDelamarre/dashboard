@@ -32,10 +32,16 @@ export function createIdpClient({ baseUrl, publicKey }) {
     },
 
     async deleteRefreshToken(token) {
+      // const res = await fetch(`${baseUrl}/logout`, {
+      //   method: 'DELETE',
+      //   credentials: 'include',
+      //   headers: { 'Authorization': `Bearer ${token}` }
+      // });
+
       const res = await fetch(`${baseUrl}/logout`, {
         method: 'DELETE',
-        credentials: 'include',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
       });
 
       if (!res.ok) {

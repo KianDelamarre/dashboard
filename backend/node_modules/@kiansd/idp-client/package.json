@@ -1,6 +1,6 @@
 {
   "name": "@kiansd/idp-client",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "idp client for idp server i made for my projects",
   "type": "module",
   "main": "index.js",

@@ -16,7 +16,7 @@ export function createIdpClient({ baseUrl, publicKey }) {
       const { accessToken, refreshToken } = await res.json();
       return { accessToken, refreshToken };
     },
-    
+
     async requestNewAccessToken(refreshToken) {
       const res = await fetch(`${baseUrl}/token`, {
         method: 'POST',
@@ -38,9 +38,13 @@ export function createIdpClient({ baseUrl, publicKey }) {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      if (!res.ok) throw new Error('Could not log out');
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Logout failed response:', res.status, text);
+        throw new Error(`Could not log out: ${res.status}`);
+      }
     },
-    
+
     verifyAccessToken(token) {
       try {
         // Specify algorithm so JWT knows it should verify using RSA
@@ -48,6 +52,6 @@ export function createIdpClient({ baseUrl, publicKey }) {
       } catch (err) {
         throw new Error('Invalid token');
       }
-    }   
+    }
   };
 }

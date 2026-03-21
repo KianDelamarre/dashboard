@@ -93,9 +93,9 @@ async function login(username, password) {
 
 async function logout() {
     try {
-        await fetch(`${apiServer}/logout`, { method: 'DELETE', credentials: "include" });
+        await fetch(`${apiServer}/logout`, { method: 'DELETE', credentials: `${credentials}` });
         accessToken = null;
-        window.location.reload();
+        // window.location.reload();
     } catch (error) {
         console.error('Logout error:', error);
     }

@@ -2,14 +2,21 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
-// Load keys
-import { createIdpClient, createLoginController, createAuthMiddleware, createRequestNewAccessTokencontroller, createLogoutController, getPublicKeyFromIdp } from '@kiansd/idp-client';
-import { batchMoveController } from './reorder/reorder.controller.js'
-import { getLinksController, createLinkController, deleteLinkController, updateLinkController } from './link/link.controller.js'
-
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// Load keys
+import {
+    createIdpClient,
+    createLoginController,
+    createAuthMiddleware,
+    createRequestNewAccessTokencontroller,
+    createLogoutController,
+    getPublicKeyFromIdp
+} from '@kiansd/idp-client';
+
+import { batchMoveController } from './reorder/reorder.controller.js'
+import { getLinksController, createLinkController, deleteLinkController, updateLinkController } from './link/link.controller.js'
 
 // Required to use __dirname with ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -19,38 +26,69 @@ const frontendPath = path.join(__dirname, '..', '..', 'frontend')
 const app = express()
 
 const dev_mode = process.env.DEV_MODE
-let cookieOptions = {}
-if (dev_mode === 'true') {
-    cookieOptions = {
-        httpOnly: true,
-        path: '/',
-        sameSite: 'lax',
-        secure: false,
-    }
+const auth_enabled = process.env.AUTH_ENABLED !== 'false'; // Defaults to true if not explicitly 'false'
+
+let cookieOptions = {
+    httpOnly: true,
+    path: '/',
+    sameSite: 'lax',
+    secure: dev_mode !== 'true' && auth_enabled // Only true in production WITH auth enabled
 }
-else { //production mode
-    cookieOptions = {
-        httpOnly: true,
-        path: '/',
-        sameSite: 'lax',
-        secure: true
-    }
-}
-// console.log(links)
+
 const corsOptions = {
-    origin: process.env.ALLOWED_ORIGINS,
+    origin: process.env.ALLOWED_ORIGINS || 'http://localhost:3000',
     credentials: true,
 }
-console.log(corsOptions)
-const idp_url = process.env.IDP_URL
-const publicKey = await getPublicKeyFromIdp(idp_url)
-const idp = createIdpClient({
-    baseUrl: idp_url,
-    publicKey: publicKey,
-});
 
+// -------------------------------------------------------------
+//  SPOOF LAYER
+// -------------------------------------------------------------
+let idp = null;
+let loginController;
+let logoutController;
+let tokenController;
+let authMiddleware;
 
-// requestTokens('kian1', '1234')
+if (auth_enabled) {
+    console.log("🔒 Authentication Enabled: Connecting to IdP Server...");
+    const idp_url = process.env.IDP_URL
+    const publicKey = await getPublicKeyFromIdp(idp_url)
+
+    idp = createIdpClient({
+        baseUrl: idp_url,
+        publicKey: publicKey,
+    });
+
+    // Use standard production controllers
+    loginController = createLoginController({ client: idp, cookieOptions });
+    logoutController = createLogoutController({ client: idp, cookieOptions });
+    tokenController = createRequestNewAccessTokencontroller({ client: idp });
+    authMiddleware = createAuthMiddleware({ client: idp });
+} else {
+    console.log("🔓 Authentication Disabled: Spoofing Identity Provider...");
+
+    // Fake Login: instantly drops a mock cookie and says success
+    loginController = (req, res) => {
+        res.cookie('accessToken', 'mock-bypass-token', cookieOptions);
+        return res.json({ success: true, user: { id: 1 } });
+    };
+
+    // Fake Logout: clears the cookie
+    logoutController = (req, res) => {
+        res.clearCookie('accessToken', cookieOptions);
+        return res.json({ success: true });
+    };
+
+    // Fake Token Refresh
+    tokenController = (req, res) => res.json({ accessToken: 'mock-bypass-token' });
+
+    // Fake Middleware: Instantly passes everyone through and mocks a user object
+    authMiddleware = (req, res, next) => {
+        req.user = { id: 1 };
+        next();
+    };
+}
+// -------------------------------------------------------------
 
 app.use(express.json(), cors(corsOptions), cookieParser());
 
@@ -62,29 +100,19 @@ app.get(/^(?!\/(links|link|login|refresh)).*$/, (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-// app.post('/refresh', createRequestNewAccessTokencontroller({ client: idp }));
-app.post('/token', createRequestNewAccessTokencontroller({ client: idp }))
-// app.post('/register', authenticateToken, registerController)
-app.post('/login', createLoginController({ client: idp, cookieOptions }));
-app.delete('/logout', createLogoutController({ client: idp, cookieOptions }));
-// app.post('/login', (req, res) => { loginController(req, res, cookieOptions) })
-// app.delete('/logout', (req, res) => { logoutController(req, res, cookieOptions) })
-// app.post('/request-reset', requestPasswordReset )
-// app.put('/reset-password', authenticateToken, resetPassword)
+app.post('/token', tokenController);
+app.post('/login', loginController);
+app.delete('/logout', logoutController);
 
-// Protect routes
-app.use(createAuthMiddleware({ client: idp }));
-//get all links
+// Protect routes (Will either safely validate or completely auto-pass)
+app.use(authMiddleware);
+
+// Get all links
 app.get('/links', getLinksController)
-//ping links to check up status
 app.get('/links/status')
-//create a link
 app.post('/link', createLinkController)
-//delete a link
 app.delete('/link/:id', deleteLinkController)
-//update a links name, urls and or image
 app.patch('/link/:id', updateLinkController)
-//to reorder multiple links at the same time
 app.patch('/links/batchmove', batchMoveController)
 
 const port = 4001;

@@ -1,8 +1,6 @@
-version: "1.0"
-
 services:
   dashboard:
-    image: kiansd/dashboard:latest
+    build: .
     container_name: dashboard
     ports:
       - "4001:4001" # backend API
@@ -11,9 +9,11 @@ services:
       - DEV_MODE=false
       - ALLOWED_ORIGINS=http://localhost:4001
       - IDP_URL=http://127.0.0.1:4002
+      - AUTH_ENABLED=true
     volumes:
       - ./backend:/app/backend # optional: live code updates
       - ./frontend:/app/frontend # optional: live frontend updates
       - ./processes.json:/app/processes.json # optional: live PM2 config updates
+      - /app/backend/node_modules
     # command: pm2-runtime /app/processes.json
 

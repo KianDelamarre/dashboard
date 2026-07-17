@@ -1,6 +1,9 @@
 node_modules/
 .db
 
+/idp-server
+
+
 .gitignore
 
 # Ignore Roadiz tools and cache for

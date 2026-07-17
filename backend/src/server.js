@@ -26,7 +26,7 @@ const frontendPath = path.join(__dirname, '..', '..', 'frontend')
 const app = express()
 
 const dev_mode = process.env.DEV_MODE
-const auth_enabled = process.env.AUTH_ENABLED !== 'false'; // Defaults to true if not explicitly 'false'
+const auth_enabled = process.env.AUTH_ENABLED !== 'false'; // Defaults to true if not explicitly 'false'    
 
 let cookieOptions = {
     httpOnly: true,
@@ -50,7 +50,19 @@ let authMiddleware;
 if (auth_enabled) {
     console.log("🔒 Authentication Enabled: Connecting to IdP Server...");
     const idp_url = process.env.IDP_URL
+
     const publicKey = await getPublicKeyFromIdp(idp_url)
+
+    while (!publicKey) {
+        try {
+            console.log("🔒 Fetching public key from IdP...");
+            publicKey = await getPublicKeyFromIdp(idp_url);
+        } catch (err) {
+            console.warn("⏳ IdP server not ready yet, retrying in 2 seconds...");
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+    }
+
 
     idp = createIdpClient({
         baseUrl: idp_url,
@@ -63,6 +75,7 @@ if (auth_enabled) {
     tokenController = createRequestNewAccessTokencontroller({ client: idp });
     authMiddleware = createAuthMiddleware({ client: idp });
 } else {
+
     // -------------------------------------------------------------
 //  SPOOF LAYER
 // -------------------------------------------------------------
@@ -85,7 +98,7 @@ if (auth_enabled) {
 
     // Fake Middleware: Instantly passes everyone through and mocks a user object
     authMiddleware = (req, res, next) => {
-        req.user = { id: 1 };
+        // req.user = { id: 1 };
         next();
     };
 }
@@ -107,6 +120,22 @@ app.delete('/logout', logoutController);
 
 // Protect routes (Will either safely validate or completely auto-pass)
 app.use(authMiddleware);
+
+//custom middleware to filter by ALLOWED_USER, since idp-server is multi-tenant, this allows dashboard to only be accessible by predefined users 
+const ALLOWED_USER = process.env.ALLOWED_USER;
+// Add this middleware right after app.use(authMiddleware);
+app.use((req, res, next) => {
+    if (auth_enabled && ALLOWED_USER) {
+        // Assuming your IdP client populates req.user.username
+        if (req.user && req.user.username === ALLOWED_USER) {
+            return next(); // Match! Let them in.
+        }
+        
+        console.warn(`🛑 Blocked access attempt from authenticated user: ${req.user?.username}`);
+        return res.status(403).json({ error: "Forbidden: You do not have access to this dashboard." });
+    }
+    next();
+});
 
 // Get all links
 app.get('/links', getLinksController)

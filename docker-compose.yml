@@ -1,4 +1,14 @@
 services:
+
+  idp-server:
+    image: idp-server:dev
+    container_name: idp-server
+    environment:
+      - ALLOWED_ORIGINS=http://localhost:4001
+    ports:
+      - "4002:4002"
+    volumes:
+      - ./idp-server:/app
   dashboard:
     build: .
     container_name: dashboard
@@ -6,13 +16,17 @@ services:
       - "4001:4001" # backend API
       # - "3001:3000" # frontend dev server
     environment:
-      - DEV_MODE=false
+      - DEV_MODE=true
       - ALLOWED_ORIGINS=http://localhost:4001
-      - IDP_URL=http://127.0.0.1:4002
-      - AUTH_ENABLED=false
+      - IDP_URL=http://idp-server:4002
+      - AUTH_ENABLED=true
+      - ALLOWED_USER=kian1
+    depends_on:
+      - idp-server
     volumes:
       - ./backend:/app/backend # optional: live code updates
       - ./frontend:/app/frontend # optional: live frontend updates
       - ./processes.json:/app/processes.json # optional: live PM2 config updates
       - /app/backend/node_modules
     # command: pm2-runtime /app/processes.json
+

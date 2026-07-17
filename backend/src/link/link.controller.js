@@ -2,10 +2,10 @@ import { getLinksService, createLinkService, deleteLinkService, updateLinkServic
 
 export async function getLinksController(req, res) {
     try {
-        const userId = req.user.id
-        console.log(req.user.id)
+        // const userId = req.user.id
+        // console.log(req.user.id)
 
-        const links = await getLinksService(userId)
+        const links = await getLinksService()
         console.log('should have links')
         res.json(links)
     }
@@ -23,7 +23,7 @@ export async function createLinkController(req, res) {
             remoteIp: req.body.remoteIp,
             imgUrl: req.body.imgUrl,
             column: req.body.column,
-            userId: req.user.id,
+            // userId: req.user.id,
         }
         await createLinkService(link)
         res.json({ message: `successfully added ${link.name}` })
@@ -36,9 +36,9 @@ export async function createLinkController(req, res) {
 export async function deleteLinkController(req, res) {
     try {
         const linkId = req.params.id;
-        const userId = req.user.id
+        // const userId = req.user.id
 
-        await deleteLinkService(linkId, userId)
+        await deleteLinkService(linkId)
     }
     catch (err) {
         res.status(400).json({ message: err.message || err })
@@ -48,10 +48,10 @@ export async function deleteLinkController(req, res) {
 export async function updateLinkController(req, res) {
     try {
         const linkId = req.params.id;
-        const userId = req.user.id;
+        // const userId = req.user.id;
         const updates = req.body;
 
-        const updatedCount = await updateLinkService(linkId, userId, updates);
+        const updatedCount = await updateLinkService(linkId, updates);
 
         if (updatedCount === 0) {
             return res.status(404).json({ message: 'No link found to update' });

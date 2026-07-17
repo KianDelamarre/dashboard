@@ -1,12 +1,9 @@
 import db from '../db/db.js'
 
-export async function getLinksService(userId) {
-    if (!userId) {
-        throw new Error('invalid input')
-    }
+export async function getLinksService() {
 
     return new Promise((resolve, reject) => {
-        db.all('SELECT * FROM links WHERE user_id = ? ORDER BY column, row', [userId], (err, rows) => {
+        db.all('SELECT * FROM links ORDER BY column, row', (err, rows) => {
             if (err) return reject(err)
             resolve(rows)
         })
@@ -15,7 +12,7 @@ export async function getLinksService(userId) {
 
 
 export async function createLinkService(link) {
-    if (!link.name || !link.userId) throw new Error('invalid input')
+    if (!link.name) throw new Error('invalid input')
     try {
         const newRow = await rowToInsertAt(link.column)
         await insertLink(link, newRow)
@@ -41,8 +38,8 @@ export async function rowToInsertAt(column) {
 export async function insertLink(link, rowToInsertAt) {
     return new Promise((resolve, reject) => {
         db.run(`INSERT INTO links
-            (name, user_id, localip, remoteip, imgurl, column, row) VALUES
-            (?,?,?,?,?,?,?)`, [link.name, link.userId, link.localIp, link.remoteIp, link.imgUrl, link.column, rowToInsertAt], (err, rows) => {
+            (name, localip, remoteip, imgurl, column, row) VALUES
+            (?,?,?,?,?,?)`, [link.name, link.localIp, link.remoteIp, link.imgUrl, link.column, rowToInsertAt], (err, rows) => {
             if (err) reject(err)
             // console.log(rows)
             resolve()
@@ -52,13 +49,13 @@ export async function insertLink(link, rowToInsertAt) {
 
 
 
-export async function deleteLinkService(linkId, userId) {
-    if (!userId || !linkId) {
+export async function deleteLinkService(linkId) {
+    if (!linkId) {
         throw new Error('Failed to delete link')
     }
 
     return await new Promise((resolve, reject) => {
-        db.run('DELETE FROM links WHERE id = ? AND user_id = ?', [linkId, userId], function (err) {
+        db.run('DELETE FROM links WHERE id = ?', [linkId], function (err) {
             if (err || this.changes === 0) reject('Failed to delete link')
             resolve()
         });
@@ -66,8 +63,8 @@ export async function deleteLinkService(linkId, userId) {
 }
 
 
-export function updateLinkService(linkId, userId, updates) {
-    if (!linkId || !userId || !updates) {
+export function updateLinkService(linkId, updates) {
+    if (!linkId || !updates) {
         throw new Error('Invalid input');
     }
 
@@ -84,10 +81,10 @@ export function updateLinkService(linkId, userId, updates) {
     }
 
     const setClause = fields.map(field => `${field} = ?`).join(', ');
-    const sql = `UPDATE links SET ${setClause} WHERE id = ? AND user_id = ?`;
+    const sql = `UPDATE links SET ${setClause} WHERE id = ?`;
 
     return new Promise((resolve, reject) => {
-        db.run(sql, [...values, linkId, userId], function (err) {
+        db.run(sql, [...values, linkId], function (err) {
             if (err) return reject(err);
             resolve(this.changes); // number of rows updated
         });

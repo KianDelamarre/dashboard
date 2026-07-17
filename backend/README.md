@@ -11,3 +11,4 @@ store refresh tokens in json file
 maybe switch to database
 
 install pre-commit locally for dev
+using gitleaks locally too

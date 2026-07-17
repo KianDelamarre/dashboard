@@ -9,11 +9,10 @@ services:
       - DEV_MODE=false
       - ALLOWED_ORIGINS=http://localhost:4001
       - IDP_URL=http://127.0.0.1:4002
-      - AUTH_ENABLED=true
+      - AUTH_ENABLED=false
     volumes:
       - ./backend:/app/backend # optional: live code updates
       - ./frontend:/app/frontend # optional: live frontend updates
       - ./processes.json:/app/processes.json # optional: live PM2 config updates
       - /app/backend/node_modules
     # command: pm2-runtime /app/processes.json
-

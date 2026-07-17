@@ -40,9 +40,7 @@ const corsOptions = {
     credentials: true,
 }
 
-// -------------------------------------------------------------
-//  SPOOF LAYER
-// -------------------------------------------------------------
+
 let idp = null;
 let loginController;
 let logoutController;
@@ -65,6 +63,9 @@ if (auth_enabled) {
     tokenController = createRequestNewAccessTokencontroller({ client: idp });
     authMiddleware = createAuthMiddleware({ client: idp });
 } else {
+    // -------------------------------------------------------------
+//  SPOOF LAYER
+// -------------------------------------------------------------
     console.log("🔓 Authentication Disabled: Spoofing Identity Provider...");
 
     // Fake Login: instantly drops a mock cookie and says success
@@ -117,5 +118,5 @@ app.patch('/links/batchmove', batchMoveController)
 
 const port = 4001;
 app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
+    console.log(`Server is listening on http://localhost:${port}`);
 });

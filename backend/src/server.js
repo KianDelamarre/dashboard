@@ -131,15 +131,17 @@ app.use((req, res, next) => {
 
 app.post('/login', restrictLoginToAllowedUser, loginController);
 app.post('/token', tokenController);
+app.delete('/logout', logoutController);
+
 
 // Protect routes (Will either safely validate or completely auto-pass)
 app.use(authMiddleware);
 
-app.delete('/logout', logoutController);
 
 
 // Ensure the validated token belongs to the ALLOWED_USER (Handles GET/POST/DELETE)
 app.use(verifyRouteAccess);
+
 
 
 // Get all links

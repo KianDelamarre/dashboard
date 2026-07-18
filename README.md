@@ -1,4 +1,4 @@
-# Kianserver Dashboard
+# Dashboard
 
 A self-hosted server dashboard for organising and accessing your services, media, and links from a single page. Built with a Node.js/Express backend, a vanilla HTML/CSS/JS frontend, and an optional decoupled identity provider (IdP) for authentication.
 
@@ -7,11 +7,11 @@ A self-hosted server dashboard for organising and accessing your services, media
 ## Table of Contents
 
 - [Overview](#overview)
+- [Getting Started with Docker Compose](#getting-started-with-docker-compose)
+- [Environment Variables](#environment-variables)
 - [Architecture](#architecture)
 - [Frontend](#frontend)
 - [Authentication](#authentication)
-- [Getting Started with Docker Compose](#getting-started-with-docker-compose)
-- [Environment Variables](#environment-variables)
 - [Project Structure](#project-structure)
 
 ---
@@ -27,6 +27,120 @@ The dashboard is a lightweight start-page that displays categorised link cards (
 - **Search the web** directly from the header.
 
 Data is persisted in an embedded **SQLite** database.
+
+---
+
+## Getting Started with Docker Compose
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed.
+- The `idp-server:dev` Docker image built and available locally (see the `idp-server/` directory for its own build instructions).
+
+### 1. Clone the repository
+
+```bash
+git clone <repo-url>
+cd dashboard
+```
+
+### 2. Configure environment variables
+
+Environment variables are set directly in `docker-compose.yml` under each service's `environment` block. Edit these as needed (see the [Environment Variables](#environment-variables) section below for details).
+
+### 3. Start the stack
+
+```bash
+docker compose up --build
+```
+
+This will:
+
+1. Start the **idp-server** on port `4002`.
+2. Build and start the **dashboard** on port `4001`.
+3. The dashboard backend will connect to the IdP server, fetch its public key, and begin serving.
+
+### 4. Access the dashboard
+
+Open your browser and navigate to:
+
+```
+https://localhost:4001
+```
+
+> **Note:** In dev mode (`DEV_MODE=true`) the server uses a self-signed SSL certificate, so your browser will warn you about the connection. Accept the risk to continue.
+
+### 5. Stop the stack
+
+```bash
+docker compose down
+```
+
+### Docker Compose reference
+
+```yaml
+
+services:
+
+//////optional - required for auth ////////
+  idp-server:
+    image: idp-server:dev
+    container_name: idp-server
+    environment:
+      - ALLOWED_ORIGINS=http://localhost:4001 //dashboard url
+    ports:
+      - "4002:4002"
+    volumes:
+      - ./idp-server/data:/app/data
+//////optional - required for auth ////////
+
+
+  dashboard:
+    build: .
+    container_name: dashboard
+    ports:
+      - "4001:4001"
+    environment:
+      - DEV_MODE=false //optional dev only
+      - IDP_URL=http://idp-server:4002  //url of idp-server, if not on same docker network use host IP
+      - AUTH_ENABLED=true  //optional, defaults true
+      - ALLOWED_USER=admin   //optional, to decide which users from idp-server can access dashboard
+    depends_on:
+      - idp-server
+    volumes:
+    //  - ./backend:/app/backend      //dev mounts
+    //  - ./frontend:/app/frontend
+    //  - ./processes.json:/app/processes.json
+    //  - /app/backend/node_modules
+      - ./data:/app/backend/src/db    //persist links data, may break with updates since this contains a js file that could change
+```
+
+### Volume mounts
+
+| Mount                              | Purpose                                                        |
+|------------------------------------|----------------------------------------------------------------|
+| `./data:/app/backend/src/db`       | Persistet links data, (i need to change to move database.db out of the db dir since there a js file there too)  |
+| `./idp-server/data:/app/data`      | (MOUNT FOR IDP-SERVER NOT DASHBOARD)Persists IdP server data (users, tokens) across restarts       |
+
+---
+
+## Environment Variables
+
+### Dashboard service
+
+| Variable          | Required | Default                      | Description                                                                                          |
+|-------------------|----------|------------------------------|------------------------------------------------------------------------------------------------------|
+| `DEV_MODE`        | No       | `undefined`                  | Set to `true` to enable HTTPS with self-signed certificates for local development.                   |
+| `AUTH_ENABLED`    | No       | `true`                       | Set to `false` to disable authentication entirely (all auth is spoofed). Defaults to `true` unless explicitly set to `false`. |
+| `IDP_URL`         | Yes*     | —                            | The URL of the IdP server. **Required when `AUTH_ENABLED` is `true`.** Use the Docker service name for inter-container networking (e.g. `http://idp-server:4002`). |
+| `ALLOWED_USER`    | No       | `undefined`                  | Restricts dashboard access to a single username. If set, only this user can log in and access API routes. |
+| `ALLOWED_ORIGINS` | No       | `https://localhost:4001`     | CORS allowed origin. Set this to the URL where the frontend is accessed from.                        |
+
+### IdP Server service
+
+| Variable          | Required | Description                                                                                          |
+|-------------------|----------|------------------------------------------------------------------------------------------------------|
+| `ALLOWED_ORIGINS` | No       | CORS allowed origins for the IdP server. Should include the dashboard's URL (e.g. `http://localhost:4001`). |
 
 ---
 
@@ -132,117 +246,6 @@ When `AUTH_ENABLED=false`, the IdP client is **not used at all**. Instead, the b
 
 ---
 
-## Getting Started with Docker Compose
-
-### Prerequisites
-
-- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed.
-- The `idp-server:dev` Docker image built and available locally (see the `idp-server/` directory for its own build instructions).
-
-### 1. Clone the repository
-
-```bash
-git clone <repo-url>
-cd dashboard
-```
-
-### 2. Configure environment variables
-
-Environment variables are set directly in `docker-compose.yml` under each service's `environment` block. Edit these as needed (see the [Environment Variables](#environment-variables) section below for details).
-
-### 3. Start the stack
-
-```bash
-docker compose up --build
-```
-
-This will:
-
-1. Start the **idp-server** on port `4002`.
-2. Build and start the **dashboard** on port `4001`.
-3. The dashboard backend will connect to the IdP server, fetch its public key, and begin serving.
-
-### 4. Access the dashboard
-
-Open your browser and navigate to:
-
-```
-https://localhost:4001
-```
-
-> **Note:** In dev mode (`DEV_MODE=true`) the server uses a self-signed SSL certificate, so your browser will warn you about the connection. Accept the risk to continue.
-
-### 5. Stop the stack
-
-```bash
-docker compose down
-```
-
-### Docker Compose reference
-
-```yaml
-services:
-  idp-server:
-    image: idp-server:dev
-    container_name: idp-server
-    environment:
-      - ALLOWED_ORIGINS=http://localhost:4001
-    ports:
-      - "4002:4002"
-    volumes:
-      - ./idp-server/data:/app/data
-
-  dashboard:
-    build: .
-    container_name: dashboard
-    ports:
-      - "4001:4001"
-    environment:
-      - DEV_MODE=true
-      - IDP_URL=http://idp-server:4002
-      - AUTH_ENABLED=true
-      - ALLOWED_USER=admin
-    depends_on:
-      - idp-server
-    volumes:
-      - ./backend:/app/backend
-      - ./frontend:/app/frontend
-      - ./processes.json:/app/processes.json
-      - /app/backend/node_modules
-```
-
-### Volume mounts
-
-| Mount                              | Purpose                                                        |
-|------------------------------------|----------------------------------------------------------------|
-| `./backend:/app/backend`           | Live-reload backend code changes without rebuilding the image  |
-| `./frontend:/app/frontend`         | Live-reload frontend changes without rebuilding                |
-| `./processes.json:/app/processes.json` | Live-reload PM2 config if using PM2                        |
-| `/app/backend/node_modules`        | Anonymous volume — prevents host `node_modules` from overwriting container dependencies |
-| `./idp-server/data:/app/data`      | Persists IdP server data (users, tokens) across restarts       |
-
----
-
-## Environment Variables
-
-### Dashboard service
-
-| Variable          | Required | Default                      | Description                                                                                          |
-|-------------------|----------|------------------------------|------------------------------------------------------------------------------------------------------|
-| `DEV_MODE`        | No       | `undefined`                  | Set to `true` to enable HTTPS with self-signed certificates for local development.                   |
-| `AUTH_ENABLED`    | No       | `true`                       | Set to `false` to disable authentication entirely (all auth is spoofed). Defaults to `true` unless explicitly set to `false`. |
-| `IDP_URL`         | Yes*     | —                            | The URL of the IdP server. **Required when `AUTH_ENABLED` is `true`.** Use the Docker service name for inter-container networking (e.g. `http://idp-server:4002`). |
-| `ALLOWED_USER`    | No       | `undefined`                  | Restricts dashboard access to a single username. If set, only this user can log in and access API routes. |
-| `ALLOWED_ORIGINS` | No       | `https://localhost:4001`     | CORS allowed origin. Set this to the URL where the frontend is accessed from.                        |
-
-### IdP Server service
-
-| Variable          | Required | Description                                                                                          |
-|-------------------|----------|------------------------------------------------------------------------------------------------------|
-| `ALLOWED_ORIGINS` | No       | CORS allowed origins for the IdP server. Should include the dashboard's URL (e.g. `http://localhost:4001`). |
-
----
-
 ## Project Structure
 
 ```
@@ -278,7 +281,5 @@ dashboard/
 │   ├── admin.html            # Admin page
 │   ├── admin.css             # Admin styles
 │   └── imgs/                 # Static assets (icons, images)
-│
-└── idp-server/
-    └── data/                 # Persisted IdP data (mounted volume)
+
 ```

@@ -4,6 +4,10 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { restrictLoginToAllowedUser, verifyRouteAccess } from './middleware/gatekeeper.middleware.js';
+
+import https from 'https';
+import fs from 'fs';
 
 // Load keys
 import {
@@ -32,11 +36,13 @@ let cookieOptions = {
     httpOnly: true,
     path: '/',
     sameSite: 'lax',
-    secure: dev_mode !== 'true' && auth_enabled // Only true in production WITH auth enabled
+    // secure: dev_mode !== 'true' && auth_enabled // Only true in production WITH auth enabled
+    secure: true // Only true in production WITH auth enabled
+
 }
 
 const corsOptions = {
-    origin: process.env.ALLOWED_ORIGINS || 'http://localhost:3000',
+    origin: process.env.ALLOWED_ORIGINS || 'https://localhost:4001',
     credentials: true,
 }
 
@@ -114,28 +120,27 @@ app.get(/^(?!\/(links|link|login|refresh)).*$/, (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
+
+app.use((req, res, next) => {
+    console.log("\n\n")
+    console.log("Raw Cookie Header:", req.headers.cookie);
+    console.log("Parsed Cookies:", req.cookies);
+    console.log("\n\n")
+    next();
+});
+
+app.post('/login', restrictLoginToAllowedUser, loginController);
 app.post('/token', tokenController);
-app.post('/login', loginController);
-app.delete('/logout', logoutController);
 
 // Protect routes (Will either safely validate or completely auto-pass)
 app.use(authMiddleware);
 
-//custom middleware to filter by ALLOWED_USER, since idp-server is multi-tenant, this allows dashboard to only be accessible by predefined users 
-const ALLOWED_USER = process.env.ALLOWED_USER;
-// Add this middleware right after app.use(authMiddleware);
-app.use((req, res, next) => {
-    if (auth_enabled && ALLOWED_USER) {
-        // Assuming your IdP client populates req.user.username
-        if (req.user && req.user.username === ALLOWED_USER) {
-            return next(); // Match! Let them in.
-        }
-        
-        console.warn(`🛑 Blocked access attempt from authenticated user: ${req.user?.username}`);
-        return res.status(403).json({ error: "Forbidden: You do not have access to this dashboard." });
-    }
-    next();
-});
+app.delete('/logout', logoutController);
+
+
+// Ensure the validated token belongs to the ALLOWED_USER (Handles GET/POST/DELETE)
+app.use(verifyRouteAccess);
+
 
 // Get all links
 app.get('/links', getLinksController)
@@ -146,6 +151,28 @@ app.patch('/link/:id', updateLinkController)
 app.patch('/links/batchmove', batchMoveController)
 
 const port = 4001;
-app.listen(port, () => {
-    console.log(`Server is listening on http://localhost:${port}`);
-});
+// app.listen(port, () => {
+//     console.log(`Server is listening on http://localhost:${port}`);
+// });
+
+
+if (process.env.DEV_MODE === 'true') {
+    // This safely resolves the path relative to server.js, going up two folders to /app
+    const keyPath = path.join(__dirname, '..', 'localhost+1-key.pem');
+    const certPath = path.join(__dirname, '..', 'localhost+1.pem');
+
+    console.log(`🔐 Loading SSL Key from: ${keyPath}`); // Useful debug log
+    
+    const options = {
+        key: fs.readFileSync(keyPath),
+        cert: fs.readFileSync(certPath),
+    };
+
+    https.createServer(options, app).listen(port, () => {
+        console.log(`🔒 Secure Dev Server listening on https://localhost:${port}`);
+    });
+} else {
+    app.listen(port, () => {
+        console.log(`Server listening on http://localhost:${port}`);
+    });
+}

@@ -91,11 +91,40 @@ async function login(username, password) {
     }
 }
 
+// async function logout() {
+//     try {
+//         console.log("Trying to logout...");
+        
+//         // 1. Force state to clear locally first
+//         accessToken = null; 
+        
+//         // 2. Make the logout request to your backend relay
+//         const response = await fetch(`${apiServer}/logout`, { 
+//             method: 'DELETE', 
+//             credentials: 'include' // Raw string to guarantee cookies are sent
+//         });
+
+//         if (!response.ok) {
+//             console.error(`Logout failed on server status: ${response.status}`);
+//             // Even if the backend fails, force a login screen view for the user
+//             checkLoggedIn();
+//             return;
+//         }
+
+//         // 3. Success! Wipe history and refresh state clean
+//         window.location.reload();
+//     } catch (error) {
+//         console.error('Logout error:', error);
+//         checkLoggedIn();
+//     }
+// }
+
 async function logout() {
     try {
         console.log("trying to logout")
-        await fetch(`${apiServer}/logout`, { method: 'DELETE', credentials: `${credentials}` });
         accessToken = null;
+        await fetch(`${apiServer}/logout`, { method: 'DELETE', credentials: `${credentials}` });
+        // accessToken = null;
         // checkLoggedIn();
         window.location.reload();
     } catch (error) {

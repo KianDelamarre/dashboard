@@ -79,7 +79,6 @@ docker compose down
 ### Docker Compose reference
 
 ```yaml
-
 services:
 
 # optional - required for auth #
@@ -92,6 +91,8 @@ services:
       - "4002:4002"
     volumes:
       - ./idp-server/data:/app/data
+    networks:
+      -idp
 # optional - required for auth #
 
 
@@ -113,6 +114,14 @@ services:
     #  - ./processes.json:/app/processes.json
     #  - /app/backend/node_modules
       - ./data:/app/backend/data    #persist links data
+    networks:
+      - idp
+
+
+  networks:
+    idp:
+      name: idp
+      driver: bridge
 ```
 
 ### Volume mounts

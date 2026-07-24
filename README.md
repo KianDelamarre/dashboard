@@ -92,7 +92,7 @@ services:
     volumes:
       - ./idp-server/data:/app/data
     networks:
-      -idp
+      - idp
 # optional - required for auth #
 
 
@@ -113,7 +113,7 @@ services:
     #  - ./frontend:/app/frontend
     #  - ./processes.json:/app/processes.json
     #  - /app/backend/node_modules
-      - ./data:/app/backend/data    #persist links data
+      - .dashboard/data:/app/backend/data    #persist links data
     networks:
       - idp
 

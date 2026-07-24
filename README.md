@@ -119,7 +119,7 @@ services:
 
 | Mount                              | Purpose                                                        |
 |------------------------------------|----------------------------------------------------------------|
-| `./data:/app/backend/src/db`       | Persistet links data  |
+| `./data:/app/backend/data`       | Persistet links data  |
 | `./idp-server/data:/app/data`      | (MOUNT FOR IDP-SERVER NOT DASHBOARD)Persists IdP server data (users, tokens) across restarts       |
 
 ---

@@ -84,7 +84,7 @@ services:
 
 //////optional - required for auth ////////
   idp-server:
-    image: idp-server:dev
+    image: kiansd/idp-server
     container_name: idp-server
     environment:
       - ALLOWED_ORIGINS=http://localhost:4001 //dashboard url
@@ -96,7 +96,7 @@ services:
 
 
   dashboard:
-    build: .
+    image: kiansd/dashboard:latest
     container_name: dashboard
     ports:
       - "4001:4001"
@@ -112,14 +112,14 @@ services:
     //  - ./frontend:/app/frontend
     //  - ./processes.json:/app/processes.json
     //  - /app/backend/node_modules
-      - ./data:/app/backend/src/db    //persist links data, may break with updates since this contains a js file that could change
+      - ./data:./backend/data    //persist links data
 ```
 
 ### Volume mounts
 
 | Mount                              | Purpose                                                        |
 |------------------------------------|----------------------------------------------------------------|
-| `./data:/app/backend/src/db`       | Persistet links data, (i need to change to move database.db out of the db dir since there a js file there too)  |
+| `./data:/app/backend/src/db`       | Persistet links data  |
 | `./idp-server/data:/app/data`      | (MOUNT FOR IDP-SERVER NOT DASHBOARD)Persists IdP server data (users, tokens) across restarts       |
 
 ---

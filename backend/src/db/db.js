@@ -6,16 +6,16 @@ import path from 'node:path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Resolve the path to database.db in the same folder as db.js
-const dbPath = path.resolve(__dirname, 'database.db')
+// Resolve the path to database.db
+const dbPath = path.resolve(__dirname, '../../data/database.db')
 
 // Open a single database connection
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Failed to connect to the database:', err.message)
     } else {
-        console.log('Connected to SQLite database.')
-        // Initialize tables as soon as the connection is established
+        // Log both the connection success AND the full path
+        console.log('Connected to SQLite database at:', dbPath)
         initializeDatabase()
     }
 })
@@ -29,14 +29,14 @@ function initializeDatabase() {
                 remoteip TEXT,
                 imgurl TEXT, 
                 name TEXT, 
-                "column" NUMBER, 
+                "column" INTEGER, 
                 row INTEGER DEFAULT 0
             )
         `, (err) => { 
             if (err) {
                 console.error('Error creating links table:', err.message); 
             } else {
-                console.log('Links table ready.');
+                console.log('DB initialised. Links table created.');
             }
         })
     })

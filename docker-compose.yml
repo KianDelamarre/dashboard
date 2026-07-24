@@ -24,9 +24,10 @@ services:
     depends_on:
       - idp-server
     volumes:
-      - ./backend:/app/backend # optional: live code updates
-      - ./frontend:/app/frontend # optional: live frontend updates
-      - ./processes.json:/app/processes.json # optional: live PM2 config updates
-      - /app/backend/node_modules
+      # - ./backend:/app/backend # optional: live code updates
+      # - ./frontend:/app/frontend # optional: live frontend updates
+      # - ./processes.json:/app/processes.json # optional: live PM2 config updates
+      # - /app/backend/node_modules
+      - ./backend/data:/app/backend/data
     # command: pm2-runtime /app/processes.json
 

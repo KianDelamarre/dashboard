@@ -82,17 +82,17 @@ docker compose down
 
 services:
 
-//////optional - required for auth ////////
+# optional - required for auth #
   idp-server:
     image: kiansd/idp-server
     container_name: idp-server
     environment:
-      - ALLOWED_ORIGINS=http://localhost:4001 //dashboard url
+      - ALLOWED_ORIGINS=http://localhost:4001 #dashboard url
     ports:
       - "4002:4002"
     volumes:
       - ./idp-server/data:/app/data
-//////optional - required for auth ////////
+# optional - required for auth #
 
 
   dashboard:
@@ -101,18 +101,18 @@ services:
     ports:
       - "4001:4001"
     environment:
-      - DEV_MODE=false //optional dev only
-      - IDP_URL=http://idp-server:4002  //url of idp-server, if not on same docker network use host IP
-      - AUTH_ENABLED=true  //optional, defaults true
-      - ALLOWED_USER=admin   //optional, to decide which users from idp-server can access dashboard
+      - DEV_MODE=false #optional dev only
+      - IDP_URL=http://idp-server:4002  #url of idp-server, if not on same docker network use host IP
+      - AUTH_ENABLED=true  #optional, defaults true
+      - ALLOWED_USER=admin   #optional, to decide which users from idp-server can access dashboard
     depends_on:
       - idp-server
     volumes:
-    //  - ./backend:/app/backend      //dev mounts
-    //  - ./frontend:/app/frontend
-    //  - ./processes.json:/app/processes.json
-    //  - /app/backend/node_modules
-      - ./data:./backend/data    //persist links data
+    #  - ./backend:/app/backend      #dev mounts
+    #  - ./frontend:/app/frontend
+    #  - ./processes.json:/app/processes.json
+    #  - /app/backend/node_modules
+      - ./data:./backend/data    #persist links data
 ```
 
 ### Volume mounts

@@ -2,6 +2,9 @@
 
 A self-hosted server dashboard for organising and accessing your services, media, and links from a single page. Built with a Node.js/Express backend, a vanilla HTML/CSS/JS frontend, and an optional decoupled identity provider (IdP) for authentication.
 
+[![Docker Image Size](https://img.shields.io/docker/image-size/kiansd/dashboard/latest?logo=docker&logoColor=white&style=flat-square)](https://hub.docker.com/r/kiansd/dashboard)
+[![Docker Pulls](https://img.shields.io/docker/pulls/kiansd/dashboard?logo=docker&logoColor=white&style=flat-square)](https://hub.docker.com/r/kiansd/dashboard)
+
 ---
 
 ## Table of Contents

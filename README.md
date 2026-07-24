@@ -112,7 +112,7 @@ services:
     #  - ./frontend:/app/frontend
     #  - ./processes.json:/app/processes.json
     #  - /app/backend/node_modules
-      - ./data:./backend/data    #persist links data
+      - ./data:/app/backend/data    #persist links data
 ```
 
 ### Volume mounts

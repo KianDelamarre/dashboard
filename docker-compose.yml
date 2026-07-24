@@ -1,7 +1,7 @@
 services:
 
   idp-server:
-    image: idp-server:dev
+    image: kiansd/idp-server:latest
     container_name: idp-server
     environment:
       - ALLOWED_ORIGINS=http://localhost:4001
@@ -10,13 +10,14 @@ services:
     volumes:
       - ./idp-server/data:/app/data
   dashboard:
-    build: .
+    # build: .
+    image: kiansd/dashboard:latest
     container_name: dashboard
     ports:
       - "4001:4001" # backend API
       # - "3001:3000" # frontend dev server
     environment:
-      - DEV_MODE=true
+      - DEV_MODE=false
       # - ALLOWED_ORIGINS=https://localhost:4001
       - IDP_URL=http://idp-server:4002
       - AUTH_ENABLED=true

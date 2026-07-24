@@ -158,7 +158,7 @@ const port = 4001;
 // });
 
 
-if (process.env.DEV_MODE === 'true') {
+if (process.env.AUTH_ENABLED === 'true') {
     // This safely resolves the path relative to server.js, going up two folders to /app
     const keyPath = path.join(__dirname, '..', 'localhost+1-key.pem');
     const certPath = path.join(__dirname, '..', 'localhost+1.pem');

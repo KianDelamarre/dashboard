@@ -84,7 +84,7 @@ services:
 
 //////optional - required for auth ////////
   idp-server:
-    image: idp-server:dev
+    image: kiansd/idp-server
     container_name: idp-server
     environment:
       - ALLOWED_ORIGINS=http://localhost:4001 //dashboard url
@@ -96,7 +96,7 @@ services:
 
 
   dashboard:
-    build: .
+    image: kiansd/dashboard:latest
     container_name: dashboard
     ports:
       - "4001:4001"

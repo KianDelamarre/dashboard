@@ -33,51 +33,7 @@ Data is persisted in an embedded **SQLite** database.
 
 ---
 
-## Getting Started with Docker Compose
-
-### Prerequisites
-
-- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed.
-- The `idp-server:dev` Docker image built and available locally (see the `idp-server/` directory for its own build instructions).
-
-### 1. Clone the repository
-
-```bash
-git clone <repo-url>
-cd dashboard
-```
-
-### 2. Configure environment variables
-
-Environment variables are set directly in `docker-compose.yml` under each service's `environment` block. Edit these as needed (see the [Environment Variables](#environment-variables) section below for details).
-
-### 3. Start the stack
-
-```bash
-docker compose up --build
-```
-
-This will:
-
-1. Start the **idp-server** on port `4002`.
-2. Build and start the **dashboard** on port `4001`.
-3. The dashboard backend will connect to the IdP server, fetch its public key, and begin serving.
-
-### 4. Access the dashboard
-
-Open your browser and navigate to:
-
-```
-https://localhost:4001
-```
-
-> **Note:** In dev mode (`DEV_MODE=true`) the server uses a self-signed SSL certificate, so your browser will warn you about the connection. Accept the risk to continue.
-
-### 5. Stop the stack
-
-```bash
-docker compose down
-```
+## 🚀Docker quick-start guide
 
 ### Docker Compose reference
 
@@ -126,6 +82,40 @@ services:
       name: idp
       driver: bridge
 ```
+
+### 2. Configure environment variables
+
+Environment variables are set directly in `docker-compose.yml` under each service's `environment` block. Edit these as needed (see the [Environment Variables](#environment-variables) section below for details).
+
+### 3. Start the stack
+
+```bash
+docker compose up -d
+```
+
+This will:
+
+1. Start the **idp-server** on port `4002`.
+2. Build and start the **dashboard** on port `4001`.
+3. The dashboard backend will connect to the IdP server, fetch its public key, and begin serving.
+
+### 4. Access the dashboard
+
+Open your browser and navigate to:
+
+```
+https://localhost:4001
+```
+
+> **Note:** In dev mode (`DEV_MODE=true`) the server uses a self-signed SSL certificate, so your browser will warn you about the connection. Accept the risk to continue.
+
+### 5. Stop the stack
+
+```bash
+docker compose down
+```
+
+
 
 ### Volume mounts
 

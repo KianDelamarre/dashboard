@@ -141,29 +141,30 @@ app.delete('/link/:id', deleteLinkController)
 app.patch('/link/:id', updateLinkController)
 app.patch('/links/batchmove', batchMoveController)
 
-const port = 4001;
+const HTTPSport = 4001;
+const HTTPport = 4000;
 // app.listen(port, () => {
 //     console.log(`Server is listening on http://localhost:${port}`);
 // });
 
 
-if (process.env.AUTH_ENABLED === 'true') {
-    // This safely resolves the path relative to server.js, going up two folders to /app
+if (process.env.AUTH_ENABLED === 'true' && process.env.DEV_MODE === 'true') {
     const keyPath = path.join(__dirname, '..', 'localhost+1-key.pem');
     const certPath = path.join(__dirname, '..', 'localhost+1.pem');
 
-    console.log(`🔐 Loading SSL Key from: ${keyPath}`); // Useful debug log
-    
+    console.log(`🔐 Loading SSL Key from: ${keyPath}`);
+
     const options = {
         key: fs.readFileSync(keyPath),
         cert: fs.readFileSync(certPath),
     };
 
-    https.createServer(options, app).listen(port, () => {
-        console.log(`🔒 Secure Dev Server listening on https://localhost:${port}`);
+    https.createServer(options, app).listen(HTTPSport, () => {
+        console.log(`🔒 Secure Dev Server listening on https://localhost:${HTTPSport}`);
     });
 } else {
-    app.listen(port, () => {
-        console.log(`Server listening on http://localhost:${port}`);
+    // In Docker / Production behind Traefik, serve standard HTTP
+    app.listen(HTTPport, () => {
+        console.log(`🚀 Server listening on http://localhost:${HTTPport}`);
     });
 }

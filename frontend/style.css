@@ -306,7 +306,6 @@ a {
   background-color: var(--bg-secondary);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  padding: var(--space-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
@@ -325,6 +324,7 @@ a {
   justify-content: space-between;
   text-decoration: none;
   color: inherit;
+  padding: var(--space-md);
 }
 
 .link-card__info {

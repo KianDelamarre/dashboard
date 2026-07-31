@@ -141,8 +141,7 @@ app.delete('/link/:id', deleteLinkController)
 app.patch('/link/:id', updateLinkController)
 app.patch('/links/batchmove', batchMoveController)
 
-const HTTPSport = 4001;
-const HTTPport = 4000;
+const port = 4001;
 // app.listen(port, () => {
 //     console.log(`Server is listening on http://localhost:${port}`);
 // });
@@ -159,12 +158,12 @@ if (process.env.AUTH_ENABLED === 'true' && process.env.DEV_MODE === 'true') {
         cert: fs.readFileSync(certPath),
     };
 
-    https.createServer(options, app).listen(HTTPSport, () => {
-        console.log(`🔒 Secure Dev Server listening on https://localhost:${HTTPSport}`);
+    https.createServer(options, app).listen(port, () => {
+        console.log(`🔒 Secure Dev Server listening on https://localhost:${port}`);
     });
 } else {
     // In Docker / Production behind Traefik, serve standard HTTP
-    app.listen(HTTPport, () => {
-        console.log(`🚀 Server listening on http://localhost:${HTTPport}`);
+    app.listen(port, () => {
+        console.log(`🚀 Server listening on http://localhost:${port}`);
     });
 }

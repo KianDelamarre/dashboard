@@ -1,5 +1,9 @@
-services:
+networks:
+  idp:
+    name: idp
+    driver: bridge
 
+services:
   idp-server:
     image: kiansd/idp-server:latest
     container_name: idp-server
@@ -7,11 +11,14 @@ services:
       - ALLOWED_ORIGINS=http://localhost:4001
     ports:
       - "4002:4002"
-    volumes:
-      - ./idp-server/data:/app/data
+    # volumes:
+    #   - ./idp-server/data:/app/backend/data
+    networks:
+      - idp
+      
   dashboard:
-    # build: .
-    image: kiansd/dashboard:latest
+    build: .
+    # image: kiansd/dashboard:latest
     container_name: dashboard
     ports:
       - "4001:4001" # backend API
@@ -25,10 +32,17 @@ services:
     depends_on:
       - idp-server
     volumes:
-      # - ./backend:/app/backend # optional: live code updates
-      # - ./frontend:/app/frontend # optional: live frontend updates
+      - ./backend:/app/backend # optional: live code updates
+      - ./frontend:/app/frontend # optional: live frontend updates
       # - ./processes.json:/app/processes.json # optional: live PM2 config updates
-      # - /app/backend/node_modules
+      - /app/backend/node_modules
       - ./backend/data:/app/backend/data
+      - /home/kian/idp-client:/app/backend/idp-client
     # command: pm2-runtime /app/processes.json
+    # command: sh -c "cd /app/backend && npm install /app/backend/idp-client && npm run devStart"
+    networks:
+      - idp
+
+
+
 

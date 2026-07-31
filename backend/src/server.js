@@ -59,16 +59,6 @@ if (auth_enabled) {
 
     const publicKey = await getPublicKeyFromIdp(idp_url)
 
-    while (!publicKey) {
-        try {
-            console.log("🔒 Fetching public key from IdP...");
-            publicKey = await getPublicKeyFromIdp(idp_url);
-        } catch (err) {
-            console.warn("⏳ IdP server not ready yet, retrying in 2 seconds...");
-            await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-    }
-
 
     idp = createIdpClient({
         baseUrl: idp_url,
@@ -82,7 +72,7 @@ if (auth_enabled) {
     authMiddleware = createAuthMiddleware({ client: idp });
 } else {
 
-    // -------------------------------------------------------------
+// -------------------------------------------------------------
 //  SPOOF LAYER
 // -------------------------------------------------------------
     console.log("🔓 Authentication Disabled: Spoofing Identity Provider...");

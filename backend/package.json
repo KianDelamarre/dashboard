@@ -14,7 +14,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@kiansd/idp-client": "^1.0.4",
+    "@kiansd/idp-client": "file:idp-client",
     "bcrypt": "6.0.0",
     "cookie-parser": "1.4.7",
     "cors": "2.8.5",

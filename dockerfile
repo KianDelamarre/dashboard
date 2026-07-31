@@ -5,6 +5,7 @@ WORKDIR /app
 # Install PM2 globally
 # RUN npm install -g pm2
 
+
 # Copy backend & frontend
 COPY backend ./backend
 COPY frontend ./frontend

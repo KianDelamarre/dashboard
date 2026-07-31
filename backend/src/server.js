@@ -128,7 +128,6 @@ app.delete('/logout', logoutController);
 app.use(authMiddleware);
 
 
-
 // Ensure the validated token belongs to the ALLOWED_USER (Handles GET/POST/DELETE)
 app.use(verifyRouteAccess);
 

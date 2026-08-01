@@ -10,12 +10,13 @@ A self-hosted server dashboard for organising and accessing your services, media
 ## Table of Contents
 
 - [Overview](#overview)
-- [Getting Started with Docker Compose](#getting-started-with-docker-compose)
+- [Docker Quick-Start Guide](#-docker-quick-start-guide)
 - [Environment Variables](#environment-variables)
 - [Architecture](#architecture)
 - [Frontend](#frontend)
 - [Authentication](#authentication)
 - [Project Structure](#project-structure)
+- [License](#-license)
 
 ---
 
@@ -33,27 +34,27 @@ Data is persisted in an embedded **SQLite** database.
 
 ---
 
-## 🚀Docker quick-start guide
+## 🚀 Docker Quick-Start Guide
 
-### Docker Compose reference
+### 1. Docker Compose Reference
+
+Create a `docker-compose.yml` file with the following contents:
 
 ```yaml
 services:
 
-# optional - required for auth #
+  # Optional - Required for auth
   idp-server:
     image: kiansd/idp-server
     container_name: idp-server
     environment:
-      - ALLOWED_ORIGINS=http://localhost:4001 #dashboard url
+      - ALLOWED_ORIGINS=http://localhost:4001 # Dashboard URL
     ports:
       - "4002:4002"
     volumes:
       - ./idp-server/data:/app/data
     networks:
       - idp
-# optional - required for auth #
-
 
   dashboard:
     image: kiansd/dashboard:latest
@@ -61,26 +62,21 @@ services:
     ports:
       - "4001:4001"
     environment:
-      - DEV_MODE=false #optional dev only
-      - IDP_URL=http://idp-server:4002  #url of idp-server, if not on same docker network use host IP
-      - AUTH_ENABLED=true  #optional, defaults true
-      - ALLOWED_USER=admin   #optional, to decide which users from idp-server can access dashboard
+      - DEV_MODE=false                       # Set to true for dev/self-signed SSL
+      - IDP_URL=http://idp-server:4002       # URL of idp-server
+      - AUTH_ENABLED=true                    # Set to false to disable auth entirely
+      - ALLOWED_USER=admin                   # Optional: restrict dashboard access to a single user
     depends_on:
       - idp-server
     volumes:
-    #  - ./backend:/app/backend      #dev mounts
-    #  - ./frontend:/app/frontend
-    #  - ./processes.json:/app/processes.json
-    #  - /app/backend/node_modules
-      - .dashboard/data:/app/backend/data    #persist links data
+      - ./dashboard/data:/app/backend/data  # Persists SQLite link data
     networks:
       - idp
 
-
-  networks:
-    idp:
-      name: idp
-      driver: bridge
+networks:
+  idp:
+    name: idp
+    driver: bridge
 ```
 
 ### 2. Configure environment variables
@@ -104,10 +100,10 @@ This will:
 Open your browser and navigate to:
 
 ```
-https://localhost:4001
+http://localhost:4001
 ```
 
-> **Note:** In dev mode (`DEV_MODE=true`) the server uses a self-signed SSL certificate, so your browser will warn you about the connection. Accept the risk to continue.
+> **Note:** In dev mode (`DEV_MODE=true`) the server uses https and a self-signed SSL certificate, so your browser will warn you about the connection. Accept the risk to continue.
 
 ### 5. Stop the stack
 

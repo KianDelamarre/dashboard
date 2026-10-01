@@ -311,7 +311,7 @@ function buildDashboardHtml(links) {
         card.id = link.id;
 
         card.innerHTML = `
-            <a href="${link.remoteip}" class="link-card__main" target="_blank">
+            <a href="${link.remoteip}" class="link-card__main" target="_self">
                 <div class="link-card__info">
                     <img src="${link.imgurl}" alt="" class="link-card__icon">
                     <span class="link-card__title">${link.name}</span>

@@ -75,7 +75,7 @@ public class LinkRepository {
     }
 
     public Link update(int id, Link link){
-        final String sql = "UPDATE links SET" +
+        final String sql = "UPDATE links SET " +
                 "name = ?, " +
                 "localip = ?, " +
                 "remoteip = ?, " +

@@ -8,7 +8,7 @@ public interface LinksService {
 
     List<Link> getAllLinks();
     Link createLink(Link linkToCreate);
-    Link deleteLink(int linkToDeleteId);
+    void deleteLink(int linkToDeleteId);
     Link updateLink (int LinkToUpdateId, Link linkWithNewVals);
 
 }

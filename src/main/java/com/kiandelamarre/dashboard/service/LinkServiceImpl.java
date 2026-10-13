@@ -18,8 +18,7 @@ public class LinkServiceImpl implements LinksService{
     }
 
      @Override
-     public Link deleteLink(int linkToDeleteId) {
-         return null;
+     public void deleteLink(int linkToDeleteId) {
      }
 
      @Override

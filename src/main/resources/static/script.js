@@ -38,7 +38,8 @@ let pageInitialised = false;
 
 // Initialization
 window.onload = async () => {
-    await refreshLogin();
+    // await refreshLogin();
+    checkLoggedIn();
 };
 
 // --- Auth Functions ---
@@ -133,7 +134,7 @@ async function logout() {
 }
 
 function checkLoggedIn() {
-    if (accessToken) {
+    if (accessToken || !accessToken) {
         showDashboard();
     } else {
         showLoginPage();
@@ -202,8 +203,8 @@ createLinkForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = {
         name: e.target.name.value,
-        localIp: e.target.localIp.value,
-        remoteIp: e.target.remoteIp.value,
+        localUrl: e.target.localUrl.value,
+        remoteUrl: e.target.remoteUrl.value,
         imgUrl: e.target.imgUrl.value
     };
 
@@ -311,14 +312,14 @@ function buildDashboardHtml(links) {
         card.id = link.id;
 
         card.innerHTML = `
-            <a href="${link.remoteip}" class="link-card__main" target="_self">
+            <a href="${link.remoteUrl}" class="link-card__main" target="_self">
                 <div class="link-card__info">
-                    <img src="${link.imgurl}" alt="" class="link-card__icon">
+                    <img src="${link.imgUrl}" alt="" class="link-card__icon">
                     <span class="link-card__title">${link.name}</span>
                 </div>
                 <div class="link-card__status">
-                    <div class="link-card__dot" id="${link.localip}-status-local"></div>
-                    <div class="link-card__dot" id="${link.remoteip}-status-remote"></div>
+                    <div class="link-card__dot" id="${link.localUrl}-status-local"></div>
+                    <div class="link-card__dot" id="${link.remoteUrl}-status-remote"></div>
                 </div>
             </a>
             <div class="link-card__actions">
@@ -334,9 +335,9 @@ function buildDashboardHtml(links) {
             idToEdit = link.id;
             editingMode = 'edit';
             createLinkForm.name.value = link.name;
-            createLinkForm.localIp.value = link.localip;
-            createLinkForm.remoteIp.value = link.remoteip;
-            createLinkForm.imgUrl.value = link.imgurl;
+            createLinkForm.localUrl.value = link.localUrl;
+            createLinkForm.remoteUrl.value = link.remoteUrl;
+            createLinkForm.imgUrl.value = link.imgUrl;
             createLinkForm.querySelector('.btn').innerText = 'Update';
             openModal(createLinkFormDiv);
         });

@@ -7,9 +7,10 @@ public class Link {
     private String name;
     private String localUrl;
     private String remoteUrl;
-    private String imageUrl;
+    private String imgUrl;
     private int column;
     private int row; //default zero for new vals
+
 
     public int getId() {
         return id;
@@ -43,12 +44,12 @@ public class Link {
         this.remoteUrl = remoteUrl;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getImgUrl() {
+        return imgUrl;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
     }
 
     public int getColumn() {
@@ -71,11 +72,11 @@ public class Link {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Link link = (Link) o;
-        return id == link.id && column == link.column && row == link.row && Objects.equals(name, link.name) && Objects.equals(localUrl, link.localUrl) && Objects.equals(remoteUrl, link.remoteUrl) && Objects.equals(imageUrl, link.imageUrl);
+        return id == link.id && column == link.column && row == link.row && Objects.equals(name, link.name) && Objects.equals(localUrl, link.localUrl) && Objects.equals(remoteUrl, link.remoteUrl) && Objects.equals(imgUrl, link.imgUrl);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, localUrl, remoteUrl, imageUrl, column, row);
+        return Objects.hash(id, name, localUrl, remoteUrl, imgUrl, column, row);
     }
 }

@@ -24,9 +24,9 @@ public class LinkRepository {
         Link link = new Link();
         link.setId(rs.getInt("id"));
         link.setName(rs.getString("name"));
-        link.setLocalUrl(rs.getString("localUrl")); // match your table columns
-        link.setRemoteUrl(rs.getString("remoteUrl"));
-        link.setImageUrl(rs.getString("imgurl"));
+        link.setLocalUrl(rs.getString("localurl")); // match your table columns
+        link.setRemoteUrl(rs.getString("remoteurl"));
+        link.setImgUrl(rs.getString("imgurl"));
         link.setColumn(rs.getInt("column"));
         link.setRow(rs.getInt("row"));
         return link;
@@ -45,7 +45,7 @@ public class LinkRepository {
     }
 
     public Link insert(Link link) {
-        final String sql = "INSERT INTO links (name, localip, remoteip, imgurl, column, row) VALUES (?, ?, ?, ?, ?, ?)";
+        final String sql = "INSERT INTO links (name, localurl, remoteurl, imgurl, column, row) VALUES (?, ?, ?, ?, ?, ?)";
 
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -54,7 +54,7 @@ public class LinkRepository {
             statement.setString(1, link.getName());
             statement.setString(2, link.getLocalUrl());
             statement.setString(3, link.getRemoteUrl());
-            statement.setString(4, link.getImageUrl());
+            statement.setString(4, link.getImgUrl());
             statement.setInt(5, link.getColumn());
             statement.setInt(6, link.getRow());
             return statement;
@@ -77,8 +77,8 @@ public class LinkRepository {
     public Link update(int id, Link link){
         final String sql = "UPDATE links SET " +
                 "name = ?, " +
-                "localip = ?, " +
-                "remoteip = ?, " +
+                "localurl = ?, " +
+                "remoteurl = ?, " +
                 "imgurl = ?, " +
                 "column = ?, " +
                 "row = ? " +
@@ -88,7 +88,7 @@ public class LinkRepository {
                 link.getName(),
                 link.getLocalUrl(),
                 link.getRemoteUrl(),
-                link.getImageUrl(),
+                link.getImgUrl(),
                 link.getColumn(),
                 link.getRow(),
                 id);

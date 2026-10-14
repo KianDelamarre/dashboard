@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kianserver Dashboard for monitoring various services and media.">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="icon.ico" type="image/x-icon">
+    <title>Server Dashboard</title>
+</head>
+
+<body>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading">
+        <h1 class="loading__text">LOADING...</h1>
+    </div>
+
+    <!-- Auth Section -->
+    <div id="login" class="auth">
+        <form id="login-form" class="auth__form card">
+            <h2 class="auth__title">Sign In</h2>
+            <p class="auth__subtitle">Enter your credentials to continue</p>
+            <div class="auth__field">
+                <input type="text" name="username" class="auth__input" placeholder="Username" required>
+            </div>
+            <div class="auth__field">
+                <input type="password" name="password" class="auth__input" placeholder="Password" required>
+            </div>
+            <div id="login-error-msg" class="auth__error"></div>
+            <button type="submit" class="btn btn--primary btn--full">Login</button>
+        </form>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <header class="dashboard__header">
+            <div class="dashboard__logo">
+                <img src="icon.ico" alt="Logo" class="dashboard__logo-img">
+                <span class="dashboard__logo-text">Kianserver</span>
+            </div>
+            
+            <div class="dashboard__search-container">
+                <form id="search" class="search-bar" action="https://www.google.com/search" method="get">
+                    <input type="text" name="q" class="search-bar__input" placeholder="Search the web" aria-label="Search">
+                    <button type="submit" class="search-bar__button" aria-label="Submit Search">
+                        <img src="search (1).png" alt="Search">
+                    </button>
+                </form>
+            </div>
+
+            <div class="dashboard__actions">
+                <div id="editButtons" class="admin-panel">
+                    <button id="save-changes-button" class="btn btn--success btn--sm admin-btn">Save</button>
+                    <button id="activate-edit-mode-button" class="btn btn--accent btn--sm admin-btn">Edit Mode</button>
+                    <button id="open-edit-link-form-button" class="btn btn--primary btn--sm admin-btn">New Link</button>
+                    <button id="create-user-button" class="btn btn--secondary btn--sm admin-btn">New User</button>
+                </div>
+                <button id="logout" class="btn btn--icon" aria-label="Logout">
+                    <img src="logout.png" alt="Logout">
+                </button>
+            </div>
+        </header>
+
+        <main class="dashboard__content">
+            <div id="container" class="grid-layout">
+                <section class="column">
+                    <h3 class="column__title">Media</h3>
+                    <div id="col-1" class="column__content btn-container"></div>
+                </section>
+                <section class="column">
+                    <h3 class="column__title">Services</h3>
+                    <div id="col-2" class="column__content btn-container"></div>
+                </section>
+                <section class="column">
+                    <h3 class="column__title">Links</h3>
+                    <div id="col-3" class="column__content btn-container"></div>
+                </section>
+                <section class="column">
+                    <h3 class="column__title">Admin</h3>
+                    <div id="col-4" class="column__content btn-container"></div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Modals/Forms Overlay -->
+        <div id="modal-overlay" class="modal-overlay"></div>
+
+        <div id="edit-link-div" class="modal card">
+            <form id="edit-link-form" class="modal__form">
+                <h3 class="modal__title">Link Details</h3>
+                <input type="text" name="name" class="modal__input" placeholder="Name">
+                <input type="text" name="localIp" class="modal__input" placeholder="Local IP Address">
+                <input type="text" name="remoteIp" class="modal__input" placeholder="Remote IP Address">
+                <input type="text" name="imgUrl" class="modal__input" placeholder="Icon URL">
+                <button type="submit" class="btn btn--primary btn--full">Create</button>
+            </form>
+        </div>
+
+        <div id="create-user-div" class="modal card">
+            <form id="create-user-form" class="modal__form">
+                <h3 class="modal__title">New User</h3>
+                <input type="text" name="username" class="modal__input" placeholder="Username">
+                <input type="password" name="password" class="modal__input" placeholder="Password">
+                <button type="submit" class="btn btn--primary btn--full">Create</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+
+</html>

@@ -14,8 +14,8 @@ public class DatabaseInitialiser {
             String sql = """
                 CREATE TABLE IF NOT EXISTS "links" (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    localip TEXT,
-                    remoteip TEXT,
+                    localurl TEXT,
+                    remoteurl TEXT,
                     imgurl TEXT,\s
                     name TEXT,\s
                     "column" INTEGER,\s

@@ -63,6 +63,42 @@ export default function App() {
     setItems((prevItems) => prevItems.filter((item) => item.id !== Number(deletedId)))
   }
 
+
+
+  const [batchMoves, setBatchMoves] = React.useState<any[]>([])
+
+  // Called whenever a card is dragged or reordered
+  const handleBatchSave = async (batchMoves: any[]) => {
+    if (batchMoves.length > 0) {
+      try {
+        await axios.patch(`${API_URL}/links/batchmove`, batchMoves, {
+          withCredentials: true,
+        })
+        console.log("Batch move successful!")
+        // Optionally re-fetch items or update state here
+      } catch (err) {
+        console.error("Failed to execute batch move:", err)
+      }
+    }
+    setIsEditMode(false)
+  }
+
+  // Triggered when the user clicks "Save" in the TopBar
+  const handleSaveChanges = async () => {
+    if (batchMoves.length > 0) {
+      try {
+        await axios.patch(`${API_URL}/links/batchmove`, batchMoves, {
+          withCredentials: true,
+        })
+        console.log("Batch move successful!")
+        setBatchMoves([]) // Clear changes after saving
+      } catch (err) {
+        console.error("Failed to execute batch move:", err)
+      }
+    }
+    setIsEditMode(false)
+  }
+
   return (
     <>
       {/* 1. TopBar triggers the modal via callback */}
@@ -70,6 +106,7 @@ export default function App() {
         isEditMode={isEditMode}
         setIsEditMode={setIsEditMode}
         onOpenNewModal={() => setIsNewModalOpen(true)}
+        onSave={handleSaveChanges}
       />
 
       {/* 2. Grid displays items and handles card-level updates via props */}
@@ -81,6 +118,7 @@ export default function App() {
         isEditMode={isEditMode}
         onUpdateLink={handleLinkUpdated}
         onDeleteLink={handleLinkDeleted}
+        onBatchSave={handleBatchSave}
       />
 
 

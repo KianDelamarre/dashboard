@@ -7,9 +7,10 @@ interface TopBarProps {
     isEditMode: boolean
     setIsEditMode: React.Dispatch<React.SetStateAction<boolean>>
     onOpenNewModal: () => void
+    onSave: () => void
 }
 
-export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal }: TopBarProps) {
+export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal, onSave }: TopBarProps) {
 
     // Listen for the Escape key to exit edit mode
     React.useEffect(() => {
@@ -59,7 +60,7 @@ export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal }: TopBarProp
                             size="sm"
                             variant="default"
                             onClick={() => {
-                                console.log("save button clicked")
+                                onSave
                                 setIsEditMode(false)
                             }}
                             className="bg-green text-primary-foreground hover:bg-green/90 transition-all"

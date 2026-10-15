@@ -6,10 +6,26 @@ import { Button } from "./Button"
 interface TopBarProps {
     isEditMode: boolean
     setIsEditMode: React.Dispatch<React.SetStateAction<boolean>>
-    onOpenNewModal: () => void // <-- Add this
+    onOpenNewModal: () => void
 }
 
 export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal }: TopBarProps) {
+
+    // Listen for the Escape key to exit edit mode
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && isEditMode) {
+                setIsEditMode(false)
+            }
+        }
+
+        window.addEventListener("keydown", handleKeyDown)
+
+        // Cleanup listener on unmount or when edit mode changes
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown)
+        }
+    }, [isEditMode, setIsEditMode])
 
     return (
         <header className={cn("flex items-center justify-between gap-4 p-4 border-b bg-card")}>
@@ -57,7 +73,7 @@ export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal }: TopBarProp
                             type="button"
                             size="sm"
                             variant="default"
-                            onClick={onOpenNewModal} // <-- Trigger it here
+                            onClick={onOpenNewModal}
                             className="bg-ring text-primary-foreground hover:bg-ring/90 transition-all"
                         >
                             <Plus className="w-4 h-4" />

@@ -6,9 +6,10 @@ import { Button } from "./Button"
 interface TopBarProps {
     isEditMode: boolean
     setIsEditMode: React.Dispatch<React.SetStateAction<boolean>>
+    onOpenNewModal: () => void // <-- Add this
 }
 
-export function TopBar({ isEditMode, setIsEditMode }: TopBarProps) {
+export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal }: TopBarProps) {
 
     return (
         <header className={cn("flex items-center justify-between gap-4 p-4 border-b bg-card")}>
@@ -56,7 +57,7 @@ export function TopBar({ isEditMode, setIsEditMode }: TopBarProps) {
                             type="button"
                             size="sm"
                             variant="default"
-                            onClick={() => console.log("new link button clicked")}
+                            onClick={onOpenNewModal} // <-- Trigger it here
                             className="bg-ring text-primary-foreground hover:bg-ring/90 transition-all"
                         >
                             <Plus className="w-4 h-4" />

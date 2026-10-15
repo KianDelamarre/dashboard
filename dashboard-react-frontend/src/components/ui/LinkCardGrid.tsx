@@ -1,22 +1,23 @@
 import * as React from "react"
-import axios from "axios"
 import { LinkCard } from "./LinkCard"
 
 interface CardLinkItem {
-    id: number        // Updated from string to number
+    id: number
     name: string
     localUrl: string
     remoteUrl: string
     imgUrl: string
-    column: number    // Updated from string to number
+    column: number
     row: number
 }
 
 interface LinkCardGridProps {
+    items: CardLinkItem[]
+    isLoading: boolean
+    error: string | null
     isEditMode: boolean
+    onUpdateLink: (id: string, updatedData: any) => void
 }
-
-const API_URL = 'http://localhost:8080'
 
 // Map your numeric column IDs from the database/API to display names
 const COLUMN_MAP: Record<number, string> = {
@@ -26,29 +27,13 @@ const COLUMN_MAP: Record<number, string> = {
     4: "ADMIN"
 }
 
-export function LinkCardGrid({ isEditMode }: LinkCardGridProps) {
-
-    const [items, setItems] = React.useState<CardLinkItem[]>([])
-    const [isLoading, setIsLoading] = React.useState<boolean>(true)
-    const [error, setError] = React.useState<string | null>(null)
-
-    React.useEffect(() => {
-        const fetchLinks = async () => {
-            try {
-                setIsLoading(true)
-                const response = await axios.get<CardLinkItem[]>(`${API_URL}/links`)
-                setItems(response.data)
-                setError(null)
-            } catch (err) {
-                console.error("Failed to fetch links from API:", err)
-                setError("Could not connect to backend server. Please check if your API is running.")
-            } finally {
-                setIsLoading(false)
-            }
-        }
-
-        fetchLinks()
-    }, [])
+export function LinkCardGrid({
+    items,
+    isLoading,
+    error,
+    isEditMode,
+    onUpdateLink
+}: LinkCardGridProps) {
 
     return (
         <div className="p-8 max-w-[90rem] mx-auto">
@@ -89,9 +74,10 @@ export function LinkCardGrid({ isEditMode }: LinkCardGridProps) {
                                             localUrl={item.localUrl}
                                             remoteUrl={item.remoteUrl}
                                             imgUrl={item.imgUrl}
-                                            column={columnName}
+                                            column={colNum}
                                             row={item.row}
                                             isEditMode={isEditMode}
+                                            onUpdate={onUpdateLink}
                                         />
                                     ))
                                 )}

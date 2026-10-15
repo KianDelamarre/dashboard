@@ -11,9 +11,10 @@ interface LinkCardProps extends React.ComponentProps<"div"> {
   localUrl: string
   remoteUrl: string
   imgUrl: string
-  column: string
+  column: number
   row: number
   isEditMode: boolean
+  onUpdate: (id: string, updatedData: any) => void // Pass this down from grid
 }
 
 export function LinkCard({
@@ -25,6 +26,7 @@ export function LinkCard({
   column,
   row,
   isEditMode,
+  onUpdate,
   className,
   ...props
 }: LinkCardProps) {
@@ -116,6 +118,9 @@ export function LinkCard({
         remoteUrl={remoteUrl}
         localUrl={localUrl}
         imgUrl={imgUrl}
+        row={row}
+        column={column}
+        onSaveSuccess={(updatedData) => onUpdate(id, updatedData)}
       />
 
 

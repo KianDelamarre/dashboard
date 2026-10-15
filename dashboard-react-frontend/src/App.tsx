@@ -59,6 +59,10 @@ export default function App() {
     setItems((prevItems) => [...prevItems, newLink])
   }
 
+  const handleLinkDeleted = (deletedId: string) => {
+    setItems((prevItems) => prevItems.filter((item) => item.id !== Number(deletedId)))
+  }
+
   return (
     <>
       {/* 1. TopBar triggers the modal via callback */}
@@ -76,6 +80,7 @@ export default function App() {
         error={error}
         isEditMode={isEditMode}
         onUpdateLink={handleLinkUpdated}
+        onDeleteLink={handleLinkDeleted}
       />
 
 

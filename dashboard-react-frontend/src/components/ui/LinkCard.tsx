@@ -2,6 +2,8 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Edit3, Trash2 } from "lucide-react"
 
+import axios from "axios"
+
 import { Button } from "./Button"
 import { EditModal } from "./EditModel"
 
@@ -14,8 +16,11 @@ interface LinkCardProps extends React.ComponentProps<"div"> {
   column: number
   row: number
   isEditMode: boolean
-  onUpdate: (id: string, updatedData: any) => void // Pass this down from grid
+  onUpdate: (id: string, updatedData: any) => void
+  onDelete: (id: string) => void // <-- Added delete callback prop
 }
+
+const API_URL = 'http://localhost:8080'
 
 export function LinkCard({
   id,
@@ -27,11 +32,40 @@ export function LinkCard({
   row,
   isEditMode,
   onUpdate,
+  onDelete, // <-- Destructure delete callback
   className,
   ...props
 }: LinkCardProps) {
 
   const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const [isLoading, setIsLoading] = React.useState(false) // <-- Track deletion loading state
+
+  const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+
+    // Optional confirmation prompt before deleting
+    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) {
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      // Send DELETE request to your Spring Boot endpoint
+      await axios.delete(`${API_URL}/link/${id}`)
+
+      console.log(`Successfully deleted link ${id}`)
+
+      // Notify parent grid to filter out this card instantly
+      onDelete(id)
+
+    } catch (error) {
+      console.error("Failed to delete link:", error)
+      alert("Failed to delete link. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <>
@@ -42,7 +76,7 @@ export function LinkCard({
         )}
         {...props}
       >
-        {/* 1. Main Link Area (Stays on top, full width) */}
+        {/* 1. Main Link Area */}
         <a
           href={remoteUrl}
           target="_self"
@@ -77,16 +111,17 @@ export function LinkCard({
           </div>
         </a>
 
-        {/* 2. Edit & Delete Buttons using the component's variant/size props */}
+        {/* 2. Edit & Delete Buttons */}
         {isEditMode && (
           <div className="flex items-center justify-end px-5 py-3 gap-2 border-t border-border/40 animate-in fade-in duration-200">
             <Button
               type="button"
               variant="secondary"
               size="sm"
+              disabled={isLoading}
               onClick={(e) => {
                 e.preventDefault()
-                setIsModalOpen(true) // Open this card's modal
+                setIsModalOpen(true)
               }}
             >
               <Edit3 className="w-3.5 h-3.5" />
@@ -97,19 +132,17 @@ export function LinkCard({
               type="button"
               variant="destructive"
               size="sm"
-              onClick={(e) => {
-                e.preventDefault()
-                console.log(`Delete link ${id}`)
-              }}
+              disabled={isLoading} // Prevent double-clicks while deleting
+              onClick={handleDelete} // <-- Hooked up handleDelete here
             >
               <Trash2 className="w-3.5 h-3.5" />
-              Delete
+              {isLoading ? "Deleting..." : "Delete"}
             </Button>
           </div>
         )}
       </div>
 
-      {/* Render the EditModal, controlled by this card's local state */}
+      {/* Render the EditModal */}
       <EditModal
         id={id}
         isOpen={isModalOpen}
@@ -122,8 +155,6 @@ export function LinkCard({
         column={column}
         onSaveSuccess={(updatedData) => onUpdate(id, updatedData)}
       />
-
-
     </>
   )
 }

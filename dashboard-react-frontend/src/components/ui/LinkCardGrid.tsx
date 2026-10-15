@@ -17,6 +17,7 @@ interface LinkCardGridProps {
     error: string | null
     isEditMode: boolean
     onUpdateLink: (id: string, updatedData: any) => void
+    onDeleteLink: (id: string) => void
 }
 
 // Map your numeric column IDs from the database/API to display names
@@ -32,8 +33,10 @@ export function LinkCardGrid({
     isLoading,
     error,
     isEditMode,
-    onUpdateLink
+    onUpdateLink,
+    onDeleteLink
 }: LinkCardGridProps) {
+
 
     return (
         <div className="p-8 max-w-[90rem] mx-auto">
@@ -78,6 +81,7 @@ export function LinkCardGrid({
                                             row={item.row}
                                             isEditMode={isEditMode}
                                             onUpdate={onUpdateLink}
+                                            onDelete={onDeleteLink}
                                         />
                                     ))
                                 )}

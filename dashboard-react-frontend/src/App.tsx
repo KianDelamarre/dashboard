@@ -72,7 +72,6 @@ export default function App() {
     if (batchMoves.length > 0) {
       try {
         await axios.patch(`${API_URL}/links/batchmove`, batchMoves, {
-          withCredentials: true,
         })
         console.log("Batch move successful!")
         // Optionally re-fetch items or update state here
@@ -88,7 +87,6 @@ export default function App() {
     if (batchMoves.length > 0) {
       try {
         await axios.patch(`${API_URL}/links/batchmove`, batchMoves, {
-          withCredentials: true,
         })
         console.log("Batch move successful!")
         setBatchMoves([]) // Clear changes after saving

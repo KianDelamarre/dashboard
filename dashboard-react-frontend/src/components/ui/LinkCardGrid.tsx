@@ -1,6 +1,6 @@
 import * as React from "react"
 import axios from "axios"
-import { LinkCard } from "./linkCard"
+import { LinkCard } from "./LinkCard"
 
 interface CardLinkItem {
     id: number        // Updated from string to number
@@ -10,6 +10,10 @@ interface CardLinkItem {
     imgUrl: string
     column: number    // Updated from string to number
     row: number
+}
+
+interface LinkCardGridProps {
+    isEditMode: boolean
 }
 
 const API_URL = 'http://localhost:8080'
@@ -22,7 +26,8 @@ const COLUMN_MAP: Record<number, string> = {
     4: "ADMIN"
 }
 
-export function LinkCardGrid() {
+export function LinkCardGrid({ isEditMode }: LinkCardGridProps) {
+
     const [items, setItems] = React.useState<CardLinkItem[]>([])
     const [isLoading, setIsLoading] = React.useState<boolean>(true)
     const [error, setError] = React.useState<string | null>(null)
@@ -86,6 +91,7 @@ export function LinkCardGrid() {
                                             imgUrl={item.imgUrl}
                                             column={columnName}
                                             row={item.row}
+                                            isEditMode={isEditMode}
                                         />
                                     ))
                                 )}

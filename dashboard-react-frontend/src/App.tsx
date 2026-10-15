@@ -1,25 +1,20 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import { LinkCardGrid } from './components/ui/linkCardGrid'
-
-
-import './App.css'
+import * as React from "react"
+import { LinkCardGrid } from './components/ui/LinkCardGrid'
+import { TopBar } from './components/ui/TopBar'
 
 
 
-function App() {
-
-
-
-
+export default function App() {
+  //global isEditMode bool to show/hide buttons for editing
+  const [isEditMode, setIsEditMode] = React.useState<boolean>(false)
 
   return (
+    <>
+      <TopBar isEditMode={isEditMode} setIsEditMode={setIsEditMode} />
 
-    <LinkCardGrid></LinkCardGrid>
 
+      <LinkCardGrid isEditMode={isEditMode} />
+
+    </>
   )
 }
-
-export default App

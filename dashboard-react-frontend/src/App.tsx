@@ -4,6 +4,12 @@ import { TopBar } from "./components/ui/TopBar"
 import { LinkCardGrid } from "./components/ui/LinkCardGrid"
 import { NewLinkModal } from "./components/ui/NewLinkModal"
 
+interface ColumnItem {
+  id: number
+  name: string
+  displayOrder?: number
+}
+
 interface CardLinkItem {
   id: number
   name: string
@@ -14,35 +20,45 @@ interface CardLinkItem {
   row: number
 }
 
+// Matches your backend DashboardDataResponse DTO
+interface DashboardDataResponse {
+  columns: ColumnItem[]
+  links: CardLinkItem[]
+}
+
 const API_URL = 'http://localhost:8080'
 
 export default function App() {
   const [isEditMode, setIsEditMode] = React.useState(false)
 
-  // 1. Explicitly type items so TypeScript knows what it holds
+  // State for columns and links
+  const [columns, setColumns] = React.useState<ColumnItem[]>([])
   const [items, setItems] = React.useState<CardLinkItem[]>([])
+
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
 
   // Global modal state lives right here in App!
   const [isNewModalOpen, setIsNewModalOpen] = React.useState(false)
 
-  // Fetch items at the root level
+  // Fetch dashboard data (columns + links) at the root level
   React.useEffect(() => {
-    const fetchLinks = async () => {
+    const fetchDashboardData = async () => {
       try {
         setIsLoading(true)
-        const response = await axios.get<CardLinkItem[]>(`${API_URL}/links`)
-        setItems(response.data)
+        // Updated to match your new endpoint returning the wrapper DTO
+        const response = await axios.get<DashboardDataResponse>(`${API_URL}/links`)
+        setColumns(response.data.columns)
+        setItems(response.data.links)
         setError(null)
       } catch (err) {
-        console.error("Failed to fetch links:", err)
+        console.error("Failed to fetch dashboard data:", err)
         setError("Could not connect to backend server.")
       } finally {
         setIsLoading(false)
       }
     }
-    fetchLinks()
+    fetchDashboardData()
   }, [])
 
   // Handler to update an existing link in state
@@ -63,18 +79,14 @@ export default function App() {
     setItems((prevItems) => prevItems.filter((item) => item.id !== Number(deletedId)))
   }
 
-
-
   const [batchMoves, setBatchMoves] = React.useState<any[]>([])
 
-  // Called whenever a card is dragged or reordered
-  const handleBatchSave = async (batchMoves: any[]) => {
-    if (batchMoves.length > 0) {
+  // Called whenever a card is dragged or reordered via LinkCardGrid
+  const handleBatchSave = async (moves: any[]) => {
+    if (moves.length > 0) {
       try {
-        await axios.patch(`${API_URL}/links/batchmove`, batchMoves, {
-        })
+        await axios.patch(`${API_URL}/links/batchmove`, moves)
         console.log("Batch move successful!")
-        // Optionally re-fetch items or update state here
       } catch (err) {
         console.error("Failed to execute batch move:", err)
       }
@@ -86,8 +98,7 @@ export default function App() {
   const handleSaveChanges = async () => {
     if (batchMoves.length > 0) {
       try {
-        await axios.patch(`${API_URL}/links/batchmove`, batchMoves, {
-        })
+        await axios.patch(`${API_URL}/links/batchmove`, batchMoves)
         console.log("Batch move successful!")
         setBatchMoves([]) // Clear changes after saving
       } catch (err) {
@@ -107,9 +118,9 @@ export default function App() {
         onSave={handleSaveChanges}
       />
 
-      {/* 2. Grid displays items and handles card-level updates via props */}
-
+      {/* 2. Grid now receives both the dynamic columns and links */}
       <LinkCardGrid
+        columns={columns}
         items={items}
         isLoading={isLoading}
         error={error}
@@ -118,7 +129,6 @@ export default function App() {
         onDeleteLink={handleLinkDeleted}
         onBatchSave={handleBatchSave}
       />
-
 
       {/* 3. NewLinkModal rendered cleanly at the root App level */}
       <NewLinkModal

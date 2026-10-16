@@ -1,6 +1,12 @@
 import * as React from "react"
 import { LinkCard } from "./LinkCard"
 
+interface ColumnItem {
+    id: number
+    name: string
+    displayOrder?: number
+}
+
 interface CardLinkItem {
     id: number
     name: string
@@ -18,7 +24,8 @@ interface MoveData {
 }
 
 interface LinkCardGridProps {
-    items: CardLinkItem[]
+    columns: ColumnItem[] // New: Dynamic columns from API
+    items: CardLinkItem[] // Links
     isLoading: boolean
     error: string | null
     isEditMode: boolean
@@ -27,14 +34,8 @@ interface LinkCardGridProps {
     onBatchSave: (moves: MoveData[]) => void
 }
 
-const COLUMN_MAP: Record<number, string> = {
-    1: "MEDIA",
-    2: "SERVICES",
-    3: "LINKS",
-    4: "ADMIN"
-}
-
 export function LinkCardGrid({
+    columns,
     items,
     isLoading,
     error,
@@ -47,7 +48,7 @@ export function LinkCardGrid({
     const [pendingMoves, setPendingMoves] = React.useState<MoveData[]>([])
     const [draggedId, setDraggedId] = React.useState<string | null>(null)
 
-    // Only sync localItems from props if the parent's items prop actually changes from the outside
+    // Sync localItems when items prop updates
     const prevItemsRef = React.useRef(items)
     React.useEffect(() => {
         if (items !== prevItemsRef.current) {
@@ -61,7 +62,7 @@ export function LinkCardGrid({
         if (!isEditMode) {
             setPendingMoves([])
             setDraggedId(null)
-            setLocalItems(items) // Reset local items when exiting edit mode
+            setLocalItems(items)
         }
     }, [isEditMode, items])
 
@@ -142,6 +143,9 @@ export function LinkCardGrid({
         setDraggedId(null)
     }
 
+    // Sort columns dynamically if a displayOrder field is present, otherwise keep array order
+    const sortedColumns = [...columns].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+
     return (
         <div className="p-8 max-w-[90rem] mx-auto">
             {error && (
@@ -165,14 +169,15 @@ export function LinkCardGrid({
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {Object.entries(COLUMN_MAP).map(([colNumStr, columnName]) => {
-                    const colNum = Number(colNumStr)
+                {sortedColumns.map((col) => {
+                    const colNum = col.id
+                    const columnName = col.name
                     const columnItems = localItems
                         .filter((item) => item.column === colNum)
                         .sort((a, b) => a.row - b.row)
 
                     return (
-                        <div key={columnName} className="space-y-3">
+                        <div key={colNum} className="space-y-3">
                             <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase px-1">
                                 {columnName}
                             </h3>

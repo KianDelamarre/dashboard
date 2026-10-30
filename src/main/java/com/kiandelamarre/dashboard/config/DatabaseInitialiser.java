@@ -11,20 +11,33 @@ public class DatabaseInitialiser {
     @Bean
     public CommandLineRunner initialiseDatabase(JdbcTemplate jdbcTemplate) {
         return args -> {
-            String sql = """
+            // 1. Create the 'cols' table first because 'links' references it
+            String createColsSql = """
+                CREATE TABLE IF NOT EXISTS "cols" (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT
+                );
+            """;
+
+            // 2. Create the 'links' table with all columns and the foreign key reference
+            String createLinksSql = """
                 CREATE TABLE IF NOT EXISTS "links" (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     localurl TEXT,
                     remoteurl TEXT,
-                    imgurl TEXT,\s
-                    name TEXT,\s
-                    "column" INTEGER,\s
-                    "row" INTEGER DEFAULT 0
+                    imgurl TEXT,
+                    name TEXT,
+                    "row" INTEGER DEFAULT 0,
+                    "column" INTEGER,
+                    FOREIGN KEY("column") REFERENCES cols(id)
                 );
             """;
 
-            jdbcTemplate.execute(sql);
-            System.out.println("Database schema initialized successfully!");
+            jdbcTemplate.execute(createColsSql);
+            jdbcTemplate.execute(createLinksSql);
+
+            System.out.println("Database schema and tables initialized successfully!");
         };
     }
+
 }

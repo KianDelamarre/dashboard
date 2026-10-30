@@ -1,48 +1,13 @@
-networks:
-  idp:
-    name: idp
-    driver: bridge
-
 services:
-  idp-server:
-    image: kiansd/idp-server:latest
-    container_name: idp-server
-    environment:
-      - ALLOWED_ORIGINS=http://localhost:4001
-    ports:
-      - "4002:4002"
-    # volumes:
-    #   - ./idp-server/data:/app/backend/data
-    networks:
-      - idp
-      
   dashboard:
     build: .
-    # image: kiansd/dashboard:latest
     container_name: dashboard
     ports:
-      - "4001:4001" # backend API
-      # - "3001:3000" # frontend dev server
+      - "4001:8080" # Maps host port 4001 to container port 8080
     environment:
-      - DEV_MODE=false
-      # - ALLOWED_ORIGINS=https://localhost:4001
-      - IDP_URL=http://idp-server:4002
-      - AUTH_ENABLED=true
-      - ALLOWED_USER=admin
-    depends_on:
-      - idp-server
+          - SPRING_DATASOURCE_URL=jdbc:sqlite:/app/data/database.db
     volumes:
-      - ./backend:/app/backend # optional: live code updates
-      - ./frontend:/app/frontend # optional: live frontend updates
-      # - ./processes.json:/app/processes.json # optional: live PM2 config updates
-      - /app/backend/node_modules
-      - ./backend/data:/app/backend/data
-      - /home/kian/idp-client:/app/backend/idp-client
-    # command: pm2-runtime /app/processes.json
-    # command: sh -c "cd /app/backend && npm install /app/backend/idp-client && npm run devStart"
-    networks:
-      - idp
+      - dashboard_data:/app/data # Keeps your SQLite database safe across container restarts
 
-
-
-
+volumes:
+  dashboard_data:

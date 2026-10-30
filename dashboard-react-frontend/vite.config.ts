@@ -14,9 +14,10 @@ export default defineConfig({
     },
   },
   build: {
-    // 1. Go up one level from dashboard-react-frontend, then into your Java project's static folder
-    outDir: path.resolve(__dirname, "../src/main/resources/static"),
-    // 2. Clear out the old built files before compiling the new ones
+    // If DOCKER_BUILD is true, use standard 'dist'. Otherwise, use your local Java path!
+    outDir: process.env.DOCKER_BUILD === 'true'
+        ? path.resolve(__dirname, 'dist')
+        : path.resolve(__dirname, "../src/main/resources/static"),
     emptyOutDir: true,
   },
 })

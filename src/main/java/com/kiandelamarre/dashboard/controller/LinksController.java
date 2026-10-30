@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/api")
 public class LinksController {
 
     private final LinksService linksService;
@@ -30,7 +30,7 @@ public class LinksController {
     }
 
     //returns a list of links and a list of columns
-//    @GetMapping("/links")
+//    @GetMapping("/api/links")
 //    public ResponseEntity<List<Link>> getAllLinks() {
 //        return ResponseEntity.ok(linksService.getAllLinks());
 //    }

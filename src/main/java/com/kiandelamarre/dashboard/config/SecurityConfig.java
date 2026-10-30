@@ -51,38 +51,45 @@ public class SecurityConfig {
         return request -> {
             String uri = request.getRequestURI();
 
-            // CRITICAL: If the user is trying to log in, ignore any existing cookies!
-            if ("/token".equals(uri) || "/logout".equals(uri)) {
+            // Only resolve/validate tokens for API endpoints!
+            // This ensures frontend HTML routes, static assets, and root "/" never attempt
+            // to decode a stale or invalid JWT cookie when keys rotate.
+            if (!uri.startsWith("/api/")) {
                 return null;
             }
 
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
-                    if ("accessToken".equals(cookie.getName())) { // Must match the cookie name you set in AuthController
+                    if ("accessToken".equals(cookie.getName())) {
                         return cookie.getValue();
                     }
                 }
             }
-            return null; // Fallback: returns null if no cookie found, triggering a 401
+            return null;
         };
     }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, BearerTokenResolver bearerTokenResolver) throws Exception {
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/token", "/logout").permitAll() //unprotected routes
+                        // 1. Unprotected auth routes
+                        .requestMatchers("/auth/**").permitAll()
+
+                        // 2. Public access to static frontend assets, root, AND React client-side routes
+                        .requestMatchers("/", "/index.html", "/favicon.svg", "/assets/**", "/dashboard/**", "/login").permitAll()
+
+                        // 3. Explicitly lock down all backend data endpoints
+                        .requestMatchers("/api/**").authenticated()
+
                         .anyRequest().authenticated()
                 )
-
-                .logout(logout -> logout.disable())  //dont use the default logout method since we have built a logout endpoint
-
+                .logout(logout -> logout.disable())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults())
-                        .bearerTokenResolver(bearerTokenResolver) // <-- Hook it up here!
+                        .bearerTokenResolver(bearerTokenResolver)
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/auth")
 public class AuthController {
 
     private static final Logger LOG = LoggerFactory.getLogger(AuthController.class);
@@ -38,7 +39,7 @@ public class AuthController {
         this.tokenService = tokenService;
     }
 
-    @PostMapping("/token")
+    @PostMapping("/login")
     public ResponseEntity<?> token(@RequestBody LoginRequest request, HttpServletResponse response) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.username(), request.password())
@@ -69,7 +70,7 @@ public class AuthController {
         // Use ResponseCookie to ensure SameSite, Path, and HttpOnly match 100%
         ResponseCookie cookie = ResponseCookie.from("accessToken", "")
                 .httpOnly(true)
-                .secure(false)       // Must match what was set in /token (true if using HTTPS)
+                .secure(false)       // Must match what was set in /login (true if using HTTPS)
                 .path("/")
                 .maxAge(0)           // 0 forces immediate deletion
                 .sameSite("Lax")     // <-- CRITICAL: Must match your login cookie configuration!

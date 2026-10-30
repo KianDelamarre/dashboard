@@ -27,13 +27,6 @@ interface DashboardDataResponse {
     links: CardLinkItem[]
 }
 
-
-
-const getAuthHeaders = () => {
-    const token = localStorage.getItem("authToken")
-    return token ? { headers: { Authorization: `Bearer ${token}` } } : {}
-}
-
 export function Dashboard() {
     const navigate = useNavigate()
     const [isEditMode, setIsEditMode] = React.useState(false)
@@ -48,7 +41,7 @@ export function Dashboard() {
         const fetchDashboardData = async () => {
             try {
                 setIsLoading(true)
-                const response = await api.get<DashboardDataResponse>(`/links`, getAuthHeaders())
+                const response = await api.get<DashboardDataResponse>(`/links`)
                 setColumns(response.data.columns)
                 setItems(response.data.links)
                 setError(null)
@@ -86,7 +79,7 @@ export function Dashboard() {
     const handleBatchSave = async (moves: any[]) => {
         if (moves.length > 0) {
             try {
-                await api.patch(`/links/batchmove`, moves, getAuthHeaders())
+                await api.patch(`/links/batchmove`, moves)
                 console.log("Batch move successful!")
             } catch (err) {
                 console.error("Failed to execute batch move:", err)
@@ -99,7 +92,7 @@ export function Dashboard() {
     const handleSaveChanges = async () => {
         if (batchMoves.length > 0) {
             try {
-                await api.patch(`/links/batchmove`, batchMoves, getAuthHeaders())
+                await api.patch(`/links/batchmove`, batchMoves)
                 console.log("Batch move successful!")
                 setBatchMoves([])
             } catch (err) {

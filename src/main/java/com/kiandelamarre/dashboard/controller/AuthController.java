@@ -2,8 +2,12 @@ package com.kiandelamarre.dashboard.controller;
 
 import com.kiandelamarre.dashboard.dto.LoginRequest;
 import com.kiandelamarre.dashboard.service.TokenService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,8 +26,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin(origins = "*")
 public class AuthController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AuthController.class);
 
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
@@ -34,20 +39,45 @@ public class AuthController {
     }
 
     @PostMapping("/token")
-    public ResponseEntity<?> token(@RequestBody LoginRequest request) {
-        // 1. Authenticate using the JSON payload credentials
+    public ResponseEntity<?> token(@RequestBody LoginRequest request, HttpServletResponse response) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.username(),
-                        request.password()
-                )
+                new UsernamePasswordAuthenticationToken(request.username(), request.password())
         );
 
-        // 2. Generate your JWT using your existing service
         String token = tokenService.generateToken(authentication);
 
-        // 3. Return it as a clean JSON object
-        return ResponseEntity.ok(Map.of("accessToken", token));
+        // Use ResponseCookie here too so attributes match your logout cookie!
+        ResponseCookie cookie = ResponseCookie.from("accessToken", token)
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(86400)
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return ResponseEntity.ok(Map.of("message", "Logged in successfully"));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response, Authentication authentication) {
+        if (authentication != null) {
+            LOG.info("User logged out successfully: {}", authentication.getName());
+        }
+
+        // Use ResponseCookie to ensure SameSite, Path, and HttpOnly match 100%
+        ResponseCookie cookie = ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .secure(false)       // Must match what was set in /token (true if using HTTPS)
+                .path("/")
+                .maxAge(0)           // 0 forces immediate deletion
+                .sameSite("Lax")     // <-- CRITICAL: Must match your login cookie configuration!
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
 
 

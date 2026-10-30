@@ -14,7 +14,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/")
-@CrossOrigin(origins = "*")
 public class LinksController {
 
     private final LinksService linksService;

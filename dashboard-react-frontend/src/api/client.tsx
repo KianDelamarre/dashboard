@@ -1,7 +1,22 @@
 import axios from "axios";
 
-export const api = axios.create({
-    baseURL: "http://localhost:8080",
+// If in production (bundled), use a relative path ("").
+// If in development (Vite), fallback to localhost:8080.
+const baseURL = import.meta.env.PROD
+    ? ""
+    : "http://localhost:8080";
+
+export const authApi = axios.create({
+    baseURL: `${baseURL}/auth`,
+    withCredentials: true,
+    headers: {
+        "Content-Type": "application/json",
+    },
+});
+
+// 2. Client specifically for Core Data resources (/api/links, etc.)
+export const dataApi = axios.create({
+    baseURL: `${baseURL}/api`,
     withCredentials: true,
     headers: {
         "Content-Type": "application/json",
@@ -9,13 +24,13 @@ export const api = axios.create({
 });
 
 // Response Interceptor
-api.interceptors.response.use(
+dataApi.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
         if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-            if (originalRequest.url === '/token' || originalRequest.url === '/logout') {
+            if (originalRequest.url === '/auth/login' || originalRequest.url === '/auth/logout') {
                 return Promise.reject(error);
             }
 
@@ -32,7 +47,7 @@ api.interceptors.response.use(
 // Centralized Logout Helper
 export async function logout() {
     try {
-        await api.post('/logout');
+        await authApi.post('/logout');
     } catch (e) {
         // Ignore errors so the user doesn't get trapped if the backend is down
     } finally {

@@ -108,7 +108,7 @@
 
   /* Accents & Highlights */
   --primary: oklch(0.65 0.18 250);
-  /* Vibrant blue for active items/links */
+  /* Vibrant blue for active items/api/links */
   --primary-foreground: oklch(0.98 0 0);
 
   --secondary: oklch(0.23 0.05 255);

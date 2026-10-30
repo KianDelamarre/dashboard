@@ -1,5 +1,5 @@
 import * as React from "react"
-import { api } from "../api/client.tsx" // Using configured axios instance
+import { dataApi } from "../api/client.tsx" // Using configured axios instance
 
 import { useNavigate } from "react-router"
 import { TopBar } from "../components/ui/TopBar"
@@ -41,7 +41,7 @@ export function Dashboard() {
         const fetchDashboardData = async () => {
             try {
                 setIsLoading(true)
-                const response = await api.get<DashboardDataResponse>(`/links`)
+                const response = await dataApi.get<DashboardDataResponse>(`/links`)
                 setColumns(response.data.columns)
                 setItems(response.data.links)
                 setError(null)
@@ -79,7 +79,7 @@ export function Dashboard() {
     const handleBatchSave = async (moves: any[]) => {
         if (moves.length > 0) {
             try {
-                await api.patch(`/links/batchmove`, moves)
+                await dataApi.patch(`/links/batchmove`, moves)
                 console.log("Batch move successful!")
             } catch (err) {
                 console.error("Failed to execute batch move:", err)
@@ -92,7 +92,7 @@ export function Dashboard() {
     const handleSaveChanges = async () => {
         if (batchMoves.length > 0) {
             try {
-                await api.patch(`/links/batchmove`, batchMoves)
+                await dataApi.patch(`/links/batchmove`, batchMoves)
                 console.log("Batch move successful!")
                 setBatchMoves([])
             } catch (err) {

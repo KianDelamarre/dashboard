@@ -1,6 +1,6 @@
 // src/components/ui/LoginModal.tsx
 import * as React from "react"
-import { api } from "../../api/client" // Using configured axios instance
+import { authApi } from "../../api/client" // Using configured axios instance
 
 interface LoginModalProps {
     isOpen: boolean
@@ -22,7 +22,7 @@ export function LoginModal({ isOpen, onLoginSuccess }: LoginModalProps) {
 
         try {
             // Matches vanilla JS fetch('/login') with credentials: 'include'
-            const response = await api.post('/token', {
+            const response = await authApi.post('/login', {
                 username,
                 password
             })

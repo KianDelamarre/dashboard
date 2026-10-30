@@ -1,6 +1,5 @@
 import * as React from "react"
-import { cn } from "cn"
-import axios from "axios"
+import { dataApi } from "@/api/client.tsx";
 import { Button } from "./Button"
 import { X, Plus } from "lucide-react"
 
@@ -10,7 +9,6 @@ interface NewLinkModalProps {
     onLinkCreated: (newLink: any) => void
 }
 
-const API_URL = 'http://localhost:8080'
 
 export function NewLinkModal({ isOpen, onClose, onLinkCreated }: NewLinkModalProps) {
     // Start with empty form fields for a new link
@@ -30,7 +28,7 @@ export function NewLinkModal({ isOpen, onClose, onLinkCreated }: NewLinkModalPro
 
         try {
             // Send POST request to create a new link
-            const response = await axios.post(`${API_URL}/link`, {
+            const response = await dataApi.post(`/link`, {
                 name,
                 remoteUrl,
                 localUrl,

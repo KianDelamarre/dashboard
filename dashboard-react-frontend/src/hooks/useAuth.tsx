@@ -1,6 +1,6 @@
 // src/hooks/useAuth.ts (or inside your AuthContext)
 import { useState, useEffect, useCallback } from "react";
-import { api } from "../api/client";
+import { authApi } from "../api/client";
 
 interface JwtPayload {
     exp: number;
@@ -41,7 +41,7 @@ export function useAuth() {
     // Refresh login using the HttpOnly cookie
     const refreshLogin = async () => {
         try {
-            const response = await api.post("/token");
+            const response = await authApi.post("/login");
             const token = response.data.accessToken;
             setAccessToken(token);
             startRefreshLoginTimer(token);
@@ -60,7 +60,7 @@ export function useAuth() {
 
     const logout = async () => {
         try {
-            await api.delete("/logout");
+            await authApi.delete("/logout");
         } catch (error) {
             console.error("Logout error:", error);
         } finally {

@@ -1,7 +1,7 @@
 package com.kiandelamarre.dashboard.controller;
 
-import com.kiandelamarre.dashboard.dto.Link;
-import com.kiandelamarre.dashboard.dto.LinkStatus;
+import com.kiandelamarre.dashboard.dto.*;
+import com.kiandelamarre.dashboard.service.ColumnService;
 import com.kiandelamarre.dashboard.service.LinkMonitorService;
 import com.kiandelamarre.dashboard.service.LinksService;
 import com.kiandelamarre.dashboard.service.ReorderService;
@@ -14,22 +14,34 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/")
+@CrossOrigin(origins = "*")
 public class LinksController {
 
     private final LinksService linksService;
+    private final ColumnService columnService;
     private final ReorderService reorderService;
     private final LinkMonitorService linkMonitorService;
 
-    public LinksController(LinksService linksService, ReorderService reorderService, LinkMonitorService linkMonitorService) {
+    public LinksController(LinksService linksService, ColumnService columnService, ReorderService reorderService, LinkMonitorService linkMonitorService) {
         this.linksService = linksService;
+        this.columnService = columnService;
         this.reorderService = reorderService;
         this.linkMonitorService = linkMonitorService;
 
     }
 
+    //returns a list of links and a list of columns
+//    @GetMapping("/links")
+//    public ResponseEntity<List<Link>> getAllLinks() {
+//        return ResponseEntity.ok(linksService.getAllLinks());
+//    }
+
     @GetMapping("/links")
-    public ResponseEntity<List<Link>> getAllLinks() {
-        return ResponseEntity.ok(linksService.getAllLinks());
+    public ResponseEntity<DashboardDataResponse> getDashboardData() {
+        List<ColumnDto> columns = columnService.getAllColumns();
+        List<Link> links = linksService.getAllLinks();
+
+        return ResponseEntity.ok(new DashboardDataResponse(columns, links));
     }
 
 
@@ -67,7 +79,7 @@ public class LinksController {
     }
 
     @PatchMapping("/links/batchmove")
-    public ResponseEntity<List<Link>> batchMoveLinks(@RequestBody List<Link> moveRequest){
-        return ResponseEntity.ok(reorderService.batchMove(moveRequest));
+    public ResponseEntity<List<Link>> batchMoveLinks(@RequestBody List<MoveRequest> batchMoveRequest){
+        return ResponseEntity.ok(reorderService.batchMove(batchMoveRequest));
     }
 }

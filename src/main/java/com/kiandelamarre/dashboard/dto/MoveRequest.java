@@ -1,6 +1,6 @@
 package com.kiandelamarre.dashboard.dto;
 
-public class moveRequest {
+public class MoveRequest {
     int idToMove;
     int relativeToId;
     int targetColumn;

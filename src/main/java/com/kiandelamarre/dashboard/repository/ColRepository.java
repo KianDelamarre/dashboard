@@ -1,8 +1,7 @@
 package com.kiandelamarre.dashboard.repository;
 
 
-import com.kiandelamarre.dashboard.dto.Column;
-import com.kiandelamarre.dashboard.dto.Column;
+import com.kiandelamarre.dashboard.dto.ColumnDto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -12,38 +11,37 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
-public class ColumnRepository {
+public class ColRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public ColumnRepository(JdbcTemplate jdbcTemplate){
+    public ColRepository(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private final RowMapper<Column> colRowMapper = (rs, rowNum) -> {
-        Column col = new Column();
+    private final RowMapper<ColumnDto> colRowMapper = (rs, rowNum) -> {
+        ColumnDto col = new ColumnDto();
         col.setId(rs.getInt("id"));
         col.setName(rs.getString("name"));
 
         return col;
     };
 
-    public List<Column> findAll(){
+    public List<ColumnDto> findAll(){
         String sql = "SELECT * FROM cols";
         return jdbcTemplate.query(sql, colRowMapper);
     }
 
-    public Column findById(int id) {
-        String sql = "SELECT * FROM columns WHERE id = ?";
+    public ColumnDto findById(int id) {
+        String sql = "SELECT * FROM cols WHERE id = ?";
         // Use query status with rowMapper, and fetch a single result or list
-        List<Column> columns = jdbcTemplate.query(sql, columnRowMapper, id);
+        List<ColumnDto> columns = jdbcTemplate.query(sql, colRowMapper, id);
         return columns.isEmpty() ? null : columns.get(0);
     }
 
-    public Column insert(Column column) {
+    public ColumnDto insert(ColumnDto column) {
         final String sql = "INSERT INTO cols (name) VALUES (?)";
 
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
@@ -68,7 +66,7 @@ public class ColumnRepository {
         jdbcTemplate.update(sql, id);
     }
 
-    public Column update(int id, Column column){
+    public ColumnDto update(int id, ColumnDto column){
         final String sql = "UPDATE cols SET " +
                 "name = ? " +
                 "WHERE id = ?";
@@ -83,8 +81,8 @@ public class ColumnRepository {
     }
 
 
-    public void saveAll(List<Column> columns) {
-        for(Column column : columns){
+    public void saveAll(List<ColumnDto> columns) {
+        for(ColumnDto column : columns){
             update(column.getId(), column);
         }
     }

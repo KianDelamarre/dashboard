@@ -1,6 +1,6 @@
 package com.kiandelamarre.dashboard.dto;
 
-public class Column {
+public class ColumnDto {
     private int id;
     private String name;
 

@@ -9,7 +9,9 @@ import org.springframework.stereotype.Repository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class LinkRepository {
@@ -33,11 +35,11 @@ public class LinkRepository {
     };
 
     public List<Link> findAll(){
-        String sql = "SELECT * FROM links ORDER BY column, row";
+        String sql = "SELECT * FROM links ORDER BY \"column\", row";
         return jdbcTemplate.query(sql, linkRowMapper);
     }
 
-    public Link findLink(int id) {
+    public Link findById(int id) {
         String sql = "SELECT * FROM links WHERE id = ?";
         // Use query status with rowMapper, and fetch a single result or list
         List<Link> links = jdbcTemplate.query(sql, linkRowMapper, id);
@@ -45,7 +47,7 @@ public class LinkRepository {
     }
 
     public Link insert(Link link) {
-        final String sql = "INSERT INTO links (name, localurl, remoteurl, imgurl, column, row) VALUES (?, ?, ?, ?, ?, ?)";
+        final String sql = "INSERT INTO links (name, localurl, remoteurl, imgurl, \"column\", row) VALUES (?, ?, ?, ?, ?, ?)";
 
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -80,7 +82,7 @@ public class LinkRepository {
                 "localurl = ?, " +
                 "remoteurl = ?, " +
                 "imgurl = ?, " +
-                "column = ?, " +
+                "\"column\" = ?, " +
                 "row = ? " +
                 "WHERE id = ?";
 
@@ -98,5 +100,24 @@ public class LinkRepository {
         return link;
     }
 
+    public Link updateRowAndCol(Link link){
+        final String sql = "UPDATE links SET " +
+                "\"column\" = ?, " +
+                "row = ? " +
+                "WHERE id = ?";
 
+        jdbcTemplate.update(sql,
+                link.getColumn(),
+                link.getRow(),
+                link.getId());
+
+        return link;
+    }
+
+
+    public void saveAll(List<Link> links) {
+        for(Link link : links){
+            updateRowAndCol(link);
+        }
+    }
 }

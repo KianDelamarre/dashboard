@@ -1,6 +1,6 @@
 // src/components/ui/LoginModal.tsx
 import * as React from "react"
-import axios from "axios"
+import { api } from "../../api/client" // Using configured axios instance
 
 interface LoginModalProps {
     isOpen: boolean
@@ -21,18 +21,18 @@ export function LoginModal({ isOpen, onLoginSuccess }: LoginModalProps) {
         setError(null)
 
         try {
-            // Replace with your actual backend login endpoint
-            const response = await axios.post('http://localhost:8080/auth/login', {
+            // Matches vanilla JS fetch('/login') with credentials: 'include'
+            const response = await api.post('/token', {
                 username,
                 password
             })
 
-            const token = response.data.token // Adjust based on your backend response structure
-            localStorage.setItem("authToken", token)
+            const token = response.data.accessToken
             onLoginSuccess(token)
-        } catch (err) {
+        } catch (err: any) {
             console.error("Login failed:", err)
-            setError("Invalid username or password.")
+            const status = err.response?.status
+            setError(status ? `Invalid credentials (${status})` : "Login failed. Please try again.")
         } finally {
             setIsLoading(false)
         }
@@ -60,7 +60,7 @@ export function LoginModal({ isOpen, onLoginSuccess }: LoginModalProps) {
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
-                            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter your username"
                         />
                     </div>
@@ -72,7 +72,7 @@ export function LoginModal({ isOpen, onLoginSuccess }: LoginModalProps) {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="••••••••"
                         />
                     </div>
@@ -80,7 +80,7 @@ export function LoginModal({ isOpen, onLoginSuccess }: LoginModalProps) {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                        className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
                     >
                         {isLoading ? "Signing in..." : "Sign In"}
                     </button>

@@ -81,4 +81,21 @@ public class DashboardController {
     public ResponseEntity<List<Link>> batchMoveLinks(@RequestBody List<MoveRequest> batchMoveRequest){
         return ResponseEntity.ok(reorderService.batchMove(batchMoveRequest));
     }
+
+
+    @PostMapping("/column")
+    public ResponseEntity<ColumnDto> createColumn(@RequestBody ColumnDto column){
+        return ResponseEntity.ok(columnService.createColumn(column));
+    }
+
+    @PatchMapping("/column/{id}")
+    public ResponseEntity<ColumnDto> updateColumn(@PathVariable Integer id, @RequestBody ColumnDto column){
+        return ResponseEntity.ok(columnService.updateColumn(id, column));
+    }
+
+    @DeleteMapping("/column/{id}")
+    public ResponseEntity<ColumnDto> deleteColumn(@PathVariable Integer id){
+        columnService.deleteColumn(id);
+        return ResponseEntity.noContent().build();
+    }
 }

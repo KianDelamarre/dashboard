@@ -20,4 +20,19 @@ public class ColumnServiceImpl implements ColumnService{
     public List<ColumnDto> getAllColumns() {
         return colRepository.findAll();
     }
+
+    @Override
+    public ColumnDto createColumn(ColumnDto columnToCreate) {
+        return colRepository.insert(columnToCreate);
+    }
+
+    @Override
+    public void deleteColumn(int columnToDeleteId) {
+        colRepository.delete(columnToDeleteId);
+    }
+
+    @Override
+    public ColumnDto updateColumn(int id, ColumnDto columnWithNewVals) {
+        return colRepository.update(id, columnWithNewVals);
+    }
 }

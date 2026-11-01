@@ -23,28 +23,35 @@ interface MoveData {
     targetColumn: number
 }
 
+// Updated payload interface to include both column edits and card position moves
+interface BatchSavePayload {
+    columns: ColumnItem[]
+    moves: MoveData[]
+}
+
 interface LinkCardGridProps {
-    columns: ColumnItem[] // New: Dynamic columns from API
-    items: CardLinkItem[] // Links
+    columns: ColumnItem[]
+    items: CardLinkItem[]
     isLoading: boolean
     error: string | null
     isEditMode: boolean
     onUpdateLink: (id: string, updatedData: any) => void
     onDeleteLink: (id: string) => void
-    onBatchSave: (moves: MoveData[]) => void
+    onBatchSave: (payload: BatchSavePayload) => void // Updated prop signature
 }
 
 export function LinkCardGrid({
-    columns,
-    items,
-    isLoading,
-    error,
-    isEditMode,
-    onUpdateLink,
-    onDeleteLink,
-    onBatchSave
-}: LinkCardGridProps) {
+                                 columns,
+                                 items,
+                                 isLoading,
+                                 error,
+                                 isEditMode,
+                                 onUpdateLink,
+                                 onDeleteLink,
+                                 onBatchSave
+                             }: LinkCardGridProps) {
     const [localItems, setLocalItems] = React.useState<CardLinkItem[]>(items)
+    const [localColumns, setLocalColumns] = React.useState<ColumnItem[]>(columns)
     const [pendingMoves, setPendingMoves] = React.useState<MoveData[]>([])
     const [draggedId, setDraggedId] = React.useState<string | null>(null)
 
@@ -57,14 +64,30 @@ export function LinkCardGrid({
         }
     }, [items])
 
-    // Clear pending moves when exiting edit mode
+    // Sync localColumns when columns prop updates
+    const prevColumnsRef = React.useRef(columns)
+    React.useEffect(() => {
+        if (columns !== prevColumnsRef.current) {
+            setLocalColumns(columns)
+            prevColumnsRef.current = columns
+        }
+    }, [columns])
+
+    // Clear pending changes & reset local state when exiting edit mode
     React.useEffect(() => {
         if (!isEditMode) {
             setPendingMoves([])
             setDraggedId(null)
             setLocalItems(items)
+            setLocalColumns(columns)
         }
-    }, [isEditMode, items])
+    }, [isEditMode, items, columns])
+
+    const handleColumnNameChange = (columnId: number, newName: string) => {
+        setLocalColumns(prev =>
+            prev.map(col => (col.id === columnId ? { ...col, name: newName } : col))
+        )
+    }
 
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>, id: string) => {
         if (!isEditMode) return
@@ -143,8 +166,8 @@ export function LinkCardGrid({
         setDraggedId(null)
     }
 
-    // Sort columns dynamically if a displayOrder field is present, otherwise keep array order
-    const sortedColumns = [...columns].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+    // Sort columns dynamically based on displayOrder
+    const sortedColumns = [...localColumns].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
 
     return (
         <div className="p-8 max-w-[90rem] mx-auto">
@@ -158,12 +181,15 @@ export function LinkCardGrid({
                 <div className="mb-6 flex justify-end">
                     <button
                         onClick={() => {
-                            onBatchSave(pendingMoves)
-                            window.location.reload()
+                            onBatchSave({
+                                columns: localColumns,
+                                moves: pendingMoves
+                            })
+                            // window.location.reload()
                         }}
                         className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-500 transition-colors"
                     >
-                        Save Position Changes ({pendingMoves.length})
+                        Save Changes ({pendingMoves.length} card moves)
                     </button>
                 </div>
             )}
@@ -178,9 +204,21 @@ export function LinkCardGrid({
 
                     return (
                         <div key={colNum} className="space-y-3">
-                            <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase px-1">
-                                {columnName}
-                            </h3>
+                            {/* Conditional Column Header / Input */}
+                            {isEditMode ? (
+                                <input
+                                    type="text"
+                                    value={columnName}
+                                    onChange={(e) => handleColumnNameChange(colNum, e.target.value)}
+                                    className="w-full px-2 py-1 text-xs font-semibold tracking-wider uppercase bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground"
+                                    placeholder="Column Name"
+                                />
+                            ) : (
+                                <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase px-1">
+                                    {columnName}
+                                </h3>
+                            )}
+
                             <div className="h-px w-full bg-border my-4" />
                             <div
                                 id={`column-${colNum}`}

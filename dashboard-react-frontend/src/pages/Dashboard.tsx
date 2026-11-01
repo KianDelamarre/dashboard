@@ -76,17 +76,24 @@ export function Dashboard() {
         setItems((prevItems) => prevItems.filter((item) => item.id !== Number(deletedId)))
     }
 
-    const handleBatchSave = async (moves: any[]) => {
-        if (moves.length > 0) {
-            try {
-                await dataApi.patch(`/links/batchmove`, moves)
-                console.log("Batch move successful!")
-            } catch (err) {
-                console.error("Failed to execute batch move:", err)
-            }
+    const handleBatchSave = async (payload: { columns: ColumnItem[]; moves: any[] }) => {
+        try {
+            // Construct the payload matching your controller's expected body structure
+            const requestBody = {
+                columnUpdates: payload.columns,
+                moves: payload.moves
+            };
+
+            // Send everything in one request to your unified endpoint
+            await dataApi.patch('/links/batchsave', requestBody);
+            console.log("Batch save successful!");
+
+        } catch (err) {
+            console.error("Failed to execute batch save:", err);
+        } finally {
+            setIsEditMode(false);
+            window.location.reload();
         }
-        setIsEditMode(false)
-        window.location.reload()
     }
 
     const handleSaveChanges = async () => {

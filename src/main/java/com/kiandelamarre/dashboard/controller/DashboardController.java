@@ -82,6 +82,14 @@ public class DashboardController {
         return ResponseEntity.ok(reorderService.batchMove(batchMoveRequest));
     }
 
+    @PatchMapping("/links/batchsave")
+    public ResponseEntity<Void> batchMoveLinks(@RequestBody DashboardChanges dashboardChangeRequest) {
+        reorderService.batchMove(dashboardChangeRequest.getMoveRequestList());
+        columnService.batchUpdate(dashboardChangeRequest.getColumnDtoList());
+
+        return ResponseEntity.ok().build();
+    }
+
 
     @PostMapping("/column")
     public ResponseEntity<ColumnDto> createColumn(@RequestBody ColumnDto column){

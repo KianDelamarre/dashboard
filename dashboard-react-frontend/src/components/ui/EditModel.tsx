@@ -1,7 +1,8 @@
 import * as React from "react"
-import axios from "axios"
 import { Button } from "./Button"
 import { X, Save } from "lucide-react"
+
+import { dataApi } from "../../api/client.tsx"
 
 interface EditModalProps {
     id: string
@@ -16,7 +17,7 @@ interface EditModalProps {
     onSaveSuccess: (updatedData: { name: string; remoteUrl: string; localUrl: string; imgUrl: string }) => void // Added callback
 }
 
-const API_URL = 'http://localhost:8080'
+
 
 export function EditModal({
     id,
@@ -64,7 +65,7 @@ export function EditModal({
                 row: row,
             }
 
-            const response = await axios.patch(`${API_URL}/link/${id}`, payload)
+            const response = await dataApi.patch(`/link/${id}`, payload)
 
             console.log("Successfully updated link:", response.data)
 

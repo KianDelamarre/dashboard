@@ -14,14 +14,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-public class LinksController {
+public class DashboardController {
 
     private final LinksService linksService;
     private final ColumnService columnService;
     private final ReorderService reorderService;
     private final LinkMonitorService linkMonitorService;
 
-    public LinksController(LinksService linksService, ColumnService columnService, ReorderService reorderService, LinkMonitorService linkMonitorService) {
+    public DashboardController(LinksService linksService, ColumnService columnService, ReorderService reorderService, LinkMonitorService linkMonitorService) {
         this.linksService = linksService;
         this.columnService = columnService;
         this.reorderService = reorderService;
@@ -35,7 +35,7 @@ public class LinksController {
 //        return ResponseEntity.ok(linksService.getAllLinks());
 //    }
 
-    @GetMapping("/links")
+    @GetMapping("/dashboard")
     public ResponseEntity<DashboardDataResponse> getDashboardData() {
         List<ColumnDto> columns = columnService.getAllColumns();
         List<Link> links = linksService.getAllLinks();

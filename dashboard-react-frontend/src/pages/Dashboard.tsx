@@ -41,7 +41,7 @@ export function Dashboard() {
         const fetchDashboardData = async () => {
             try {
                 setIsLoading(true)
-                const response = await dataApi.get<DashboardDataResponse>(`/links`)
+                const response = await dataApi.get<DashboardDataResponse>(`/dashboard`)
                 setColumns(response.data.columns)
                 setItems(response.data.links)
                 setError(null)

@@ -2,7 +2,7 @@ package com.kiandelamarre.dashboard.dto;
 
 import java.util.List;
 
-public class DashboardChanges {
+public class DashboardChangesRequest {
     private List<MoveRequest> moveRequestList;
     private List<ColumnDto> columnDtoList;
 

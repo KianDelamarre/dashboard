@@ -77,21 +77,26 @@ export function Dashboard() {
     }
 
     const handleBatchSave = async (payload: BatchSavePayload) => {
-        console.log("trying to batchsave")
         try {
             const requestBody = {
                 columnDtoList: payload.columns,
                 moveRequestList: payload.moves
             };
 
-            await dataApi.patch('/links/batchsave', requestBody);
-            console.log("Batch save successful!");
+            // Capture the fresh DashboardDataResponse from the backend
+            const response = await dataApi.patch<DashboardDataResponse>('/links/batchsave', requestBody);
+
+            // Instantly sync frontend state with the source of truth from the server
+            setColumns(response.data.columns);
+            setItems(response.data.links);
+
+            console.log("Batch save & state sync successful!");
 
         } catch (err) {
             console.error("Failed to execute batch save:", err);
         } finally {
             setIsEditMode(false);
-            // window.location.reload();
+            // No reload needed! State updates cleanly in place.
         }
     }
 

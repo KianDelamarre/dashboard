@@ -11,5 +11,5 @@ public interface ColumnService {
     ColumnDto createColumn(ColumnDto columnToCreate);
     void deleteColumn(int columnToDeleteId);
     ColumnDto updateColumn (int id, ColumnDto columnWithNewVals);
-    public void batchUpdate(List<ColumnDto> updateRequest);
+     List<ColumnDto> batchUpdate(List<ColumnDto> updateRequest);
 }

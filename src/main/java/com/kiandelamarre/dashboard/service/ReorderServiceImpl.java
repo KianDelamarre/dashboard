@@ -6,6 +6,7 @@ import com.kiandelamarre.dashboard.repository.LinkRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,9 +20,9 @@ public class ReorderServiceImpl implements ReorderService {
 
     @Override
     @Transactional
-    public void batchMove(List<MoveRequest> moveRequests) {
+    public List<Link> batchMove(List<MoveRequest> moveRequests) {
         if (moveRequests == null || moveRequests.isEmpty()) {
-            return;
+            return linkRepository.findAll();
         }
 
         // 1. Local variable scoped strictly to this request thread
@@ -45,7 +46,7 @@ public class ReorderServiceImpl implements ReorderService {
             linkRepository.saveAll(allLinks);
 
             // 3. Return fresh data from DB
-//            return linkRepository.findAll();
+            return allLinks;
 
         } catch (Exception err) {
             throw new RuntimeException("Batch move failed: " + err.getMessage(), err);

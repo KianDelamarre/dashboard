@@ -44,9 +44,9 @@ public class ColumnServiceImpl implements ColumnService{
 
     @Override
     @Transactional
-    public void batchUpdate(List<ColumnDto> updateRequest) {
+    public List<ColumnDto> batchUpdate(List<ColumnDto> updateRequest) {
         if (updateRequest == null || updateRequest.isEmpty()) {
-            return;
+            return colRepository.findAll(); //just return the empty list
         }
 
         // 1. Fetch all existing columns from the database (since there are only a few)
@@ -67,5 +67,7 @@ public class ColumnServiceImpl implements ColumnService{
 
         // 4. Save all managed entities back to the database
         colRepository.saveAll(allEntities);
+
+        return allEntities;
     }
 }

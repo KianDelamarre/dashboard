@@ -83,15 +83,16 @@ public class DashboardController {
 //    }
 
     @PatchMapping("/links/batchsave")
-    public ResponseEntity<Void> batchMoveLinks(@RequestBody DashboardChanges dashboardChangeRequest) {
+    public ResponseEntity<DashboardDataResponse> batchMoveLinks(@RequestBody DashboardChangesRequest dashboardChangeRequest) {
         System.out.println("=== BATCH SAVE RECEIVED ===");
         System.out.println("Moves received: " + (dashboardChangeRequest.getMoveRequestList() != null ? dashboardChangeRequest.getMoveRequestList().size() : "NULL"));
         System.out.println("Columns received: " + (dashboardChangeRequest.getColumnDtoList() != null ? dashboardChangeRequest.getColumnDtoList().size() : "NULL"));
 
-        reorderService.batchMove(dashboardChangeRequest.getMoveRequestList());
-        columnService.batchUpdate(dashboardChangeRequest.getColumnDtoList());
+        List<Link> newLinks = reorderService.batchMove(dashboardChangeRequest.getMoveRequestList());
+        List<ColumnDto> newColumns = columnService.batchUpdate(dashboardChangeRequest.getColumnDtoList());
 
-        return ResponseEntity.ok().build();
+
+        return ResponseEntity.ok(new DashboardDataResponse(newColumns, newLinks));
     }
 
 

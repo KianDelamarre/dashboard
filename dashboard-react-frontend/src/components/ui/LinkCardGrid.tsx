@@ -24,7 +24,7 @@ interface MoveData {
 }
 
 // Updated payload interface to include both column edits and card position moves
-interface BatchSavePayload {
+export interface BatchSavePayload {
     columns: ColumnItem[]
     moves: MoveData[]
 }

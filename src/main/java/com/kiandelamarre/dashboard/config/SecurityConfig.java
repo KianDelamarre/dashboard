@@ -75,13 +75,16 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Unprotected auth routes
+                        // 1. Allow all preflight OPTIONS requests unconditionally
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // 2. Unprotected auth routes
                         .requestMatchers("/auth/**").permitAll()
 
-                        // 2. Public access to static frontend assets, root, AND React client-side routes
+                        // 3. Public access to static frontend assets, root, AND React client-side routes
                         .requestMatchers("/", "/index.html", "/favicon.svg", "/assets/**", "/dashboard/**", "/login").permitAll()
 
-                        // 3. Explicitly lock down all backend data endpoints
+                        // 4. Explicitly lock down all backend data endpoints
                         .requestMatchers("/api/**").authenticated()
 
                         .anyRequest().authenticated()

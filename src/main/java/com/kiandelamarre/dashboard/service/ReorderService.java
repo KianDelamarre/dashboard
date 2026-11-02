@@ -6,5 +6,5 @@ import com.kiandelamarre.dashboard.dto.MoveRequest;
 import java.util.List;
 
 public interface ReorderService {
-    public List<Link> batchMove(List<MoveRequest> moveRequest);
+    public void batchMove(List<MoveRequest> moveRequest);
 }

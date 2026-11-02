@@ -19,9 +19,9 @@ public class ReorderServiceImpl implements ReorderService {
 
     @Override
     @Transactional
-    public List<Link> batchMove(List<MoveRequest> moveRequests) {
+    public void batchMove(List<MoveRequest> moveRequests) {
         if (moveRequests == null || moveRequests.isEmpty()) {
-            throw new IllegalArgumentException("Invalid input: moveRequests cannot be null or empty");
+            return;
         }
 
         // 1. Local variable scoped strictly to this request thread
@@ -45,7 +45,8 @@ public class ReorderServiceImpl implements ReorderService {
             linkRepository.saveAll(allLinks);
 
             // 3. Return fresh data from DB
-            return linkRepository.findAll();
+//            return linkRepository.findAll();
+
         } catch (Exception err) {
             throw new RuntimeException("Batch move failed: " + err.getMessage(), err);
         }

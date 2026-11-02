@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,42 +44,28 @@ public class ColumnServiceImpl implements ColumnService{
 
     @Override
     @Transactional
-    public List<ColumnDto> batchUpdate(List<ColumnDto> updateRequest) {
+    public void batchUpdate(List<ColumnDto> updateRequest) {
         if (updateRequest == null || updateRequest.isEmpty()) {
-            throw new IllegalArgumentException("Invalid input: updateRequest cannot be null or empty");
+            return;
         }
 
-        List<ColumnDto> allColumns = colRepository.findAll();
+        // 1. Fetch all existing columns from the database (since there are only a few)
+        List<ColumnDto> allEntities = colRepository.findAll();
 
-        // Collect all existing IDs from the database into a Set for fast lookup
-        Set<Object> existingIds = allColumns.stream()
-                .map(ColumnDto::getId)
-                .collect(Collectors.toSet());
+        // 2. Create a lookup map from the incoming DTOs for fast access
+        Map<Integer, ColumnDto> updateMap = updateRequest.stream()
+                .collect(Collectors.toMap(ColumnDto::getId, dto -> dto));
 
-        // Find any IDs in updateRequest that do NOT exist in the database
-        List<Object> missingIds = updateRequest.stream()
-                .map(ColumnDto::getId)
-                .filter(id -> !existingIds.contains(id))
-                .collect(Collectors.toList());
-
-        // Throw an exception if there are any invalid/non-existent IDs
-        if (!missingIds.isEmpty()) {
-            throw new IllegalArgumentException("Batch update failed. The following IDs do not exist: " + missingIds);
+        // 3. Update fields on the database entities if they are present in the update request
+        for (ColumnDto entity : allEntities) {
+            ColumnDto dto = updateMap.get(entity.getId());
+            if (dto != null) {
+                entity.setName(dto.getName());
+                // entity.setDisplayOrder(dto.getDisplayOrder()); // Uncomment if you update display order too
+            }
         }
 
-        // Create a Set of update IDs to filter allColumns
-        Set<Object> updateIds = updateRequest.stream()
-                .map(ColumnDto::getId)
-                .collect(Collectors.toSet());
-
-        // Filter allColumns to only keep the matched ones
-        List<ColumnDto> filteredColumns = allColumns.stream()
-                .filter(col -> updateIds.contains(col.getId()))
-                .collect(Collectors.toList());
-
-        colRepository.saveAll(filteredColumns);
-
-        return filteredColumns;
-
+        // 4. Save all managed entities back to the database
+        colRepository.saveAll(allEntities);
     }
 }

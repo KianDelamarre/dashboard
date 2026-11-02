@@ -1,6 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { Search, Edit, Save, Plus, LogOut, X } from "lucide-react"
+import { Search, Edit, Plus, LogOut, X } from "lucide-react"
 import { Button } from "./Button"
 import { logout } from "@/api/client.tsx";
 
@@ -8,12 +8,11 @@ interface TopBarProps {
     isEditMode: boolean
     setIsEditMode: React.Dispatch<React.SetStateAction<boolean>>
     onOpenNewModal: () => void
-    onSave: () => void
 }
 
 
 
-export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal, onSave }: TopBarProps) {
+export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal }: TopBarProps) {
     // Listen for the Escape key to exit edit mode
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -56,21 +55,6 @@ export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal, onSave }: To
 
                 {isEditMode && (
                     <>
-                        {/* Save Button */}
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="default"
-                            onClick={() => {
-                                onSave
-                                setIsEditMode(false)
-                            }}
-                            className="bg-green text-primary-foreground hover:bg-green/90 transition-all"
-                        >
-                            <Save className="w-4 h-4" />
-                            Save
-                        </Button>
-
                         {/* New Link Button */}
                         <Button
                             type="button"

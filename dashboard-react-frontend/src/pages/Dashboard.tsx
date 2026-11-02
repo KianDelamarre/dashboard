@@ -3,7 +3,7 @@ import { dataApi } from "../api/client.tsx" // Using configured axios instance
 
 import { useNavigate } from "react-router"
 import { TopBar } from "../components/ui/TopBar"
-import { LinkCardGrid } from "../components/ui/LinkCardGrid"
+import { LinkCardGrid, type BatchSavePayload } from "../components/ui/LinkCardGrid"
 import { NewLinkModal } from "../components/ui/NewLinkModal"
 
 interface ColumnItem {
@@ -35,7 +35,6 @@ export function Dashboard() {
     const [isLoading, setIsLoading] = React.useState(true)
     const [error, setError] = React.useState<string | null>(null)
     const [isNewModalOpen, setIsNewModalOpen] = React.useState(false)
-    const [batchMoves, setBatchMoves] = React.useState<any[]>([])
 
     React.useEffect(() => {
         const fetchDashboardData = async () => {
@@ -76,12 +75,14 @@ export function Dashboard() {
         setItems((prevItems) => prevItems.filter((item) => item.id !== Number(deletedId)))
     }
 
-    const handleBatchSave = async (payload: { columns: ColumnItem[]; moves: any[] }) => {
+    const handleBatchSave = async (payload: BatchSavePayload) => {
+
+        console.log("trying to batchsave")
         try {
             // Construct the payload matching your controller's expected body structure
             const requestBody = {
-                columnUpdates: payload.columns,
-                moves: payload.moves
+                columnDtoList: payload.columns,
+                moveRequestList: payload.moves
             };
 
             // Send everything in one request to your unified endpoint
@@ -92,21 +93,8 @@ export function Dashboard() {
             console.error("Failed to execute batch save:", err);
         } finally {
             setIsEditMode(false);
-            window.location.reload();
+            // window.location.reload();
         }
-    }
-
-    const handleSaveChanges = async () => {
-        if (batchMoves.length > 0) {
-            try {
-                await dataApi.patch(`/links/batchmove`, batchMoves)
-                console.log("Batch move successful!")
-                setBatchMoves([])
-            } catch (err) {
-                console.error("Failed to execute batch move:", err)
-            }
-        }
-        setIsEditMode(false)
     }
 
     return (
@@ -115,7 +103,6 @@ export function Dashboard() {
                 isEditMode={isEditMode}
                 setIsEditMode={setIsEditMode}
                 onOpenNewModal={() => setIsNewModalOpen(true)}
-                onSave={handleSaveChanges}
             />
             <LinkCardGrid
                 columns={columns}

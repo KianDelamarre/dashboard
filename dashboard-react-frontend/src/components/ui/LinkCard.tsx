@@ -2,7 +2,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Edit3, Trash2 } from "lucide-react"
 
-import axios from "axios"
+import { dataApi } from "../../api/client.tsx"
 
 import { Button } from "./Button"
 import { EditModal } from "./EditModel"
@@ -20,7 +20,7 @@ interface LinkCardProps extends React.ComponentProps<"div"> {
   onDelete: (id: string) => void // <-- Added delete callback prop
 }
 
-const API_URL = 'http://localhost:8080'
+
 
 export function LinkCard({
   id,
@@ -52,7 +52,7 @@ export function LinkCard({
 
     try {
       // Send DELETE request to your Spring Boot endpoint
-      await axios.delete(`${API_URL}/link/${id}`)
+      await dataApi.delete(`/link/${id}`)
 
       console.log(`Successfully deleted link ${id}`)
 

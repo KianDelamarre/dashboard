@@ -6,7 +6,6 @@ import com.kiandelamarre.dashboard.repository.LinkRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,11 +32,6 @@ public class ReorderServiceImpl implements ReorderService {
                 int idToMove = move.getIdToMove();
                 int relativeToId = move.getRelativeToId();
                 int targetColumn = move.getTargetColumn();
-
-                System.out.println("\n\nmoveRequests = " +
-                        "\nid: "+ idToMove+ " " +
-                        "\nrelativeToId: "+ relativeToId + " "+
-                        "\ntargetColumn: "+ targetColumn);
 
                 moveIdToPositionAndReindex(allLinks, idToMove, relativeToId, targetColumn);
             }

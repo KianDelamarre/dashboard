@@ -1,21 +1,13 @@
 import * as React from "react"
 import { dataApi } from "../api/client.tsx" // Using configured axios instance
+import { type CardLinkItem } from "../components/ui/LinkCard.tsx"
+
 
 import { useNavigate } from "react-router"
 import { TopBar } from "../components/ui/TopBar"
 import { LinkCardGrid, type ColumnItem , type BatchSavePayload } from "../components/ui/LinkCardGrid"
 import { NewLinkModal } from "../components/ui/NewLinkModal"
 import { NewColumnModal } from "../components/ui/NewColumnModal.tsx" // Ensure this is imported
-
-interface CardLinkItem {
-    id: number
-    name: string
-    localUrl: string
-    remoteUrl: string
-    imgUrl: string
-    column: number
-    row: number
-}
 
 interface DashboardDataResponse {
     columns: ColumnItem[]
@@ -55,7 +47,7 @@ export function Dashboard() {
         fetchDashboardData()
     }, [navigate])
 
-    const handleLinkUpdated = (id: string, updatedData: any) => {
+    const handleLinkUpdated = (id: number, updatedData: any) => {
         setItems((prevItems) =>
             prevItems.map((item) =>
                 item.id === Number(id) ? { ...item, ...updatedData } : item
@@ -67,7 +59,7 @@ export function Dashboard() {
         setItems((prevItems) => [...prevItems, newLink])
     }
 
-    const handleLinkDeleted = (deletedId: string) => {
+    const handleLinkDeleted = (deletedId: number) => {
         setItems((prevItems) => prevItems.filter((item) => item.id !== Number(deletedId)))
     }
 
@@ -100,6 +92,23 @@ export function Dashboard() {
         }
     }
 
+    const handleDeleteColumn = async (columnId: number) => {
+        try {
+            await dataApi.delete(`/column/${columnId}`);
+
+            // 1. Remove the column from local state
+            setColumns(prev => prev.filter(col => col.id !== columnId));
+
+            // 2. Remove all links associated with this column from local state
+            setItems(prev => prev.filter(item => item.column !== columnId));
+
+            console.log("Column " + columnId + " and its links deleted");
+
+        } catch (err) {
+            console.error("Failed to delete column:", err);
+        }
+    }
+
     return (
         <>
             <TopBar
@@ -117,6 +126,7 @@ export function Dashboard() {
                 onUpdateLink={handleLinkUpdated}
                 onDeleteLink={handleLinkDeleted}
                 onBatchSave={handleBatchSave}
+                onDeleteColumn={handleDeleteColumn}
             />
             <NewLinkModal
                 isOpen={isNewModalOpen}

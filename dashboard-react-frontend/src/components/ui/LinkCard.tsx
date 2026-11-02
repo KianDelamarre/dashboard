@@ -7,34 +7,32 @@ import { dataApi } from "../../api/client.tsx"
 import { Button } from "./Button"
 import { EditModal } from "./EditModel"
 
-interface LinkCardProps extends React.ComponentProps<"div"> {
-  id: string
+export interface CardLinkItem {
+  id: number
   name: string
   localUrl: string
   remoteUrl: string
   imgUrl: string
   column: number
   row: number
+}
+
+interface LinkCardProps extends React.ComponentProps<"div"> {
+  cardLinkData: CardLinkItem
   isEditMode: boolean
-  onUpdate: (id: string, updatedData: any) => void
-  onDelete: (id: string) => void // <-- Added delete callback prop
+  onUpdate: (id: number, updatedData: any) => void
+  onDelete: (id: number) => void // <-- Added delete callback prop
 }
 
 
 
 export function LinkCard({
-  id,
-  name,
-  localUrl,
-  remoteUrl,
-  imgUrl,
-  column,
-  row,
-  isEditMode,
-  onUpdate,
-  onDelete, // <-- Destructure delete callback
-  className,
-  ...props
+                          cardLinkData,
+                           isEditMode,
+                           onUpdate,
+                           onDelete, // <-- Destructure delete callback
+                           className,
+                           ...props
 }: LinkCardProps) {
 
   const [isModalOpen, setIsModalOpen] = React.useState(false)
@@ -52,12 +50,12 @@ export function LinkCard({
 
     try {
       // Send DELETE request to your Spring Boot endpoint
-      await dataApi.delete(`/link/${id}`)
+      await dataApi.delete(`/link/${cardLinkData.id}`)
 
-      console.log(`Successfully deleted link ${id}`)
+      console.log(`Successfully deleted link ${cardLinkData.id}`)
 
       // Notify parent grid to filter out this card instantly
-      onDelete(id)
+      onDelete(cardLinkData.id)
 
     } catch (error) {
       console.error("Failed to delete link:", error)
@@ -78,33 +76,33 @@ export function LinkCard({
       >
         {/* 1. Main Link Area */}
         <a
-          href={remoteUrl}
+          href={cardLinkData.remoteUrl}
           target="_self"
           className="flex flex-row items-center px-5 py-4 rounded-lg justify-between w-full hover:opacity-80 transition-opacity 
          hover:bg-card-hover hover:border-border-hover hover:ring-1 hover:ring-primary/50 
         transition-all duration-150 ease-out shadow-sm text-card-foreground "
         >
           <div className="flex items-center gap-3.5">
-            {imgUrl && (
+            {cardLinkData.imgUrl && (
               <img
-                src={imgUrl}
-                alt={name}
+                src={cardLinkData.imgUrl}
+                alt={cardLinkData.name}
                 className="w-6 h-6 object-contain"
               />
             )}
             <span className="font-medium text-base text-card-foreground transition-colors">
-              {name}
+              {cardLinkData.name}
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             <div
-              id={`${localUrl}-status-local`}
+              id={`${cardLinkData.localUrl}-status-local`}
               className="w-2 h-2 rounded-full bg-amber-400"
               title="Local Status"
             />
             <div
-              id={`${remoteUrl}-status-remote`}
+              id={`${cardLinkData.remoteUrl}-status-remote`}
               className="w-2 h-2 rounded-full bg-amber-400"
               title="Remote Status"
             />
@@ -144,16 +142,16 @@ export function LinkCard({
 
       {/* Render the EditModal */}
       <EditModal
-        id={id}
+        id={cardLinkData.id}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        name={name}
-        remoteUrl={remoteUrl}
-        localUrl={localUrl}
-        imgUrl={imgUrl}
-        row={row}
-        column={column}
-        onSaveSuccess={(updatedData) => onUpdate(id, updatedData)}
+        name={cardLinkData.name}
+        remoteUrl={cardLinkData.remoteUrl}
+        localUrl={cardLinkData.localUrl}
+        imgUrl={cardLinkData.imgUrl}
+        row={cardLinkData.row}
+        column={cardLinkData.column}
+        onSaveSuccess={(updatedData) => onUpdate(cardLinkData.id, updatedData)}
       />
     </>
   )

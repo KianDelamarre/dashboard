@@ -5,7 +5,7 @@ import { X, Save } from "lucide-react"
 import { dataApi } from "../../api/client.tsx"
 
 interface EditModalProps {
-    id: string
+    id: number
     isOpen: boolean
     onClose: () => void
     localUrl: string

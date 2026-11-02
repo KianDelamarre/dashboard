@@ -11,6 +11,9 @@ public class DatabaseInitialiser {
     @Bean
     public CommandLineRunner initialiseDatabase(JdbcTemplate jdbcTemplate) {
         return args -> {
+            // 0. CRITICAL: Enable foreign key support in SQLite (disabled by default)
+            jdbcTemplate.execute("PRAGMA foreign_keys = ON;");
+
             // 1. Create the 'cols' table
             String createColsSql = """
                 CREATE TABLE IF NOT EXISTS "cols" (
@@ -19,7 +22,7 @@ public class DatabaseInitialiser {
                 );
             """;
 
-            // 2. Create the 'links' table with the foreign key reference
+            // 2. Create the 'links' table with ON DELETE CASCADE added
             String createLinksSql = """
                 CREATE TABLE IF NOT EXISTS "links" (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,7 +32,7 @@ public class DatabaseInitialiser {
                     name TEXT,
                     "row" INTEGER DEFAULT 0,
                     "column" INTEGER,
-                    FOREIGN KEY("column") REFERENCES cols(id)
+                    FOREIGN KEY("column") REFERENCES cols(id) ON DELETE CASCADE
                 );
             """;
 
@@ -37,7 +40,6 @@ public class DatabaseInitialiser {
             jdbcTemplate.execute(createLinksSql);
 
             // 3. Seed default columns if they don't already exist
-            // Using explicit IDs to match your expected 1-4 mapping
             String seedColsSql = """
                 INSERT INTO "cols" (id, name) VALUES (1, 'Media')
                 ON CONFLICT(id) DO NOTHING;
@@ -51,8 +53,7 @@ public class DatabaseInitialiser {
 
             jdbcTemplate.execute(seedColsSql);
 
-            System.out.println("Database schema and default columns initialized successfully!");
+            System.out.println("Database schema, foreign keys, and default columns initialized successfully!");
         };
     }
-
 }

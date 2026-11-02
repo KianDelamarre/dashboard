@@ -1,20 +1,10 @@
 import * as React from "react"
-import { LinkCard } from "./LinkCard"
+import { LinkCard, type CardLinkItem } from "./LinkCard"
 
 export interface ColumnItem {
     id: number
     name: string
     displayOrder?: number
-}
-
-interface CardLinkItem {
-    id: number
-    name: string
-    localUrl: string
-    remoteUrl: string
-    imgUrl: string
-    column: number
-    row: number
 }
 
 interface MoveData {
@@ -35,9 +25,10 @@ interface LinkCardGridProps {
     isLoading: boolean
     error: string | null
     isEditMode: boolean
-    onUpdateLink: (id: string, updatedData: any) => void
-    onDeleteLink: (id: string) => void
-    onBatchSave: (payload: BatchSavePayload) => void // Updated prop signature
+    onUpdateLink: (id: number, updatedData: any) => void
+    onDeleteLink: (id: number) => void
+    onBatchSave: (payload: BatchSavePayload) => void
+    onDeleteColumn: (columnId: number) => void
 }
 
 export function LinkCardGrid({
@@ -48,7 +39,8 @@ export function LinkCardGrid({
                                  isEditMode,
                                  onUpdateLink,
                                  onDeleteLink,
-                                 onBatchSave
+                                 onBatchSave,
+                                 onDeleteColumn
                              }: LinkCardGridProps) {
     const [localItems, setLocalItems] = React.useState<CardLinkItem[]>(items)
     const [localColumns, setLocalColumns] = React.useState<ColumnItem[]>(columns)
@@ -206,13 +198,31 @@ export function LinkCardGrid({
                         <div key={colNum} className="space-y-3">
                             {/* Conditional Column Header / Input */}
                             {isEditMode ? (
-                                <input
-                                    type="text"
-                                    value={columnName}
-                                    onChange={(e) => handleColumnNameChange(colNum, e.target.value)}
-                                    className="w-full px-2 py-1 text-xs font-semibold tracking-wider uppercase bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground"
-                                    placeholder="Column Name"
-                                />
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        value={columnName}
+                                        onChange={(e) => handleColumnNameChange(colNum, e.target.value)}
+                                        className="w-full px-2 py-1 text-xs font-semibold tracking-wider uppercase bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-ring text-foreground"
+                                        placeholder="Column Name"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const confirmed = window.confirm(
+                                                `Are you sure you want to delete the column "${columnName}"?\n\nAll links inside this column will also be deleted.`
+                                            );
+                                            if (confirmed) {
+                                                onDeleteColumn(colNum);
+                                            }
+                                        }}
+                                        className="px-2 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/25 rounded-md text-xs transition-colors shrink-0"
+                                        title="Delete Column"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
                             ) : (
                                 <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase px-1">
                                     {columnName}
@@ -245,13 +255,7 @@ export function LinkCardGrid({
                                                 className={`link-card-wrapper transition-all duration-150 ${isThisDragging ? 'opacity-40 dragging' : ''} ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
                                             >
                                                 <LinkCard
-                                                    id={itemIdStr}
-                                                    name={item.name}
-                                                    localUrl={item.localUrl}
-                                                    remoteUrl={item.remoteUrl}
-                                                    imgUrl={item.imgUrl}
-                                                    column={colNum}
-                                                    row={item.row}
+                                                    cardLinkData={item}
                                                     isEditMode={isEditMode}
                                                     onUpdate={onUpdateLink}
                                                     onDelete={onDeleteLink}

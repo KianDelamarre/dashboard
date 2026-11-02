@@ -1,7 +1,7 @@
 import * as React from "react"
 import { LinkCard } from "./LinkCard"
 
-interface ColumnItem {
+export interface ColumnItem {
     id: number
     name: string
     displayOrder?: number

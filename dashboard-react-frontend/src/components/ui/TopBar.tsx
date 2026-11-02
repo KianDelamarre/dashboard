@@ -8,11 +8,10 @@ interface TopBarProps {
     isEditMode: boolean
     setIsEditMode: React.Dispatch<React.SetStateAction<boolean>>
     onOpenNewModal: () => void
+    onOpenNewColumn: () => void // Added missing prop definition
 }
 
-
-
-export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal }: TopBarProps) {
+export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal, onOpenNewColumn }: TopBarProps) {
     // Listen for the Escape key to exit edit mode
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -23,7 +22,6 @@ export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal }: TopBarProp
 
         window.addEventListener("keydown", handleKeyDown)
 
-        // Cleanup listener on unmount or when edit mode changes
         return () => {
             window.removeEventListener("keydown", handleKeyDown)
         }
@@ -52,7 +50,6 @@ export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal }: TopBarProp
 
             {/* 3. Action Buttons */}
             <div className="flex items-center gap-2 shrink-0">
-
                 {isEditMode && (
                     <>
                         {/* New Link Button */}
@@ -65,6 +62,18 @@ export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal }: TopBarProp
                         >
                             <Plus className="w-4 h-4" />
                             New Link
+                        </Button>
+
+                        {/* New Column Button */}
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="default"
+                            onClick={onOpenNewColumn}
+                            className="bg-ring text-primary-foreground hover:bg-ring/90 transition-all"
+                        >
+                            <Plus className="w-4 h-4" />
+                            New Column
                         </Button>
                     </>
                 )}

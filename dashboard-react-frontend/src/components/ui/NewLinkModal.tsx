@@ -3,23 +3,34 @@ import { dataApi } from "@/api/client.tsx";
 import { Button } from "./Button"
 import { X, Plus } from "lucide-react"
 
+import { type ColumnItem } from "../ui/LinkCardGrid"
+
+
 interface NewLinkModalProps {
     isOpen: boolean
     onClose: () => void
     onLinkCreated: (newLink: any) => void
+    columns: ColumnItem[]
 }
 
 
-export function NewLinkModal({ isOpen, onClose, onLinkCreated }: NewLinkModalProps) {
-    // Start with empty form fields for a new link
+export function NewLinkModal({ isOpen, onClose, onLinkCreated, columns = [] }: NewLinkModalProps) {
     const [name, setName] = React.useState("")
     const [remoteUrl, setRemoteUrl] = React.useState("")
     const [localUrl, setLocalUrl] = React.useState("")
     const [imgUrl, setImgUrl] = React.useState("")
-    const [column, setColumn] = React.useState<number>(1) // Default to column 1 (MEDIA)
+
+    // Default to the first column's ID if available, otherwise 1
+    const [column, setColumn] = React.useState<number>(columns.length > 0 ? columns[0].id : 1)
     const [isLoading, setIsLoading] = React.useState(false)
 
-    // Don't render anything if visibility prop is false
+    // Update default state if columns change/load later
+    React.useEffect(() => {
+        if (columns.length > 0 && !columns.some(c => c.id === column)) {
+            setColumn(columns[0].id);
+        }
+    }, [columns]);
+
     if (!isOpen) return null
 
     const handleCreate = async (e: React.FormEvent) => {
@@ -27,22 +38,18 @@ export function NewLinkModal({ isOpen, onClose, onLinkCreated }: NewLinkModalPro
         setIsLoading(true)
 
         try {
-            // Send POST request to create a new link
             const response = await dataApi.post(`/link`, {
                 name,
                 remoteUrl,
                 localUrl,
                 imgUrl,
-                column: 1,
-                row: 9999, // Backend or sorting logic can handle row placement
+                column, // <-- Fixed to use the selected column state
+                row: 9999,
             })
 
             console.log("Successfully created link:", response.data)
-
-            // Pass the newly created link back up to update the grid state
             onLinkCreated(response.data)
 
-            // Reset form and close modal
             setName("")
             setRemoteUrl("")
             setLocalUrl("")
@@ -132,7 +139,7 @@ export function NewLinkModal({ isOpen, onClose, onLinkCreated }: NewLinkModalPro
                             />
                         </div>
 
-                        {/* Column Selection */}
+                        {/* Column Selection (Dynamic) */}
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-foreground">Column Section</label>
                             <select
@@ -140,10 +147,11 @@ export function NewLinkModal({ isOpen, onClose, onLinkCreated }: NewLinkModalPro
                                 onChange={(e) => setColumn(Number(e.target.value))}
                                 className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
                             >
-                                <option value={1}>MEDIA (1)</option>
-                                <option value={2}>SERVICES (2)</option>
-                                <option value={3}>LINKS (3)</option>
-                                <option value={4}>ADMIN (4)</option>
+                                {columns.map((col) => (
+                                    <option key={col.id} value={col.id}>
+                                        {col.name} ({col.id})
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </fieldset>

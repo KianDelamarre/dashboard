@@ -3,14 +3,9 @@ import { dataApi } from "../api/client.tsx" // Using configured axios instance
 
 import { useNavigate } from "react-router"
 import { TopBar } from "../components/ui/TopBar"
-import { LinkCardGrid, type BatchSavePayload } from "../components/ui/LinkCardGrid"
+import { LinkCardGrid, type ColumnItem , type BatchSavePayload } from "../components/ui/LinkCardGrid"
 import { NewLinkModal } from "../components/ui/NewLinkModal"
-
-interface ColumnItem {
-    id: number
-    name: string
-    displayOrder?: number
-}
+import { NewColumnModal } from "../components/ui/NewColumnModal.tsx" // Ensure this is imported
 
 interface CardLinkItem {
     id: number
@@ -35,6 +30,7 @@ export function Dashboard() {
     const [isLoading, setIsLoading] = React.useState(true)
     const [error, setError] = React.useState<string | null>(null)
     const [isNewModalOpen, setIsNewModalOpen] = React.useState(false)
+    const [isNewColumnModalOpen, setIsNewColumnModalOpen] = React.useState(false)
 
     React.useEffect(() => {
         const fetchDashboardData = async () => {
@@ -75,17 +71,19 @@ export function Dashboard() {
         setItems((prevItems) => prevItems.filter((item) => item.id !== Number(deletedId)))
     }
 
-    const handleBatchSave = async (payload: BatchSavePayload) => {
+    // Handler to append the newly created column to local state
+    const handleColumnCreated = (newColumn: ColumnItem) => {
+        setColumns((prevColumns) => [...prevColumns, newColumn])
+    }
 
+    const handleBatchSave = async (payload: BatchSavePayload) => {
         console.log("trying to batchsave")
         try {
-            // Construct the payload matching your controller's expected body structure
             const requestBody = {
                 columnDtoList: payload.columns,
                 moveRequestList: payload.moves
             };
 
-            // Send everything in one request to your unified endpoint
             await dataApi.patch('/links/batchsave', requestBody);
             console.log("Batch save successful!");
 
@@ -103,6 +101,7 @@ export function Dashboard() {
                 isEditMode={isEditMode}
                 setIsEditMode={setIsEditMode}
                 onOpenNewModal={() => setIsNewModalOpen(true)}
+                onOpenNewColumn={() => setIsNewColumnModalOpen(true)}
             />
             <LinkCardGrid
                 columns={columns}
@@ -118,6 +117,13 @@ export function Dashboard() {
                 isOpen={isNewModalOpen}
                 onClose={() => setIsNewModalOpen(false)}
                 onLinkCreated={handleLinkCreated}
+                columns={columns}
+            />
+
+            <NewColumnModal
+                isOpen={isNewColumnModalOpen}
+                onClose={() => setIsNewColumnModalOpen(false)}
+                onColumnCreated={handleColumnCreated}
             />
         </>
     )

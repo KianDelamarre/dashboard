@@ -54,12 +54,6 @@ public class DashboardController {
 //                "remoteUrl": <url >
 //    }
 
-    @GetMapping("/links/status")
-    public ResponseEntity<Map<Integer, LinkStatus>> getLinkStatuses(){
-        return ResponseEntity.ok(linkMonitorService.checkAllStatuses());
-    }
-
-
     @PostMapping("/link")
     public ResponseEntity<Link> createLink(@RequestBody Link link) {
         Link created = linksService.createLink(link);

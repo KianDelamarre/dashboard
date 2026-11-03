@@ -1,6 +1,6 @@
 # Dashboard
 
-A self-hosted server dashboard for organising and accessing your services, media, and links from a single page. Built with a Node.js/Express backend, a vanilla HTML/CSS/JS frontend, and an optional decoupled identity provider (IdP) for authentication.
+A self-hosted server dashboard for organising and accessing your services, media, and links from a single page. Built with a **Spring Boot** backend, a **React** frontend, and **Spring Security** with JWT for authentication, all shipped as a single container.
 
 [![Docker Image Size](https://img.shields.io/docker/image-size/kiansd/dashboard/latest?logo=docker&logoColor=white&style=flat-square)](https://hub.docker.com/r/kiansd/dashboard)
 [![Docker Pulls](https://img.shields.io/docker/pulls/kiansd/dashboard?logo=docker&logoColor=white&style=flat-square)](https://hub.docker.com/r/kiansd/dashboard)
@@ -15,6 +15,7 @@ A self-hosted server dashboard for organising and accessing your services, media
 - [Architecture](#architecture)
 - [Frontend](#frontend)
 - [Authentication](#authentication)
+- [Local Development](#local-development)
 - [Project Structure](#project-structure)
 - [License](#-license)
 
@@ -32,6 +33,16 @@ The dashboard is a lightweight start-page that displays categorised link cards (
 
 Data is persisted in an embedded **SQLite** database.
 
+### Tech stack
+
+| Layer          | Technology                              |
+|----------------|-----------------------------------------|
+| Backend        | Spring Boot, Spring Web, Spring Data JPA |
+| Security       | Spring Security + JWT                   |
+| Frontend       | React                                   |
+| Database       | SQLite                                  |
+| Packaging      | Docker (single container)               |
+
 ---
 
 ## 🚀 Docker Quick-Start Guide
@@ -44,20 +55,20 @@ Create a `docker-compose.yml` file with the following contents:
 services:
 
   dashboard:
-    # build: .
     image: kiansd/dashboard:latest
     container_name: dashboard
     ports:
-      - "8080:8080" # backend API
+      - "8080:8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:sqlite:/app/data/database.db
+      - CORS_ALLOWED_ORIGINS=https://yourdomain,https://yourseconddomain
     volumes:
       - ./data:/app/data
 ```
 
 ### 2. Configure environment variables
 
-Environment variables are set directly in `docker-compose.yml` under each service's `environment` block. Edit these as needed (see the [Environment Variables](#environment-variables) section below for details).
+Environment variables are set directly in `docker-compose.yml` under the `environment` block. Edit these as needed (see the [Environment Variables](#environment-variables) section below for details).
 
 ### 3. Start the stack
 
@@ -65,21 +76,13 @@ Environment variables are set directly in `docker-compose.yml` under each servic
 docker compose up -d
 ```
 
-This will:
-
-1. Start the **idp-server** on port `4002`.
-2. Build and start the **dashboard** on port `4001`.
-3. The dashboard backend will connect to the IdP server, fetch its public key, and begin serving.
-
 ### 4. Access the dashboard
 
 Open your browser and navigate to:
 
 ```
-http://localhost:4001
+http://localhost:8080
 ```
-
-> **Note:** In dev mode (`DEV_MODE=true`) the server uses https and a self-signed SSL certificate, so your browser will warn you about the connection. Accept the risk to continue.
 
 ### 5. Stop the stack
 
@@ -87,136 +90,121 @@ http://localhost:4001
 docker compose down
 ```
 
-
-
 ### Volume mounts
 
-| Mount                              | Purpose                                                        |
-|------------------------------------|----------------------------------------------------------------|
-| `./data:/app/backend/data`       | Persistet links data  |
-| `./idp-server/data:/app/data`      | (MOUNT FOR IDP-SERVER NOT DASHBOARD)Persists IdP server data (users, tokens) across restarts       |
+| Mount              | Purpose                                              |
+|--------------------|------------------------------------------------------|
+| `./data:/app/data` | Persists the SQLite database (links and user accounts) |
 
 ---
 
 ## Environment Variables
 
-### Dashboard service
+| Variable                 | Required | Default                          | Description                                                                                         |
+|--------------------------|----------|----------------------------------|-----------------------------------------------------------------------------------------------------|
+| `SPRING_DATASOURCE_URL`  | Yes      | `jdbc:sqlite:/app/data/database.db` | JDBC URL for the SQLite database. Keep it inside the mounted volume so data survives restarts.   |
+| `CORS_ALLOWED_ORIGINS`   | No       | _none_                           | Comma-separated list of origins allowed to call the API. Set this to the URL(s) you access the dashboard from. |
 
-| Variable          | Required | Default                      | Description                                                                                          |
-|-------------------|----------|------------------------------|------------------------------------------------------------------------------------------------------|
-| `DEV_MODE`        | No       | `undefined`                  | Set to `true` to enable HTTPS with self-signed certificates for local development.                   |
-| `AUTH_ENABLED`    | No       | `true`                       | Set to `false` to disable authentication entirely (all auth is spoofed). Defaults to `true` unless explicitly set to `false`. |
-| `IDP_URL`         | Yes*     | —                            | The URL of the IdP server. **Required when `AUTH_ENABLED` is `true`.** Use the Docker service name for inter-container networking (e.g. `http://idp-server:4002`). |
-| `ALLOWED_USER`    | No       | `undefined`                  | Restricts dashboard access to a single username. If set, only this user can log in and access API routes. |
-| `ALLOWED_ORIGINS` | No       | `https://localhost:4001`     | CORS allowed origin. Set this to the URL where the frontend is accessed from.                        |
-
-### IdP Server service
-
-| Variable          | Required | Description                                                                                          |
-|-------------------|----------|------------------------------------------------------------------------------------------------------|
-| `ALLOWED_ORIGINS` | No       | CORS allowed origins for the IdP server. Should include the dashboard's URL (e.g. `http://localhost:4001`). |
+> Add any JWT-related settings here (for example a signing secret or token lifetimes) once you expose them as environment variables.
 
 ---
 
 ## Architecture
 
-The project is composed of two containers managed by Docker Compose:
+The project is now a **single container**. The React frontend is built at image build time and served as static files by Spring Boot, which also exposes the REST API on the same port (`8080`). There is no separate identity provider; authentication is handled in-process by Spring Security.
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  dashboard container (port 4001)                 │
+│  dashboard container (port 8080)                 │
 │                                                  │
-│   Express backend  ──serves──▶  Static frontend  │
+│   Spring Boot  ──serves──▶  React (static build) │
 │        │                                         │
-│        │  @kiansd/idp-client                     │
-│        │  (npm package)                          │
+│        ├── Spring Security (JWT filter chain)    │
+│        │                                         │
 │        ▼                                         │
-│   Communicates via HTTP                          │
-└────────────┬─────────────────────────────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│  idp-server container   │
-│  (port 4002)            │
-│                         │
-│  Decoupled Identity     │
-│  Provider server        │
-└─────────────────────────┘
+│   SQLite  (/app/data/database.db)                │
+└──────────────────────────────────────────────────┘
 ```
-
-The Express backend serves the frontend as static files and exposes a REST API on the same port (`4001`). When authentication is enabled, the backend communicates with a separate **idp-server** container to handle login, token refresh, and logout.
 
 ---
 
 ## Frontend
 
-The frontend is a **vanilla HTML/CSS/JavaScript** single-page application served statically by the Express backend — there is no build step or framework.
+The frontend is a **React** single-page application. It is compiled during the Docker build and the output is served by Spring Boot.
 
 ### How it works
 
-1. **On page load**, the app calls `POST /login` to attempt a silent token refresh using the HTTP-only refresh cookie. If successful, the user goes straight to the dashboard; otherwise, the login form is displayed.
-2. **Login** sends credentials to `POST /login`. On success, a JWT access token is stored in-memory and a refresh token is set as an HTTP-only cookie by the server.
+1. **On page load**, the app attempts a silent token refresh using the HTTP-only refresh cookie. If successful, the user goes straight to the dashboard; otherwise, the login form is displayed.
+2. **Login** sends credentials to the backend. On success, a JWT access token is kept in memory and a refresh token is set as an HTTP-only cookie.
 3. **API requests** (fetching links, creating/editing/deleting) attach the in-memory access token via the `Authorization: Bearer <token>` header.
-4. **Auto-refresh** — the frontend parses the JWT expiry and schedules a `POST /login` call just before the access token expires, keeping the session alive seamlessly.
-5. **Dashboard rendering** — link data is fetched from `GET /api/links` and rendered into a grid of four columns. Each link card shows an icon, name, and status indicators.
-6. **Edit mode** — toggling edit mode enables drag-and-drop reordering and exposes create/edit/delete controls. Changes are batched and saved via `PATCH /api/links/batchmove`.
+4. **Auto-refresh**: the frontend reads the JWT expiry and schedules a refresh just before the access token expires, keeping the session alive seamlessly.
+5. **Dashboard rendering**: link data is fetched from `GET /api/links` and rendered into a grid of four columns. Each link card shows an icon, name, and status indicators.
+6. **Edit mode**: toggling edit mode enables drag-and-drop reordering and exposes create/edit/delete controls. Changes are batched and saved via `PATCH /api/links/batchmove`.
 
 ---
 
 ## Authentication
 
-Authentication is handled through a **decoupled Identity Provider (IdP)** architecture:
+Authentication is handled directly by the backend using **Spring Security** and **JSON Web Tokens (JWT)**. The previous standalone `idp-server` container and the `@kiansd/idp-client` package are no longer used.
 
-### IdP Server (`idp-server`)
+### How it works
 
-A standalone authentication server that runs in its own container. It manages user credentials, issues JWTs (access + refresh tokens), and exposes a public key endpoint for token verification. Its data is persisted via a volume mount (`./idp-server/data:/app/data`).
-
-### IdP Client (`@kiansd/idp-client`)
-
-The backend imports the [`@kiansd/idp-client`](https://www.npmjs.com/package/@kiansd/idp-client) npm package, which provides a set of factory functions to wire up authentication without coupling the dashboard to any specific IdP implementation:
-
-| Function                                | Purpose                                                                      |
-|-----------------------------------------|------------------------------------------------------------------------------|
-| `getPublicKeyFromIdp(url)`              | Fetches the IdP's public key (used to verify JWTs locally)                   |
-| `createIdpClient({ baseUrl, publicKey })` | Creates a client instance configured to talk to the IdP                     |
-| `createLoginController({ client, cookieOptions })` | Returns an Express handler for `POST /login` — proxies credentials to the IdP and sets cookies |
-| `createLogoutController({ client, cookieOptions })` | Returns an Express handler for `DELETE /logout` — revokes tokens on the IdP and clears cookies |
-| `createRequestNewAccessTokencontroller({ client })` | Returns an Express handler for `POST /login` — exchanges the refresh cookie for a new access token |
-| `createAuthMiddleware({ client })`       | Returns Express middleware that validates the access token on protected routes |
+- **Spring Security** secures all `/api/**` routes through a custom security filter chain. Public routes are limited to the authentication endpoints and the static frontend.
+- **Passwords** are hashed before being stored in the SQLite database.
+- **Access tokens** are short-lived JWTs, validated on each request by a JWT authentication filter that populates the Spring Security context.
+- **Refresh tokens** are delivered as HTTP-only cookies and exchanged for new access tokens without re-entering credentials.
+- **Logout** clears the refresh cookie and invalidates the session on the server.
+- **CORS** is configured from `CORS_ALLOWED_ORIGINS`, with credentials enabled so the refresh cookie can be sent.
 
 ### Auth flow
 
 ```
-Browser                    Dashboard Backend             IdP Server
-  │                              │                            │
-  │──POST /login {creds}────────▶│                            │
-  │                              │──forward credentials──────▶│
-  │                              │◀──access + refresh tokens──│
-  │◀──set refresh cookie─────────│                            │
-  │◀──return access token (JSON)─│                            │
-  │                              │                            │
-  │──GET /api/links (Bearer token)──▶│                            │
-  │                              │──verify JWT locally────────│
-  │◀──return link data───────────│                            │
-  │                              │                            │
-  │──POST /login (cookie)───────▶│                            │
-  │                              │──exchange refresh token───▶│
-  │                              │◀──new access token─────────│
-  │◀──return new access token────│                            │
+Browser                         Dashboard (Spring Boot)
+  │                                      │
+  │──POST /login {creds}────────────────▶│
+  │                                      │── authenticate (Spring Security)
+  │◀──set refresh cookie─────────────────│
+  │◀──return access token (JSON)─────────│
+  │                                      │
+  │──GET /api/links (Bearer token)──────▶│
+  │                                      │── JWT filter validates token
+  │◀──return link data───────────────────│
+  │                                      │
+  │──POST /login (refresh cookie)───────▶│
+  │                                      │── validate refresh token
+  │◀──return new access token────────────│
 ```
 
-### Gatekeeper Middleware
+### Endpoints
 
-On top of the IdP layer, the dashboard uses its own **gatekeeper middleware** (`gatekeeper.middleware.js`) that adds an extra authorisation check:
+| Method   | Path                      | Auth     | Purpose                                         |
+|----------|---------------------------|----------|-------------------------------------------------|
+| `POST`   | `/login`                  | Public   | Log in with credentials, or refresh via cookie  |
+| `DELETE` | `/logout`                 | Required | Clear the refresh cookie and end the session    |
+| `GET`    | `/api/links`              | Required | Fetch all links                                 |
+| `POST`   | `/api/links`              | Required | Create a link                                   |
+| `PUT`    | `/api/links/{id}`         | Required | Update a link                                   |
+| `DELETE` | `/api/links/{id}`         | Required | Delete a link                                   |
+| `PATCH`  | `/api/links/batchmove`    | Required | Save reordered links in a single batch          |
 
-- `restrictLoginToAllowedUser` — blocks login attempts from any user that doesn't match the `ALLOWED_USER` env var.
-- `verifyRouteAccess` — blocks API access for any authenticated user that doesn't match `ALLOWED_USER`.
+---
 
-This effectively restricts the dashboard to a single authorised user, even if multiple accounts exist on the IdP.
+## Local Development
 
-### Disabling Auth
+**Prerequisites:** JDK 17+ (match your project's Java version), Node.js, and Maven or Gradle.
 
-When `AUTH_ENABLED=false`, the IdP client is **not used at all**. Instead, the backend spoof-layers all auth controllers and middleware so every request passes through immediately with mock tokens. This is useful for local development without running the IdP server.
+```bash
+# Backend
+cd backend
+./mvnw spring-boot:run        # or ./gradlew bootRun
+
+# Frontend (in a second terminal)
+cd frontend
+npm install
+npm run dev                   # or npm start
+```
+
+When running the frontend dev server separately, add its origin (for example `http://localhost:5173`) to `CORS_ALLOWED_ORIGINS`.
 
 ---
 
@@ -224,42 +212,36 @@ When `AUTH_ENABLED=false`, the IdP client is **not used at all**. Instead, the b
 
 ```
 dashboard/
-├── docker-compose.yml        # Orchestrates dashboard + idp-server
-├── dockerfile                # Builds the dashboard container
-├── processes.json            # PM2 config (optional multi-process setup)
+├── docker-compose.yml        # Runs the dashboard container
+├── Dockerfile                # Multi-stage build: React build + Spring Boot jar
 ├── .dockerignore
 │
-├── backend/
-│   ├── package.json          # Dependencies & scripts
-│   ├── .env                  # Local env overrides (not used in Docker)
-│   └── src/
-│       ├── server.js         # Express app entry point
-│       ├── db/
-│       │   ├── db.js         # SQLite connection & schema init
-│       │   └── database.db   # SQLite database file
-│       ├── link/
-│       │   ├── link.controller.js   # Route handlers for CRUD
-│       │   └── link.service.js      # Database query logic
-│       ├── reorder/
-│       │   ├── reorder.controller.js  # Batch reorder handler
-│       │   └── reorder.service.js     # Reorder logic
-│       ├── middleware/
-│       │   └── gatekeeper.middleware.js  # User restriction guards
-│       └── utils/
-│           └── utils.js
+├── src/                  # Spring Boot application
+│   ├── pom.xml               # Dependencies & build config (or build.gradle)
+│   └── src/main/
+│       ├── java/.../dashboard/
+│       │   ├── DashboardApplication.java
+│       │   ├── config/       # Security filter chain, CORS config
+│       │   ├── security/     # JWT service, JWT filter, user details
+│       │   ├── auth/         # Login, refresh, and logout controllers
+│       │   ├── link/         # Link entity, repository, service, controller
+│       │   └── user/         # User entity, repository, service
+│       └── resources/
+│           ├── application.properties
+│           └── static/       # Built React app (populated during the build)
 │
-├── frontend/
-│   ├── index.html            # Main dashboard page
-│   ├── script.js             # Client-side logic (auth, API, drag-drop)
-│   ├── style.css             # Dashboard styles
-│   ├── admin.html            # Admin page
-│   ├── admin.css             # Admin styles
-│   └── imgs/                 # Static assets (icons, images)
-
+└── dashboard-react-frontend/                 # React application
+    ├── package.json
+    ├── public/
+    └── src/
+        ├── components/       # Link cards, columns, modals
+        ├── pages/            # Dashboard, login, admin
+        ├── auth/             # In-memory token handling & auto-refresh
+        └── api/              # API client
 ```
+
 ---
+
 ## 📄 License
 
 This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for the full license text.
-
-

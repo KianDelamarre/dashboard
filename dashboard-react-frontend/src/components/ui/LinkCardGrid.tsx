@@ -4,6 +4,7 @@ import { type ColumnItem } from "@/models/ColumnItem.tsx";
 import { type CardLinkItem } from "@/models/CardLinkItem.tsx";
 import { type MoveData } from "@/models/MoveData.tsx";
 import { type BatchSavePayload } from "@/models/BatchSavePayload.tsx";
+import { type LinkStatusResponse } from "@/models/LinkStatusResponse.tsx"; // <-- Import status type
 
 interface LinkCardGridProps {
     columns: ColumnItem[]
@@ -15,6 +16,7 @@ interface LinkCardGridProps {
     onDeleteLink: (id: number) => void
     onBatchSave: (payload: BatchSavePayload) => void
     onDeleteColumn: (columnId: number) => void
+    statuses: Record<number, LinkStatusResponse> // <-- Added statuses dictionary prop
 }
 
 export function LinkCardGrid({
@@ -26,7 +28,8 @@ export function LinkCardGrid({
                                  onUpdateLink,
                                  onDeleteLink,
                                  onBatchSave,
-                                 onDeleteColumn
+                                 onDeleteColumn,
+                                 statuses // <-- Destructure statuses prop
                              }: LinkCardGridProps) {
     const [localItems, setLocalItems] = React.useState<CardLinkItem[]>(items)
     const [localColumns, setLocalColumns] = React.useState<ColumnItem[]>(columns)
@@ -163,7 +166,6 @@ export function LinkCardGrid({
                                 columns: localColumns,
                                 moves: pendingMoves
                             })
-                            // window.location.reload()
                         }}
                         className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-500 transition-colors"
                     >
@@ -182,7 +184,6 @@ export function LinkCardGrid({
 
                     return (
                         <div key={colNum} className="space-y-3">
-                            {/* Conditional Column Header / Input */}
                             {isEditMode ? (
                                 <div className="flex items-center gap-2">
                                     <input
@@ -208,7 +209,6 @@ export function LinkCardGrid({
                                         ✕
                                     </button>
                                 </div>
-
                             ) : (
                                 <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase px-1">
                                     {columnName}
@@ -245,6 +245,8 @@ export function LinkCardGrid({
                                                     isEditMode={isEditMode}
                                                     onUpdate={onUpdateLink}
                                                     onDelete={onDeleteLink}
+                                                    // O(1) lookup using the status map passed down from Dashboard
+                                                    linkStatusResponse={statuses[item.id]}
                                                 />
                                             </div>
                                         )

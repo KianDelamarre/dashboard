@@ -4,6 +4,7 @@ import { dataApi } from "../api/client.tsx" // Using configured axios instance
 import { type CardLinkItem} from "@/models/CardLinkItem.tsx";
 import { type ColumnItem } from "@/models/ColumnItem.tsx";
 import { type BatchSavePayload } from "@/models/BatchSavePayload.tsx";
+import { type LinkStatusResponse } from "@/models/LinkStatusResponse.tsx"; // <-- Import status type
 
 import { useNavigate } from "react-router"
 import { TopBar } from "../components/ui/TopBar"
@@ -21,11 +22,16 @@ export function Dashboard() {
     const [isEditMode, setIsEditMode] = React.useState(false)
     const [columns, setColumns] = React.useState<ColumnItem[]>([])
     const [items, setItems] = React.useState<CardLinkItem[]>([])
+
+    // Status map state: { [linkId]: LinkStatusResponse }
+    const [statuses, setStatuses] = React.useState<Record<number, LinkStatusResponse>>({})
+
     const [isLoading, setIsLoading] = React.useState(true)
     const [error, setError] = React.useState<string | null>(null)
     const [isNewModalOpen, setIsNewModalOpen] = React.useState(false)
     const [isNewColumnModalOpen, setIsNewColumnModalOpen] = React.useState(false)
 
+    // 1. Fetch initial dashboard layout & links
     React.useEffect(() => {
         const fetchDashboardData = async () => {
             try {
@@ -49,6 +55,24 @@ export function Dashboard() {
         fetchDashboardData()
     }, [navigate])
 
+    // 2. Poll the monitoring endpoint periodically (e.g., every 10 seconds)
+    React.useEffect(() => {
+        const fetchStatuses = async () => {
+            try {
+                const response = await dataApi.get<Record<number, LinkStatusResponse>>(`/status`)
+                setStatuses(response.data)
+            } catch (err) {
+                console.error("Failed to fetch link statuses:", err)
+            }
+        }
+
+        // Fetch immediately on mount, then set interval
+        fetchStatuses()
+        const intervalId = setInterval(fetchStatuses, 10000) // 10 seconds
+
+        return () => clearInterval(intervalId) // Cleanup on unmount
+    }, [])
+
     const handleLinkUpdated = (id: number, updatedData: any) => {
         setItems((prevItems) =>
             prevItems.map((item) =>
@@ -63,9 +87,14 @@ export function Dashboard() {
 
     const handleLinkDeleted = (deletedId: number) => {
         setItems((prevItems) => prevItems.filter((item) => item.id !== Number(deletedId)))
+        // Also cleanup status map entry if desired
+        setStatuses((prev) => {
+            const copy = { ...prev }
+            delete copy[deletedId]
+            return copy
+        })
     }
 
-    // Handler to append the newly created column to local state
     const handleColumnCreated = (newColumn: ColumnItem) => {
         setColumns((prevColumns) => [...prevColumns, newColumn])
     }
@@ -77,10 +106,8 @@ export function Dashboard() {
                 moveRequestList: payload.moves
             };
 
-            // Capture the fresh DashboardDataResponse from the backend
             const response = await dataApi.patch<DashboardDataResponse>('/links/batchsave', requestBody);
 
-            // Instantly sync frontend state with the source of truth from the server
             setColumns(response.data.columns);
             setItems(response.data.links);
 
@@ -90,7 +117,6 @@ export function Dashboard() {
             console.error("Failed to execute batch save:", err);
         } finally {
             setIsEditMode(false);
-            // No reload needed! State updates cleanly in place.
         }
     }
 
@@ -98,10 +124,7 @@ export function Dashboard() {
         try {
             await dataApi.delete(`/column/${columnId}`);
 
-            // 1. Remove the column from local state
             setColumns(prev => prev.filter(col => col.id !== columnId));
-
-            // 2. Remove all links associated with this column from local state
             setItems(prev => prev.filter(item => item.column !== columnId));
 
             console.log("Column " + columnId + " and its links deleted");
@@ -129,6 +152,7 @@ export function Dashboard() {
                 onDeleteLink={handleLinkDeleted}
                 onBatchSave={handleBatchSave}
                 onDeleteColumn={handleDeleteColumn}
+                statuses={statuses} // <-- Passed the status map down here!
             />
             <NewLinkModal
                 isOpen={isNewModalOpen}

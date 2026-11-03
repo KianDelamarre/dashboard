@@ -7,7 +7,4 @@ services:
     environment:
           - SPRING_DATASOURCE_URL=jdbc:sqlite:/app/data/database.db
     volumes:
-      - dashboard_data:/app/data # Keeps your SQLite database safe across container restarts
-
-volumes:
-  dashboard_data:
+      - /home/kian/dashboard-data:/app/data # Keeps your SQLite database safe across container restarts

@@ -3,7 +3,7 @@ import { dataApi } from "@/api/client.tsx";
 import { Button } from "./Button"
 import { X, Plus } from "lucide-react"
 
-import { type ColumnItem } from "../ui/LinkCardGrid"
+import { type ColumnItem } from "@/models/ColumnItem.tsx";
 
 
 interface NewLinkModalProps {

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/monitor")
 public class LinkMonitorController {
 
 
@@ -29,8 +29,7 @@ public class LinkMonitorController {
 //    }
 
     @GetMapping("/status")
-    public ResponseEntity<List<LinkStatusResponse>> getLinkStatusData() {
-
+    public ResponseEntity<Map<Integer,LinkStatusResponse>> getLinkStatusData() {
         return ResponseEntity.ok(linkMonitorService.checkAllStatuses());
     }
 

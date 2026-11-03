@@ -79,7 +79,7 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
 
                         // 2. Unprotected auth routes
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/auth/**", "/monitor/**").permitAll()
 
                         // 3. Public access to static frontend assets, root, AND React client-side routes
                         .requestMatchers("/", "/index.html", "/favicon.svg", "/assets/**", "/dashboard/**", "/login").permitAll()

@@ -12,6 +12,7 @@ public class LinkStatusResponse {
     private StatusState localStatus;
     private StatusState remoteStatus; // Fixed typo 'remoteStaus'
 
+    public LinkStatusResponse() {}
 
     public int getLinkId() {
         return linkId;
@@ -37,10 +38,5 @@ public class LinkStatusResponse {
         this.remoteStatus = remoteStatus;
     }
 
-    // Constructors, Getters, Setters
-    public LinkStatusResponse(int linkId, StatusState localStatus, StatusState remoteStatus) {
-        this.linkId = linkId;
-        this.localStatus = localStatus;
-        this.remoteStatus = remoteStatus;
-    }
+
 }

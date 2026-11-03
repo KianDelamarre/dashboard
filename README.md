@@ -43,40 +43,16 @@ Create a `docker-compose.yml` file with the following contents:
 ```yaml
 services:
 
-  # Optional - Required for auth
-  idp-server:
-    image: kiansd/idp-server
-    container_name: idp-server
-    environment:
-      - ALLOWED_ORIGINS=http://localhost:4001 # Dashboard URL
-    ports:
-      - "4002:4002"
-    volumes:
-      - ./idp-server/data:/app/data
-    networks:
-      - idp
-
   dashboard:
+    # build: .
     image: kiansd/dashboard:latest
     container_name: dashboard
     ports:
-      - "4001:4001"
+      - "8080:8080" # backend API
     environment:
-      - DEV_MODE=false                       # Set to true for dev/self-signed SSL
-      - IDP_URL=http://idp-server:4002       # URL of idp-server
-      - AUTH_ENABLED=true                    # Set to false to disable auth entirely
-      - ALLOWED_USER=admin                   # Optional: restrict dashboard access to a single user
-    depends_on:
-      - idp-server
+      - SPRING_DATASOURCE_URL=jdbc:sqlite:/app/data/database.db
     volumes:
-      - ./dashboard/data:/app/backend/data  # Persists SQLite link data
-    networks:
-      - idp
-
-networks:
-  idp:
-    name: idp
-    driver: bridge
+      - ./data:/app/data
 ```
 
 ### 2. Configure environment variables

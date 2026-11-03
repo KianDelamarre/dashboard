@@ -53,12 +53,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, BearerTokenResolver bearerTokenResolver) throws Exception {
         return http
-                .cors(Customizer.withDefaults()) // Automatically wires up the CorsConfigurationSource bean from CorsConfig
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**", "/monitor/**").permitAll()
-                        .requestMatchers("/", "/index.html", "/favicon.svg", "/assets/**", "/dashboard/**", "/login").permitAll()
+                        // ADDED PWA files here:
+                        .requestMatchers(
+                                "/", "/index.html", "/favicon.svg", "/favicon.ico",
+                                "/apple-touch-icon.png", "/manifest.json",
+                                "/manifest.webmanifest", "/sw.js", "/workbox-*.js"
+                        ).permitAll()
+                        .requestMatchers("/assets/**", "/dashboard/**", "/login").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )

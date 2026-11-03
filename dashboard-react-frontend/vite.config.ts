@@ -10,6 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      filename: 'manifest.json', // Forces a standard .json file extension for Spring Boot
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
         name: 'Dashboard',
@@ -20,14 +21,14 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: '/favicon.svg', // FIXED: Removed '/public' prefix
+            src: '/favicon.svg',
             sizes: '192x192',
-            type: 'image/svg+xml' // FIXED: Match SVG format (or change file to .png)
+            type: 'image/svg+xml'
           },
           {
-            src: '/favicon.svg', // FIXED: Removed '/public' prefix
+            src: '/favicon.svg',
             sizes: '512x512',
-            type: 'image/svg+xml', // FIXED: Match SVG format
+            type: 'image/svg+xml',
             purpose: 'any maskable'
           }
         ]

@@ -1,28 +1,17 @@
 package com.kiandelamarre.dashboard.config;
 
-
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
@@ -30,14 +19,18 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Value("${cors.allowed-origins:http://localhost:3000}")
+    private String allowedOrigins;
+
     @Bean
-    public InMemoryUserDetailsManager user(){
+    public InMemoryUserDetailsManager user() {
         return new InMemoryUserDetailsManager(
                 User.withUsername("admin")
                         .password("{noop}password")
@@ -47,13 +40,23 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
     public BearerTokenResolver bearerTokenResolver() {
         return request -> {
             String uri = request.getRequestURI();
 
-            // Only resolve/validate tokens for API endpoints!
-            // This ensures frontend HTML routes, static assets, and root "/" never attempt
-            // to decode a stale or invalid JWT cookie when keys rotate.
             if (!uri.startsWith("/api/")) {
                 return null;
             }
@@ -69,24 +72,17 @@ public class SecurityConfig {
             return null;
         };
     }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, BearerTokenResolver bearerTokenResolver) throws Exception {
         return http
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Allow all preflight OPTIONS requests unconditionally
-                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // 2. Unprotected auth routes
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**", "/monitor/**").permitAll()
-
-                        // 3. Public access to static frontend assets, root, AND React client-side routes
                         .requestMatchers("/", "/index.html", "/favicon.svg", "/assets/**", "/dashboard/**", "/login").permitAll()
-
-                        // 4. Explicitly lock down all backend data endpoints
                         .requestMatchers("/api/**").authenticated()
-
                         .anyRequest().authenticated()
                 )
                 .logout(logout -> logout.disable())
@@ -98,11 +94,8 @@ public class SecurityConfig {
                 .build();
     }
 
-    // 3. Expose the AuthenticationManager bean so we can use it in a controller
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
-
 }

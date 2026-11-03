@@ -1,30 +1,51 @@
-FROM node:20-slim
+# ==========================================
+# STAGE 1: Build the React Frontend (pnpm)
+# ==========================================
+FROM node:20-alpine AS frontend-build
+WORKDIR /app/frontend
 
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+COPY dashboard-react-frontend/package.json dashboard-react-frontend/pnpm-lock.yaml* ./
+RUN pnpm install
+
+COPY dashboard-react-frontend/ ./
+
+# CRITICAL: Tell Vite to output to 'dist' for Docker instead of writing to the Java folder
+RUN DOCKER_BUILD=true pnpm build
+
+
+# ==========================================
+# STAGE 2: Build the Spring Boot Backend
+# ==========================================
+FROM maven:3.9-eclipse-temurin-21 AS backend-build
 WORKDIR /app
 
-# Install PM2 globally
-# RUN npm install -g pm2
+COPY pom.xml ./
+RUN mvn dependency:go-offline -B
+
+COPY src ./src
+
+# Copy the clean Vite 'dist' output directly into Spring Boot's static folder
+COPY --from=frontend-build /app/frontend/dist ./src/main/resources/static
+
+RUN mvn clean package -DskipTests
 
 
-# Copy backend & frontend
-COPY backend ./backend
-COPY frontend ./frontend
+# ==========================================
+# STAGE 3: Production Runtime Environment
+# ==========================================
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
 
-# Install backend dependencies
-WORKDIR /app/backend
-RUN npm install
+RUN addgroup -S spring && adduser -S spring -G spring \
+    && mkdir -p /app/data \
+    && chown -R spring:spring /app
 
-# Optionally install frontend dependencies if needed
-# WORKDIR /app/frontend
-# RUN npm install
+USER spring:spring
 
-# Back to backend for command execution
-# WORKDIR /app/backend
+COPY --from=backend-build /app/target/*.jar app.jar
 
-# Copy PM2 config
-# COPY processes.json .
+EXPOSE 8080
 
-# EXPOSE 4001 3000
-
-# CMD ["pm2-runtime", "processes.json"]
-CMD ["npm", "run", "devStart"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

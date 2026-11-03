@@ -145,5 +145,3 @@ backend/.yarn/*
 backend/vite.config.js.timestamp-*
 backend/vite.config.ts.timestamp-*
 backend/.vite/
-
-.idea

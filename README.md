@@ -178,12 +178,12 @@ The frontend is a **vanilla HTML/CSS/JavaScript** single-page application served
 
 ### How it works
 
-1. **On page load**, the app calls `POST /token` to attempt a silent token refresh using the HTTP-only refresh cookie. If successful, the user goes straight to the dashboard; otherwise, the login form is displayed.
+1. **On page load**, the app calls `POST /login` to attempt a silent token refresh using the HTTP-only refresh cookie. If successful, the user goes straight to the dashboard; otherwise, the login form is displayed.
 2. **Login** sends credentials to `POST /login`. On success, a JWT access token is stored in-memory and a refresh token is set as an HTTP-only cookie by the server.
 3. **API requests** (fetching links, creating/editing/deleting) attach the in-memory access token via the `Authorization: Bearer <token>` header.
-4. **Auto-refresh** — the frontend parses the JWT expiry and schedules a `POST /token` call just before the access token expires, keeping the session alive seamlessly.
-5. **Dashboard rendering** — link data is fetched from `GET /links` and rendered into a grid of four columns. Each link card shows an icon, name, and status indicators.
-6. **Edit mode** — toggling edit mode enables drag-and-drop reordering and exposes create/edit/delete controls. Changes are batched and saved via `PATCH /links/batchmove`.
+4. **Auto-refresh** — the frontend parses the JWT expiry and schedules a `POST /login` call just before the access token expires, keeping the session alive seamlessly.
+5. **Dashboard rendering** — link data is fetched from `GET /api/links` and rendered into a grid of four columns. Each link card shows an icon, name, and status indicators.
+6. **Edit mode** — toggling edit mode enables drag-and-drop reordering and exposes create/edit/delete controls. Changes are batched and saved via `PATCH /api/links/batchmove`.
 
 ---
 
@@ -205,7 +205,7 @@ The backend imports the [`@kiansd/idp-client`](https://www.npmjs.com/package/@ki
 | `createIdpClient({ baseUrl, publicKey })` | Creates a client instance configured to talk to the IdP                     |
 | `createLoginController({ client, cookieOptions })` | Returns an Express handler for `POST /login` — proxies credentials to the IdP and sets cookies |
 | `createLogoutController({ client, cookieOptions })` | Returns an Express handler for `DELETE /logout` — revokes tokens on the IdP and clears cookies |
-| `createRequestNewAccessTokencontroller({ client })` | Returns an Express handler for `POST /token` — exchanges the refresh cookie for a new access token |
+| `createRequestNewAccessTokencontroller({ client })` | Returns an Express handler for `POST /login` — exchanges the refresh cookie for a new access token |
 | `createAuthMiddleware({ client })`       | Returns Express middleware that validates the access token on protected routes |
 
 ### Auth flow
@@ -219,11 +219,11 @@ Browser                    Dashboard Backend             IdP Server
   │◀──set refresh cookie─────────│                            │
   │◀──return access token (JSON)─│                            │
   │                              │                            │
-  │──GET /links (Bearer token)──▶│                            │
+  │──GET /api/links (Bearer token)──▶│                            │
   │                              │──verify JWT locally────────│
   │◀──return link data───────────│                            │
   │                              │                            │
-  │──POST /token (cookie)───────▶│                            │
+  │──POST /login (cookie)───────▶│                            │
   │                              │──exchange refresh token───▶│
   │                              │◀──new access token─────────│
   │◀──return new access token────│                            │

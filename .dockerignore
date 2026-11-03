@@ -1,13 +1,17 @@
+# --- Frontend specific ignores ---
+dashboard-react-frontend/node_modules
+dashboard-react-frontend/dist
+dashboard-react-frontend/.vite
+
+
+# --- Ignore local Java static resources (so Docker builds fresh) ---
+src/main/resources/static/
+
+
 node_modules/
 .db
-
 /idp-server
-
-
 .gitignore
-
-# Ignore Roadiz tools and cache for
-# creating a docker image
 .dockerignore
 .DS_Store
 .git
@@ -63,3 +67,5 @@ pimple.json
 !themes/BaseTheme/Resources/views/partials/*
 !themes/BaseTheme/Resources/views/base.html.twig
 !web/themes/*
+
+

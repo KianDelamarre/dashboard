@@ -1,71 +1,54 @@
-# --- Frontend specific ignores ---
-dashboard-react-frontend/node_modules
-dashboard-react-frontend/dist
-dashboard-react-frontend/.vite
-
-
-# --- Ignore local Java static resources (so Docker builds fresh) ---
-src/main/resources/static/
-
-
-node_modules/
-.db
-/idp-server
-.gitignore
-.dockerignore
-.DS_Store
-.git
-.github
+# =========================
+# Version Control & CI/CD
+# =========================
+.git/
+.github/
 .gitignore
 .gitlab-ci.yml
 .gitmodules
-.idea
-.data
-.sass-cache
-tests
+
+# =========================
+# IDEs & Operating Systems
+# =========================
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# =========================
+# Documentation & Configs
+# =========================
 README.md
-Dockerfile
-Dockerfile.archive
+*.md
 docker-compose.yml
+Dockerfile*
 
-*/temp*
-*/*/temp*
-docker
-.vagrant
-.data
-.idea
-app/sessions/*
-app/logs/*
-app/cache/*
-app/gen-src/*
-app/conf/config.yml
-app/*.zip
-app/*.sql
-app/*.tar.gz
-*.zip
-*.sql
+# =========================
+# Frontend (/dashboard-react-frontend)
+# =========================
+/dashboard-react-frontend/node_modules/
+/dashboard-react-frontend/dist/
+/dashboard-react-frontend/.vite/
+/dashboard-react-frontend/.env.local
+/dashboard-react-frontend/.env.*.local
+
+# =========================
+# Backend / Java Spring Boot (/src)
+# =========================
+/src/target/
+/src/.gradle/
+/src/build/
+/src/.mvn/wrapper/maven-wrapper.jar
+
+# =========================
+# Databases, Data & Logs
+# =========================
+/data/
+*.db
+*.sqlite
+*.sqlite3
 *.log
-*.tar.gz
-themes/*/build
-themes/*/node_modules
-themes/*/app
-*/*/*/node_modules
-files/*
-web/files/*
-*/*/*/src-img
-*/*/src-img
-*/*.log
-Vagrantfile
-pimple.json
-
-!vendor
-!app/gen-src/GeneratedNodeSources/.gitignore
-!app/gen-src/Proxies/.gitignore
-!docker/php-nginx-alpine/crontab.txt
-!docker/php-nginx-alpine/before_launch.sh
-!themes/BaseTheme/static
-!themes/BaseTheme/Resources/views/partials/*
-!themes/BaseTheme/Resources/views/base.html.twig
-!web/themes/*
-
-
+logs/
+temp/
+**/temp/

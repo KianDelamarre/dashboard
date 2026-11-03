@@ -6,16 +6,8 @@ import { dataApi } from "../../api/client.tsx"
 
 import { Button } from "./Button"
 import { EditModal } from "./EditModel"
+import { type CardLinkItem } from "@/models/CardLinkItem.tsx";
 
-export interface CardLinkItem {
-  id: number
-  name: string
-  localUrl: string
-  remoteUrl: string
-  imgUrl: string
-  column: number
-  row: number
-}
 
 interface LinkCardProps extends React.ComponentProps<"div"> {
   cardLinkData: CardLinkItem

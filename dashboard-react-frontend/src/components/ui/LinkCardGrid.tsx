@@ -1,23 +1,9 @@
 import * as React from "react"
-import { LinkCard, type CardLinkItem } from "./LinkCard"
-
-export interface ColumnItem {
-    id: number
-    name: string
-    displayOrder?: number
-}
-
-interface MoveData {
-    idToMove: string
-    relativeToId?: string
-    targetColumn: number
-}
-
-// Updated payload interface to include both column edits and card position moves
-export interface BatchSavePayload {
-    columns: ColumnItem[]
-    moves: MoveData[]
-}
+import { LinkCard } from "./LinkCard"
+import { type ColumnItem } from "@/models/ColumnItem.tsx";
+import { type CardLinkItem } from "@/models/CardLinkItem.tsx";
+import { type MoveData } from "@/models/MoveData.tsx";
+import { type BatchSavePayload } from "@/models/BatchSavePayload.tsx";
 
 interface LinkCardGridProps {
     columns: ColumnItem[]

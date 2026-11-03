@@ -1,13 +1,15 @@
 import * as React from "react"
 import { dataApi } from "../api/client.tsx" // Using configured axios instance
-import { type CardLinkItem } from "../components/ui/LinkCard.tsx"
 
+import { type CardLinkItem} from "@/models/CardLinkItem.tsx";
+import { type ColumnItem } from "@/models/ColumnItem.tsx";
+import { type BatchSavePayload } from "@/models/BatchSavePayload.tsx";
 
 import { useNavigate } from "react-router"
 import { TopBar } from "../components/ui/TopBar"
-import { LinkCardGrid, type ColumnItem , type BatchSavePayload } from "../components/ui/LinkCardGrid"
+import { LinkCardGrid} from "../components/ui/LinkCardGrid"
 import { NewLinkModal } from "../components/ui/NewLinkModal"
-import { NewColumnModal } from "../components/ui/NewColumnModal.tsx" // Ensure this is imported
+import { NewColumnModal } from "../components/ui/NewColumnModal.tsx"
 
 interface DashboardDataResponse {
     columns: ColumnItem[]

@@ -1,4 +1,4 @@
 package com.kiandelamarre.dashboard.repository;
 
-public class UserRepository {
+public interface UserRepository {
 }

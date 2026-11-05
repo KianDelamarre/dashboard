@@ -1,0 +1,107 @@
+package com.kiandelamarre.dashboard.service;
+
+
+import com.kiandelamarre.dashboard.dto.Link;
+import com.kiandelamarre.dashboard.repository.LinkRepository;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class LinkServiceTest {
+    @Mock
+    private LinkRepository linkRepository; // Mocks the database/repo layer
+
+    @InjectMocks
+    private LinkServiceImpl linkServiceImpl; // Automatically injects the mock repo into your service
+
+    private Link sampleLink;
+
+    @BeforeEach
+    void setUp() {
+        sampleLink = new Link();
+        sampleLink.setId(1);
+        sampleLink.setName("Google");
+        sampleLink.setRow(0);
+        sampleLink.setColumn(1);
+        sampleLink.setLocalUrl("http://google");
+        sampleLink.setRemoteUrl("https://google.com");
+    }
+
+    @Test
+    void testGetAllLinks() {
+        // Arrange
+        List<Link> mockList = Arrays.asList(sampleLink);
+        when(linkRepository.findAll()).thenReturn(mockList);
+
+        // Act
+        List<Link> result = linkServiceImpl.getAllLinks();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Google", result.get(0).getName());
+        verify(linkRepository, times(1)).findAll(); // Verifies the repo method was actually called
+    }
+
+    @Test
+    void testCreateLink() {
+        // Arrange
+        when(linkRepository.insert(sampleLink)).thenReturn(sampleLink);
+
+        // Act
+        Link result = linkServiceImpl.createLink(sampleLink);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getId());
+        verify(linkRepository, times(1)).insert(sampleLink);
+    }
+
+    @Test
+    void testDeleteLink() {
+        // Arrange
+        int linkId = 1;
+        doNothing().when(linkRepository).delete(linkId);
+
+        // Act
+        linkServiceImpl.deleteLink(linkId);
+
+        // Assert
+        verify(linkRepository, times(1)).delete(linkId); // Verifies deletion was triggered
+    }
+
+    @Test
+    void testUpdateLink() {
+        // Arrange
+        int linkId = 1;
+        Link updatedVals = new Link();
+        updatedVals.setName("Updated Google");
+
+        when(linkRepository.update(linkId, updatedVals)).thenReturn(updatedVals);
+
+        // Act
+        Link result = linkServiceImpl.updateLink(linkId, updatedVals);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Updated Google", result.getName());
+        verify(linkRepository, times(1)).update(linkId, updatedVals);
+    }
+
+
+}

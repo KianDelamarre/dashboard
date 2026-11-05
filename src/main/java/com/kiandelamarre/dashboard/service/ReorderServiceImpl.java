@@ -2,7 +2,7 @@ package com.kiandelamarre.dashboard.service;
 
 import com.kiandelamarre.dashboard.dto.Link;
 import com.kiandelamarre.dashboard.dto.MoveRequest;
-import com.kiandelamarre.dashboard.repository.LinkRepository;
+import com.kiandelamarre.dashboard.service.LinksService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,21 +11,21 @@ import java.util.List;
 @Service
 public class ReorderServiceImpl implements ReorderService {
 
-    private final LinkRepository linkRepository;
+    private final LinksService linksService;
 
-    public ReorderServiceImpl(LinkRepository linkRepository) {
-        this.linkRepository = linkRepository;
+    public ReorderServiceImpl(LinksService linksService) {
+        this.linksService = linksService;
     }
 
     @Override
     @Transactional
     public List<Link> batchMove(List<MoveRequest> moveRequests) {
         if (moveRequests == null || moveRequests.isEmpty()) {
-            return linkRepository.findAll();
+            return linksService.getAllLinks();
         }
 
         // 1. Local variable scoped strictly to this request thread
-        List<Link> allLinks = linkRepository.findAll();
+        List<Link> allLinks = linksService.getAllLinks();
 
         try {
             for (MoveRequest move : moveRequests) {
@@ -37,7 +37,7 @@ public class ReorderServiceImpl implements ReorderService {
             }
 
             // 2. Save the local list
-            linkRepository.saveAll(allLinks);
+            linksService.saveAll(allLinks);
 
             // 3. Return fresh data from DB
             return allLinks;

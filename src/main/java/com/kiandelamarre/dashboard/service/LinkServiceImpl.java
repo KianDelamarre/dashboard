@@ -2,7 +2,7 @@ package com.kiandelamarre.dashboard.service;
 
 import com.kiandelamarre.dashboard.dto.Link;
 import com.kiandelamarre.dashboard.repository.LinkRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.kiandelamarre.dashboard.repository.LinkRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,33 +10,38 @@ import java.util.List;
  @Service
 public class LinkServiceImpl implements LinksService{
 
-     LinkRepository linkRepository;
+     LinkRepository LinkRepository;
 
-     public LinkServiceImpl (LinkRepository linkRepository){
-         this.linkRepository = linkRepository;
+     public LinkServiceImpl (LinkRepository LinkRepository){
+         this.LinkRepository = LinkRepository;
      }
 
 
     @Override
     public List<Link> getAllLinks() {
-        return linkRepository.findAll();
+        return LinkRepository.findAll();
 
     }
 
     @Override
     public Link createLink(Link linkToCreate) {
-        return linkRepository.insert(linkToCreate);
+        return LinkRepository.insert(linkToCreate);
     }
 
      @Override
      public void deleteLink(int linkToDeleteId) {
-         linkRepository.delete(linkToDeleteId);
+         LinkRepository.delete(linkToDeleteId);
      }
 
      @Override
      public Link updateLink(int linkToUpdateId, Link linkWithNewVals) {
 
-         return linkRepository.update(linkToUpdateId, linkWithNewVals);
+         return LinkRepository.update(linkToUpdateId, linkWithNewVals);
      }
 
-}
+     @Override
+     public void saveAll(List<Link> newLinks) {
+         LinkRepository.saveAll(newLinks);
+     }
+
+ }

@@ -10,5 +10,5 @@ public interface LinksService {
     Link createLink(Link linkToCreate);
     void deleteLink(int linkToDeleteId);
     Link updateLink (int LinkToUpdateId, Link linkWithNewVals);
-
+    void saveAll(List<Link> newLinks);
 }

@@ -37,12 +37,11 @@ public class ReorderServiceTest {
             link.setId(i);
             link.setName("link " + i);
             link.setRow(i * 10); // Rows: 0, 10, 20, 30
-            link.setColumn((i > 5) ? 2 : 1);
+            link.setColumn((i < 5) ? 1 : 2);
             link.setLocalUrl("http://"+i);
             link.setRemoteUrl("https://"+i);  // Put them all in column 1 for predictable testing
             testLinks.add(link);
         }
-
     }
 
     @Test
@@ -50,23 +49,47 @@ public class ReorderServiceTest {
         // Arrange
         when(linksService.getAllLinks()).thenReturn(testLinks);
 
+        //ORDER
+        // [0,1,2,3,4,5,6,7,8,9]
         // Build multiple move requests
+
         MoveRequest move1 = new MoveRequest();
         move1.setIdToMove(3);
         move1.setRelativeToId(1);
         move1.setTargetColumn(1);
+        //ORDER
+        // [0,3,1,2,4,5,6,7,8,9]
+
 
         MoveRequest move2 = new MoveRequest();
         move2.setIdToMove(7);
         move2.setRelativeToId(2);
-        move2.setTargetColumn(2);
+        move2.setTargetColumn(1);
+        //ORDER
+        // [0,3,1,7,2,4,5,6,8,9]
 
         MoveRequest move3 = new MoveRequest();
         move3.setIdToMove(5);
-        move3.setRelativeToId(0); // Appending/moving to end of a column or root handling
+        move3.setRelativeToId(3);
         move3.setTargetColumn(1);
+        //ORDER
+        // [0,5,3,1,7,2,4,6,8,9]
 
-        List<MoveRequest> requests = List.of(move1, move2, move3);
+        MoveRequest move4 = new MoveRequest();
+        move4.setIdToMove(1);
+        move4.setRelativeToId(8);
+        move4.setTargetColumn(2);
+        //ORDER
+        // [0,5,3,7,2,4,6,1,8,9]
+
+        MoveRequest move5 = new MoveRequest();
+        move5.setIdToMove(0);
+//        move5.setRelativeToId(8);
+        move5.setTargetColumn(3);
+        //ORDER
+        // [5,3,7,2,4,6,1,8,9,0]
+
+        List<MoveRequest> requests = List.of(move1, move2, move3, move4, move5);
 
         // Act
         List<Link> result = reorderService.batchMove(requests);
@@ -88,7 +111,113 @@ public class ReorderServiceTest {
 
         // Assert the exact expected order of link IDs
         // (Example: adjust this expected list based on how your math places items 3 and 7)
-        List<Integer> expectedIdOrder = List.of(0,3,1,7,2,4,5,6,8,9);
+        List<Integer> expectedIdOrder = List.of(5,3,7,2,4,6,1,8,9,0);
+
+        assertEquals(expectedIdOrder, actualIdOrder);
+    }
+
+    @Test
+    void testBatchMove_MultipleRequests_VerifiesInsertStartOfEmptyColumn() {
+        // Arrange
+        when(linksService.getAllLinks()).thenReturn(testLinks);
+
+        //ORDER
+        // [0,1,2,3,4,5,6,7,8,9]
+        // Build multiple move requests
+
+        MoveRequest move1 = new MoveRequest();
+        move1.setIdToMove(3);
+        move1.setRelativeToId(1);
+        move1.setTargetColumn(1);
+        //ORDER
+        // [0,3,1,2,4,5,6,7,8,9]
+
+
+        MoveRequest move2 = new MoveRequest();
+        move2.setIdToMove(7);
+
+        move2.setTargetColumn(3);
+        //ORDER
+        // [0,3,1,2,4,5,6,8,9,7]
+
+
+
+        List<MoveRequest> requests = List.of(move1, move2);
+
+        // Act
+        List<Link> result = reorderService.batchMove(requests);
+
+        // Assert
+        assertNotNull(result);
+        verify(linksService, times(1)).saveAll(anyList());
+
+        // Sort the resulting list by Column first, then by Row (just like your app layout)
+        List<Link> sortedLinks = result.stream()
+                .sorted(java.util.Comparator.comparingInt(Link::getColumn)
+                        .thenComparingInt(Link::getRow))
+                .toList();
+
+        // Extract just the IDs in their new visual order
+        List<Integer> actualIdOrder = sortedLinks.stream()
+                .map(Link::getId)
+                .toList();
+
+        // Assert the exact expected order of link IDs
+        // (Example: adjust this expected list based on how your math places items 3 and 7)
+        List<Integer> expectedIdOrder = List.of(0,3,1,2,4,5,6,8,9,7);
+
+        assertEquals(expectedIdOrder, actualIdOrder);
+    }
+
+    @Test
+    void testBatchMove_MultipleRequests_VerifiesInsertEndOfColumn() {
+        // Arrange
+        when(linksService.getAllLinks()).thenReturn(testLinks);
+
+        //ORDER
+        // [0,1,2,3,4,5,6,7,8,9]
+        // Build multiple move requests
+
+        MoveRequest move1 = new MoveRequest();
+        move1.setIdToMove(3);
+        move1.setRelativeToId(1);
+        move1.setTargetColumn(1);
+        //ORDER
+        // [0,3,1,2,4,5,6,7,8,9]
+
+
+        MoveRequest move2 = new MoveRequest();
+        move2.setIdToMove(7);
+
+        move2.setTargetColumn(2);
+        //ORDER
+        // [0,3,1,2,4,5,6,8,9,7]
+
+
+
+        List<MoveRequest> requests = List.of(move1, move2);
+
+        // Act
+        List<Link> result = reorderService.batchMove(requests);
+
+        // Assert
+        assertNotNull(result);
+        verify(linksService, times(1)).saveAll(anyList());
+
+        // Sort the resulting list by Column first, then by Row (just like your app layout)
+        List<Link> sortedLinks = result.stream()
+                .sorted(java.util.Comparator.comparingInt(Link::getColumn)
+                        .thenComparingInt(Link::getRow))
+                .toList();
+
+        // Extract just the IDs in their new visual order
+        List<Integer> actualIdOrder = sortedLinks.stream()
+                .map(Link::getId)
+                .toList();
+
+        // Assert the exact expected order of link IDs
+        // (Example: adjust this expected list based on how your math places items 3 and 7)
+        List<Integer> expectedIdOrder = List.of(0,3,1,2,4,5,6,8,9,7);
 
         assertEquals(expectedIdOrder, actualIdOrder);
     }

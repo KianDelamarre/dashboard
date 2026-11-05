@@ -14,11 +14,19 @@ function StatusBadge({ type, statusState }: { type: "Local" | "Remote"; statusSt
     const currentStatus = statusState || StatusState.UNDEFINED;
     const config = STATUS_CONFIG[currentStatus];
 
+    if (currentStatus === StatusState.UNDEFINED) {
+        return <div className="w-2.5 h-2.5" />; // Keeps layout space
+    }
+
     return (
-        <div
-            className={cn("w-2.5 h-2.5 rounded-full transition-colors", config.bgClass)}
-            title={`${type}: ${config.label}`}
-        />
+        <div className="relative flex items-center justify-center w-2.5 h-2.5" title={`${type}: ${config.label}`}>
+            {currentStatus === StatusState.ONLINE && (
+                <span className="absolute animate-ping duration-[4s] inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            )}
+            <div className={cn("w-2.5 h-2.5 rounded-full transition-colors relative", config.bgClass)} />
+        </div>
+
+
     );
 }
 

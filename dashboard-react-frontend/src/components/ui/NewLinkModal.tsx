@@ -1,7 +1,7 @@
 import * as React from "react"
-import { dataApi } from "@/api/client.tsx";
+import {dataApi, getApiErrorMessage} from "@/api/client.tsx";
 import { Button } from "./Button"
-import { X, Plus } from "lucide-react"
+import {X, Plus, AlertCircle} from "lucide-react"
 
 import { type ColumnItem } from "@/models/ColumnItem.tsx";
 
@@ -23,6 +23,9 @@ export function NewLinkModal({ isOpen, onClose, onLinkCreated, columns = [] }: N
     // Default to the first column's ID if available, otherwise 1
     const [column, setColumn] = React.useState<number>(columns.length > 0 ? columns[0].id : 1)
     const [isLoading, setIsLoading] = React.useState(false)
+
+    const [errorMessage, setErrorMessage] = React.useState<string | null>(null)
+
 
     // Update default state if columns change/load later
     React.useEffect(() => {
@@ -57,6 +60,7 @@ export function NewLinkModal({ isOpen, onClose, onLinkCreated, columns = [] }: N
             onClose()
         } catch (error) {
             console.error("Failed to create link:", error)
+            setErrorMessage(getApiErrorMessage(error, "Failed to create link. Please try again."))
         } finally {
             setIsLoading(false)
         }
@@ -88,6 +92,15 @@ export function NewLinkModal({ isOpen, onClose, onLinkCreated, columns = [] }: N
 
                 {/* Modal Form */}
                 <form onSubmit={handleCreate} className="space-y-4">
+
+                    {/* NEW: Error Banner Display */}
+                    {errorMessage && (
+                        <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+                            <AlertCircle className="w-4 h-4 shrink-0" />
+                            <span>{errorMessage}</span>
+                        </div>
+                    )}
+
                     <fieldset disabled={isLoading} className="space-y-4">
                         {/* Name Field */}
                         <div className="space-y-1.5">

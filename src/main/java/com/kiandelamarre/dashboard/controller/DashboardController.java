@@ -55,19 +55,19 @@ public class DashboardController {
 //    }
 
     @PostMapping("/link")
-    public ResponseEntity<Link> createLink(@RequestBody Link link) {
+    public ResponseEntity<?> createLink(@RequestBody Link link) {
         Link created = linksService.createLink(link);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @DeleteMapping("/link/{id}")
-    public ResponseEntity<Link> deleteLink(@PathVariable Integer id){
+    public ResponseEntity<?> deleteLink(@PathVariable Integer id){
         linksService.deleteLink(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/link/{id}")
-    public ResponseEntity<Link> updateLink(@PathVariable Integer id, @RequestBody Link link){
+    public ResponseEntity<?> updateLink(@PathVariable Integer id, @RequestBody Link link){
         return ResponseEntity.ok(linksService.updateLink(id, link));
     }
 

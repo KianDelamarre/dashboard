@@ -39,6 +39,8 @@ public class LinkServiceImpl implements LinksService{
 
      @Override
      public Link updateLink(int linkToUpdateId, Link linkWithNewVals) {
+         linkWithNewVals.setRemoteUrl(validateUrl(linkWithNewVals.getRemoteUrl()));
+         linkWithNewVals.setLocalUrl(validateUrl(linkWithNewVals.getLocalUrl()));
 
          return LinkRepository.update(linkToUpdateId, linkWithNewVals);
      }

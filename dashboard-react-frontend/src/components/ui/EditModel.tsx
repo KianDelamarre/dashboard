@@ -1,8 +1,8 @@
 import * as React from "react"
 import { Button } from "./Button"
-import { X, Save } from "lucide-react"
+import { X, Save, AlertCircle } from "lucide-react" // Added AlertCircle icon for the error banner
 
-import { dataApi } from "../../api/client.tsx"
+import {dataApi, getApiErrorMessage} from "../../api/client.tsx"
 
 interface EditModalProps {
     id: number
@@ -14,24 +14,21 @@ interface EditModalProps {
     imgUrl: string
     column: number,
     row: number,
-    onSaveSuccess: (updatedData: { name: string; remoteUrl: string; localUrl: string; imgUrl: string }) => void // Added callback
+    onSaveSuccess: (updatedData: { name: string; remoteUrl: string; localUrl: string; imgUrl: string }) => void
 }
 
-
-
 export function EditModal({
-    id,
-    isOpen,
-    onClose,
-    localUrl,
-    remoteUrl,
-    name,
-    imgUrl,
-    column,
-    row,
-    onSaveSuccess
-
-}: EditModalProps) {
+                              id,
+                              isOpen,
+                              onClose,
+                              localUrl,
+                              remoteUrl,
+                              name,
+                              imgUrl,
+                              column,
+                              row,
+                              onSaveSuccess
+                          }: EditModalProps) {
     // Local form state populated by the incoming props
     const [formLocalUrl, setFormLocalUrl] = React.useState(localUrl)
     const [formRemoteUrl, setFormRemoteUrl] = React.useState(remoteUrl)
@@ -39,12 +36,16 @@ export function EditModal({
     const [formImgUrl, setFormImgUrl] = React.useState(imgUrl)
     const [isLoading, setIsLoading] = React.useState(false)
 
+    // NEW: State to hold error messages from the server or request failures
+    const [errorMessage, setErrorMessage] = React.useState<string | null>(null)
+
     // Keep local state in sync if props change or modal re-opens for a different card
     React.useEffect(() => {
         setFormLocalUrl(localUrl)
         setFormRemoteUrl(remoteUrl)
         setFormName(name)
         setFormImgUrl(imgUrl)
+        setErrorMessage(null) // Clear error when modal opens/resets
     }, [localUrl, remoteUrl, name, imgUrl, isOpen])
 
     // Don't render anything if visibility prop is false
@@ -53,6 +54,7 @@ export function EditModal({
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
+        setErrorMessage(null) // Clear any previous errors
 
         try {
             const payload = {
@@ -78,8 +80,9 @@ export function EditModal({
             })
 
             onClose()
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to update link:", error)
+            setErrorMessage(getApiErrorMessage(error, "Failed to update link. Please try again."))
         } finally {
             setIsLoading(false)
         }
@@ -89,14 +92,13 @@ export function EditModal({
         /* Backdrop click-to-close */
         <div
             onClick={onClose}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm "
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
         >
             {/* Stop propagation so clicking inside the modal doesn't close it */}
             <div
                 onClick={(e) => e.stopPropagation()}
                 className="w-full max-w-md p-6 rounded-lg bg-card border border-border/40 shadow-xl text-card-foreground"
             >
-
                 {/* Modal Header */}
                 <div className="flex items-center justify-between pb-4 mb-4 border-b border-border/40">
                     <h2 className="text-lg font-semibold">Edit Link Card</h2>
@@ -114,6 +116,14 @@ export function EditModal({
 
                 {/* Modal Form */}
                 <form onSubmit={handleSave} className="space-y-4">
+
+                    {/* NEW: Error Banner Display */}
+                    {errorMessage && (
+                        <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+                            <AlertCircle className="w-4 h-4 shrink-0" />
+                            <span>{errorMessage}</span>
+                        </div>
+                    )}
 
                     {/* Fieldset disables all nested inputs automatically when isLoading is true */}
                     <fieldset disabled={isLoading} className="space-y-4">
@@ -184,7 +194,6 @@ export function EditModal({
                         </Button>
                     </div>
                 </form>
-
             </div>
         </div>
     )

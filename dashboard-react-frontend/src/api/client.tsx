@@ -44,6 +44,15 @@ dataApi.interceptors.response.use(
     }
 );
 
+export function getApiErrorMessage(error: any, fallback = "An unexpected error occurred."): string {
+    return (
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        fallback
+    );
+}
+
 // Centralized Logout Helper
 export async function logout() {
     try {

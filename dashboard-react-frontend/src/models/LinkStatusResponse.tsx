@@ -34,7 +34,7 @@ export const STATUS_CONFIG: Record<StatusState, StatusStyleConfig> = {
         label: "Unreachable"
     },
     [StatusState.UNDEFINED]: {
-        bgClass: "bg-gray-300",
+        bgClass: "bg-card",
         textClass: "text-gray-500",
         label: "Not Configured"
     }

@@ -4,7 +4,7 @@ import { type ColumnItem } from "@/models/ColumnItem.tsx";
 import { type CardLinkItem } from "@/models/CardLinkItem.tsx";
 import { type MoveData } from "@/models/MoveData.tsx";
 import { type BatchSavePayload } from "@/models/BatchSavePayload.tsx";
-import { type LinkStatusResponse } from "@/models/LinkStatusResponse.tsx"; // <-- Import status type
+import { type LinkStatusResponse } from "@/models/LinkStatusResponse.tsx";
 
 interface LinkCardGridProps {
     columns: ColumnItem[]
@@ -16,7 +16,7 @@ interface LinkCardGridProps {
     onDeleteLink: (id: number) => void
     onBatchSave: (payload: BatchSavePayload) => void
     onDeleteColumn: (columnId: number) => void
-    statuses: Record<number, LinkStatusResponse> // <-- Added statuses dictionary prop
+    statuses: Record<number, LinkStatusResponse>
 }
 
 export function LinkCardGrid({
@@ -29,7 +29,7 @@ export function LinkCardGrid({
                                  onDeleteLink,
                                  onBatchSave,
                                  onDeleteColumn,
-                                 statuses // <-- Destructure statuses prop
+                                 statuses
                              }: LinkCardGridProps) {
     const [localItems, setLocalItems] = React.useState<CardLinkItem[]>(items)
     const [localColumns, setLocalColumns] = React.useState<ColumnItem[]>(columns)
@@ -235,18 +235,16 @@ export function LinkCardGrid({
                                             <div
                                                 key={item.id}
                                                 id={itemIdStr}
-                                                draggable={isEditMode}
-                                                onDragStart={(e) => handleDragStart(e, itemIdStr)}
-                                                onDragEnd={handleDragEnd}
-                                                className={`link-card-wrapper transition-all duration-150 ${isThisDragging ? 'opacity-40 dragging' : ''} ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                                                className={`link-card-wrapper transition-all duration-150 ${isThisDragging ? 'opacity-40 dragging' : ''}`}
                                             >
                                                 <LinkCard
                                                     cardLinkData={item}
                                                     isEditMode={isEditMode}
                                                     onUpdate={onUpdateLink}
                                                     onDelete={onDeleteLink}
-                                                    // O(1) lookup using the status map passed down from Dashboard
                                                     linkStatusResponse={statuses[item.id]}
+                                                    onDragStart={(e) => handleDragStart(e, itemIdStr)}
+                                                    onDragEnd={handleDragEnd}
                                                 />
                                             </div>
                                         )

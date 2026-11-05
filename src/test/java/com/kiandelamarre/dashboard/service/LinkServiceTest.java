@@ -4,6 +4,9 @@ package com.kiandelamarre.dashboard.service;
 import com.kiandelamarre.dashboard.dto.Link;
 import com.kiandelamarre.dashboard.repository.LinkRepository;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -17,8 +20,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,8 +40,9 @@ public class LinkServiceTest {
         sampleLink.setName("Google");
         sampleLink.setRow(0);
         sampleLink.setColumn(1);
-        sampleLink.setLocalUrl("http://google");
+        sampleLink.setLocalUrl("http://google.com");
         sampleLink.setRemoteUrl("https://google.com");
+
     }
 
     @Test
@@ -69,6 +72,48 @@ public class LinkServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getId());
+        verify(linkRepository, times(1)).insert(sampleLink);
+    }
+
+    //Test Url Validation
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "http:/google.com",
+            "http://google",
+            "dav://google.com"
+    })
+    void testCreateLink_InvalidUrl_ThrowsException(String invalidUrl) {
+        // Arrange
+        sampleLink.setLocalUrl(invalidUrl);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> linkServiceImpl.createLink(sampleLink)
+        );
+
+        assertEquals(
+                "The provided URL '" + invalidUrl + "' is invalid. Please ensure it uses a correct format (e.g., https://example.com).",
+                exception.getMessage()
+        );
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"  "})
+    void testCreateLink_BlankOrNullUrl_NormalizesSuccessfully(String blankUrl) {
+        // Arrange
+        sampleLink.setLocalUrl(blankUrl);
+        when(linkRepository.insert(sampleLink)).thenReturn(sampleLink);
+
+
+        // Act
+        Link result = linkServiceImpl.createLink(sampleLink);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getId());
+        assertEquals("", result.getLocalUrl());
         verify(linkRepository, times(1)).insert(sampleLink);
     }
 

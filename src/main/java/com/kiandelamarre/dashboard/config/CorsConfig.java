@@ -22,7 +22,7 @@ public class CorsConfig implements WebMvcConfigurer {
         System.out.println("applying cors config");
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
-        configuration.setAllowedMethods(Arrays.asList("OPTIONS","GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedMethods(Arrays.asList("OPTIONS","GET", "POST", "PUT","PATCH" ,"DELETE"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

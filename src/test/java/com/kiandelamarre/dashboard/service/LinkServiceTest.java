@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,6 +33,7 @@ public class LinkServiceTest {
     private LinkServiceImpl linkServiceImpl; // Automatically injects the mock repo into your service
 
     private Link sampleLink;
+    private List<Link> testLinks;
 
     @BeforeEach
     void setUp() {
@@ -42,6 +44,19 @@ public class LinkServiceTest {
         sampleLink.setColumn(1);
         sampleLink.setLocalUrl("http://google.com");
         sampleLink.setRemoteUrl("https://google.com");
+
+
+        testLinks = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            Link link = new Link();
+            link.setId(i);
+            link.setName("link " + i);
+            link.setRow(i * 10); // Rows: 0, 10, 20, 30
+            link.setColumn((i < 5) ? 1 : 2);
+            link.setLocalUrl("http://"+i+".com");
+            link.setRemoteUrl("https://"+i+".com");  // Put them all in column 1 for predictable testing
+            testLinks.add(link);
+        }
 
     }
 
@@ -73,6 +88,23 @@ public class LinkServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getId());
         verify(linkRepository, times(1)).insert(sampleLink);
+    }
+
+    @Test
+    void testCreateLinks() {
+        // Arrange
+        // Using Mockito.any(Link.class) since it's called in a loop for each element
+        when(linkRepository.insert(any(Link.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        List<Link> result = linkServiceImpl.createLink(testLinks);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(10, result.size());
+
+        // Verify that the repository's insert method was called exactly 10 times
+        verify(linkRepository, times(10)).insert(any(Link.class));
     }
 
     //Test Url Validation

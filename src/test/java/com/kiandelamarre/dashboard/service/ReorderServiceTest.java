@@ -38,8 +38,8 @@ public class ReorderServiceTest {
             link.setName("link " + i);
             link.setRow(i * 10); // Rows: 0, 10, 20, 30
             link.setColumn((i < 5) ? 1 : 2);
-            link.setLocalUrl("http://"+i);
-            link.setRemoteUrl("https://"+i);  // Put them all in column 1 for predictable testing
+            link.setLocalUrl("http://"+i+".com");
+            link.setRemoteUrl("https://"+i+".com");  // Put them all in column 1 for predictable testing
             testLinks.add(link);
         }
     }

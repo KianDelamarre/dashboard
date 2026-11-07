@@ -5,12 +5,15 @@ import { type CardLinkItem} from "@/models/CardLinkItem.tsx";
 import { type ColumnItem } from "@/models/ColumnItem.tsx";
 import { type BatchSavePayload } from "@/models/BatchSavePayload.tsx";
 import { type LinkStatusResponse } from "@/models/LinkStatusResponse.tsx"; // <-- Import status type
+import { type NewLinkRequestPayload } from "@/models/NewLinkRequestPayload.tsx"; // <-- Import payload type
 
 import { useNavigate } from "react-router"
 import { TopBar } from "../components/ui/TopBar"
 import { LinkCardGrid} from "../components/ui/LinkCardGrid"
 import { NewLinkModal } from "../components/ui/NewLinkModal"
 import { NewColumnModal } from "../components/ui/NewColumnModal.tsx"
+import type {DiscoveredLinkInfo} from "@/models/DiscoveredLinkInfo.tsx";
+import {DiscoveryModal} from "@/components/ui/DiscoveryModal.tsx";
 
 interface DashboardDataResponse {
     columns: ColumnItem[]
@@ -66,11 +69,10 @@ export function Dashboard() {
             }
         }
 
-        // Fetch immediately on mount, then set interval
         fetchStatuses()
-        const intervalId = setInterval(fetchStatuses, 10000) // 10 seconds
+        const intervalId = setInterval(fetchStatuses, 10000)
 
-        return () => clearInterval(intervalId) // Cleanup on unmount
+        return () => clearInterval(intervalId)
     }, [])
 
     const handleLinkUpdated = (id: number, updatedData: any) => {
@@ -87,7 +89,6 @@ export function Dashboard() {
 
     const handleLinkDeleted = (deletedId: number) => {
         setItems((prevItems) => prevItems.filter((item) => item.id !== Number(deletedId)))
-        // Also cleanup status map entry if desired
         setStatuses((prev) => {
             const copy = { ...prev }
             delete copy[deletedId]
@@ -134,6 +135,37 @@ export function Dashboard() {
         }
     }
 
+    const [isDiscoveryModalOpen, setIsDiscoveryModalOpen] = React.useState(false)
+    const [discoveredLinks, setDiscoveredLinks] = React.useState<NewLinkRequestPayload[]>([])
+    const [isDiscovering, setIsDiscovering] = React.useState(false)
+
+    const handleDiscovery = async () => {
+        try {
+            setIsDiscovering(true)
+            setIsDiscoveryModalOpen(true) // Open modal immediately to show loader
+
+            const response = await dataApi.get<Array<DiscoveredLinkInfo>>(`/discover`)
+
+            // Map DiscoveredLinkInfo items into NewLinkRequestPayload objects
+            const mappedPayloads: NewLinkRequestPayload[] = response.data.map((link, index) => ({
+                name: link.title || link.url,
+                localUrl: link.url,
+                remoteUrl: link.url,
+                imgUrl: "", // Optional or fallback
+                column: columns.length > 0 ? columns[0].id : 1, // Default to first column ID or 1
+                row: index, // Give each a sequential row index
+            }))
+
+            setDiscoveredLinks(mappedPayloads)
+            setError(null)
+        } catch (err: any) {
+            console.error("Failed to fetch discovered links:", err)
+            setError("Could not fetch discovered links.")
+        } finally {
+            setIsDiscovering(false)
+        }
+    }
+
     return (
         <>
             <TopBar
@@ -141,6 +173,8 @@ export function Dashboard() {
                 setIsEditMode={setIsEditMode}
                 onOpenNewModal={() => setIsNewModalOpen(true)}
                 onOpenNewColumn={() => setIsNewColumnModalOpen(true)}
+                onDiscover={handleDiscovery}
+                isDiscovering={isDiscovering}
             />
             <LinkCardGrid
                 columns={columns}
@@ -152,7 +186,7 @@ export function Dashboard() {
                 onDeleteLink={handleLinkDeleted}
                 onBatchSave={handleBatchSave}
                 onDeleteColumn={handleDeleteColumn}
-                statuses={statuses} // <-- Passed the status map down here!
+                statuses={statuses}
             />
             <NewLinkModal
                 isOpen={isNewModalOpen}
@@ -165,6 +199,17 @@ export function Dashboard() {
                 isOpen={isNewColumnModalOpen}
                 onClose={() => setIsNewColumnModalOpen(false)}
                 onColumnCreated={handleColumnCreated}
+            />
+
+            <DiscoveryModal
+                isOpen={isDiscoveryModalOpen}
+                onClose={() => setIsDiscoveryModalOpen(false)}
+                isDiscovering={isDiscovering}
+                discoveredLinks={discoveredLinks}
+                onLinksImported={(importedItems) => {
+                    // Update your dashboard items state with the newly created links returned by the backend
+                    setItems((prev) => [...prev, ...importedItems])
+                }}
             />
         </>
     )

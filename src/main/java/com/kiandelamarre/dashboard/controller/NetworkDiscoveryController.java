@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api")
 public class NetworkDiscoveryController {
 
     private final WebpageDiscoveryService discoveryService;

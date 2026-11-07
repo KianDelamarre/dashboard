@@ -1,17 +1,26 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { Search, Edit, Plus, LogOut, X } from "lucide-react"
+import { Search, Edit, Plus, LogOut, X, Compass, Loader2 } from "lucide-react"
 import { Button } from "./Button"
-import { logout } from "@/api/client.tsx";
+import { logout } from "@/api/client.tsx"
 
 interface TopBarProps {
     isEditMode: boolean
     setIsEditMode: React.Dispatch<React.SetStateAction<boolean>>
     onOpenNewModal: () => void
-    onOpenNewColumn: () => void // Added missing prop definition
+    onOpenNewColumn: () => void
+    onDiscover: () => void           // Added discovery trigger prop
+    isDiscovering?: boolean          // Optional loading state prop
 }
 
-export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal, onOpenNewColumn }: TopBarProps) {
+export function TopBar({
+                           isEditMode,
+                           setIsEditMode,
+                           onOpenNewModal,
+                           onOpenNewColumn,
+                           onDiscover,
+                           isDiscovering = false,
+                       }: TopBarProps) {
     // Listen for the Escape key to exit edit mode
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -50,6 +59,23 @@ export function TopBar({ isEditMode, setIsEditMode, onOpenNewModal, onOpenNewCol
 
             {/* 3. Action Buttons */}
             <div className="flex items-center gap-2 shrink-0">
+                {/* Discover Button */}
+                <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={onDiscover}
+                    disabled={isDiscovering}
+                    className="transition-all"
+                >
+                    {isDiscovering ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                        <Compass className="w-4 h-4" />
+                    )}
+                    {isDiscovering ? "Discovering..." : "Discover"}
+                </Button>
+
                 {isEditMode && (
                     <>
                         {/* New Link Button */}

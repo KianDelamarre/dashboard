@@ -5,6 +5,7 @@ import com.kiandelamarre.dashboard.repository.LinkRepository;
 import com.kiandelamarre.dashboard.repository.LinkRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
  @Service
@@ -31,6 +32,15 @@ public class LinkServiceImpl implements LinksService{
 
         return LinkRepository.insert(linkToCreate);
     }
+
+     @Override
+     public List<Link> createLink(List<Link> linksToCreate) {
+         List<Link> allLinks = new ArrayList<>();
+         for(Link link : linksToCreate){
+             allLinks.add(createLink(link));
+         }
+         return allLinks;
+     }
 
      @Override
      public void deleteLink(int linkToDeleteId) {

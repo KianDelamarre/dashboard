@@ -2,14 +2,13 @@ import * as React from "react"
 import { X, Loader2, Compass, ExternalLink, CheckSquare, Square, Plus } from "lucide-react"
 import { Button } from "./Button"
 import { dataApi } from "@/api/client.tsx"
-import type { DiscoveredLinkInfo } from "@/models/DiscoveredLinkInfo.tsx"
 import type { CardLinkItem } from "@/models/CardLinkItem.tsx"
 
 interface DiscoveryModalProps {
     isOpen: boolean
     onClose: () => void
     isDiscovering: boolean
-    discoveredLinks: DiscoveredLinkInfo[]
+    discoveredLinks: CardLinkItem[]
     onLinksImported?: (importedLinks: CardLinkItem[]) => void
 }
 
@@ -51,7 +50,7 @@ export function DiscoveryModal({
         if (selectedUrls.size === discoveredLinks.length) {
             setSelectedUrls(new Set())
         } else {
-            const allUrls = discoveredLinks.map((link) => link.url)
+            const allUrls = discoveredLinks.map((link) => link.localUrl)
             setSelectedUrls(new Set(allUrls))
         }
     }
@@ -65,12 +64,12 @@ export function DiscoveryModal({
             setError(null)
 
             // Filter selected links by matching their URLs
-            const linksToImport = discoveredLinks.filter((link) => selectedUrls.has(link.url))
+            const linksToImport = discoveredLinks.filter((link) => selectedUrls.has(link.localUrl))
 
             // Map to payload matching CardLinkItem structure
             const payload = linksToImport.map((link) => ({
-                title: link.title || link.url,
-                url: link.url,
+                name: link.name || link.localUrl,
+                localUrl: link.localUrl,
             }))
 
             const response = await dataApi.post<CardLinkItem[]>('/create-multiple', {
@@ -148,12 +147,12 @@ export function DiscoveryModal({
                             )}
 
                             {discoveredLinks.map((link) => {
-                                const isSelected = selectedUrls.has(link.url)
+                                const isSelected = selectedUrls.has(link.localUrl)
 
                                 return (
                                     <div
-                                        key={link.url}
-                                        onClick={() => toggleSelect(link.url)}
+                                        key={link.localUrl}
+                                        onClick={() => toggleSelect(link.localUrl)}
                                         className={`flex items-center justify-between p-3 border rounded-md cursor-pointer transition-colors gap-3 ${
                                             isSelected ? "bg-accent/40 border-primary/50" : "bg-background/50 hover:bg-accent/30"
                                         }`}
@@ -164,7 +163,7 @@ export function DiscoveryModal({
                                                 className="text-primary focus:outline-none"
                                                 onClick={(e) => {
                                                     e.stopPropagation()
-                                                    toggleSelect(link.url)
+                                                    toggleSelect(link.localUrl)
                                                 }}
                                             >
                                                 {isSelected ? (
@@ -175,17 +174,17 @@ export function DiscoveryModal({
                                             </button>
                                             <div className="min-w-0 flex-1">
                                                 <h4 className="text-sm font-medium truncate">
-                                                    {link.title || link.url}
+                                                    {link.name || link.localUrl}
                                                 </h4>
                                                 <a
-                                                    href={link.url}
+                                                    href={link.localUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     onClick={(e) => e.stopPropagation()}
                                                     className="text-xs text-muted-foreground hover:underline truncate flex items-center gap-1 mt-0.5"
                                                 >
                                                     <ExternalLink className="w-3 h-3 shrink-0" />
-                                                    <span className="truncate">{link.url}</span>
+                                                    <span className="truncate">{link.localUrl}</span>
                                                 </a>
                                             </div>
                                         </div>

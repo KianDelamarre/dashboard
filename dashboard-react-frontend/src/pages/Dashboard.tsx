@@ -11,7 +11,6 @@ import { TopBar } from "../components/ui/TopBar"
 import { LinkCardGrid} from "../components/ui/LinkCardGrid"
 import { NewLinkModal } from "../components/ui/NewLinkModal"
 import { NewColumnModal } from "../components/ui/NewColumnModal.tsx"
-import type {DiscoveredLinkInfo} from "@/models/DiscoveredLinkInfo.tsx";
 import {DiscoveryModal} from "@/components/ui/DiscoveryModal.tsx";
 
 interface DashboardDataResponse {
@@ -139,7 +138,7 @@ export function Dashboard() {
 
 
     const [isDiscoveryModalOpen, setIsDiscoveryModalOpen] = React.useState(false)
-    const [discoveredLinks, setDiscoveredLinks] = React.useState<DiscoveredLinkInfo[]>([])
+    const [discoveredLinks, setDiscoveredLinks] = React.useState<CardLinkItem[]>([])
     const [isDiscovering, setIsDiscovering] = React.useState(false)
 
     const handleDiscovery = async () => {
@@ -147,7 +146,7 @@ export function Dashboard() {
             setIsDiscovering(true)
             setIsDiscoveryModalOpen(true) // Open modal immediately to show loader
 
-            const response = await dataApi.get<Array<DiscoveredLinkInfo>>(`/discover`)
+            const response = await dataApi.get<Array<CardLinkItem>>(`/discover`)
             setDiscoveredLinks(response.data)
             setError(null)
         } catch (err: any) {
@@ -198,10 +197,10 @@ export function Dashboard() {
                 onClose={() => setIsDiscoveryModalOpen(false)}
                 isDiscovering={isDiscovering}
                 discoveredLinks={discoveredLinks}
-                onImportLink={(link) => {
-                    // Optional: handle importing a link to your dashboard items state
-                    console.log("Importing link:", link)
-                }}
+                // onImportLink={(link) => {
+                //     // Optional: handle importing a link to your dashboard items state
+                //     console.log("Importing link:", link)
+                // }}
             />
         </>
     )

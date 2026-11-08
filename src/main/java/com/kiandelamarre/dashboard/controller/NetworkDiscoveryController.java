@@ -20,20 +20,20 @@ public class NetworkDiscoveryController {
 
 
     @GetMapping("/discover")
-    public ResponseEntity<List<WebpageInfo>> scanLocalNetwork() {
+    public ResponseEntity<List<Link>> scanLocalNetwork() {
         String host = "192.168.1.34";
         int timeoutMs = 200;
 
         System.out.println("\n\nScanning ports...\n");
-        List<WebpageInfo> activeWebpages = discoveryService.findActiveWebpages(host, timeoutMs);
+        List<Link> activeWebpages = discoveryService.findActiveWebpages(host, timeoutMs);
 
         if (activeWebpages.isEmpty()) {
             System.out.println("No web services available");
         } else {
             System.out.println("===== Available Web Pages & Titles =====");
-            for (WebpageInfo info : activeWebpages) {
-                System.out.println("URL:   " + info.getUrl());
-                System.out.println("Title: " + info.getTitle());
+            for (Link info : activeWebpages) {
+                System.out.println("URL:   " + info.getLocalUrl());
+                System.out.println("Title: " + info.getName());
                 System.out.println("----------------------------------------");
             }
         }

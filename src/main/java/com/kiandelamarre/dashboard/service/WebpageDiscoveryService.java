@@ -1,6 +1,6 @@
 package com.kiandelamarre.dashboard.service;
 
-import com.kiandelamarre.dashboard.dto.WebpageInfo;
+import com.kiandelamarre.dashboard.dto.Link;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -10,7 +10,6 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -21,13 +20,13 @@ import java.util.stream.IntStream;
 @Service
 public class WebpageDiscoveryService {
 
-    public List<WebpageInfo> findActiveWebpages(String host, int timeoutMs) {
+    public List<Link> findActiveWebpages(String host, int timeoutMs) {
         // Create a fixed thread pool.
         ExecutorService executor = Executors.newFixedThreadPool(200);
 
         try {
             // 1. Map every port in the range to an asynchronous task
-            List<CompletableFuture<WebpageInfo>> futures = IntStream.range(1024, 49151)
+            List<CompletableFuture<Link>> futures = IntStream.range(1024, 49151)
                     .mapToObj(port -> CompletableFuture.supplyAsync(() -> {
                         String urlString = "http://" + host + ":" + port;
 
@@ -37,7 +36,10 @@ public class WebpageDiscoveryService {
                             String title = extractWebpageTitle(urlString);
                             if (title != null) {
                                 System.out.println("-> Found webpage with title: " + title);
-                                return new WebpageInfo(urlString, title);
+                                Link webPageInfo = new Link();
+                                webPageInfo.setLocalUrl(urlString);
+                                webPageInfo.setName(title);
+                                return webPageInfo;
                             } else {
                                 System.out.println("-> TCP open, but not a valid HTML webpage.");
                             }

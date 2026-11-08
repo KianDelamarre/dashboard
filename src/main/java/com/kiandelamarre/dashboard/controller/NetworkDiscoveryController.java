@@ -21,7 +21,10 @@ public class NetworkDiscoveryController {
 
     @GetMapping("/discover")
     public ResponseEntity<List<Link>> scanLocalNetwork() {
-        String host = "192.168.1.34";
+        String host = System.getenv("HOST_IP");
+        if (host == null || host.isEmpty()) {
+            host = "192.168.1.34";
+        }
         int timeoutMs = 200;
 
         System.out.println("\n\nScanning ports...\n");

@@ -76,9 +76,12 @@ export function DiscoveryModal({
 
             console.log("Links successfully imported:", response.data)
 
+
             if (onLinksImported) {
                 onLinksImported(response.data)
             }
+
+            window.location.reload()
 
             onClose()
         } catch (err: any) {

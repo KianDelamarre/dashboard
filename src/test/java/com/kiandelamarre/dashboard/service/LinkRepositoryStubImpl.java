@@ -42,6 +42,11 @@ public class LinkRepositoryStubImpl implements LinkRepository {
     }
 
     @Override
+    public int findMaxRowInColumn(int col) {
+        return 0;
+    }
+
+    @Override
     public Link insert(Link link) {
         allLinks.add(link);
         return link;

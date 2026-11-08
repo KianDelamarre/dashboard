@@ -1,6 +1,8 @@
 package com.kiandelamarre.dashboard.service;
 
+import com.kiandelamarre.dashboard.dto.ColumnDto;
 import com.kiandelamarre.dashboard.dto.Link;
+import com.kiandelamarre.dashboard.repository.ColRepository;
 import com.kiandelamarre.dashboard.repository.LinkRepository;
 import com.kiandelamarre.dashboard.repository.LinkRepository;
 import org.springframework.stereotype.Service;
@@ -11,10 +13,12 @@ import java.util.List;
  @Service
 public class LinkServiceImpl implements LinksService{
 
+     ColRepository colRepository;
      LinkRepository LinkRepository;
 
-     public LinkServiceImpl (LinkRepository LinkRepository){
+     public LinkServiceImpl (LinkRepository LinkRepository, ColRepository colRepository){
          this.LinkRepository = LinkRepository;
+         this.colRepository = colRepository;
      }
 
 
@@ -26,10 +30,7 @@ public class LinkServiceImpl implements LinksService{
 
     @Override
     public Link createLink(Link linkToCreate) {
-         linkToCreate.setRemoteUrl(validateUrl(linkToCreate.getRemoteUrl()));
-         linkToCreate.setLocalUrl(validateUrl(linkToCreate.getLocalUrl()));
-
-
+         validateLink(linkToCreate);
         return LinkRepository.insert(linkToCreate);
     }
 
@@ -37,6 +38,7 @@ public class LinkServiceImpl implements LinksService{
      public List<Link> createLink(List<Link> linksToCreate) {
          List<Link> allLinks = new ArrayList<>();
          for(Link link : linksToCreate){
+             link = validateLink(link);
              allLinks.add(createLink(link));
          }
          return allLinks;
@@ -84,5 +86,28 @@ public class LinkServiceImpl implements LinksService{
          } catch (IllegalArgumentException e) {
              throw new IllegalArgumentException(invalidUrlMsg);
          }
+     }
+
+     private Link validateLink(Link link){
+         link.setRemoteUrl(validateUrl(link.getRemoteUrl()));
+         link.setLocalUrl(validateUrl(link.getLocalUrl()));
+         link.setColumn(validateColumn(link.getColumn()));
+         calcNewRow(link.getColumn());
+
+         return link;
+     }
+
+     private int validateColumn(int columnId) {
+         ColumnDto col = colRepository.findById(columnId);
+
+         if (col == null) {
+             return 1;
+         }
+
+         return columnId;
+     }
+     
+     private int calcNewRow(int column){
+         return LinkRepository.findMaxRowInColumn(column) +10;
      }
  }

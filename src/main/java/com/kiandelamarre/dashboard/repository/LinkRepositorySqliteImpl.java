@@ -47,6 +47,17 @@ public class LinkRepositorySqliteImpl implements LinkRepository {
     }
 
     @Override
+    public int findMaxRowInColumn(int col) {
+        String sql = "SELECT row FROM links WHERE \"column\" = ? ORDER BY row DESC LIMIT 1";
+
+        // Query directly for a list of Integer values
+        List<Integer> rows = jdbcTemplate.queryForList(sql, Integer.class, col);
+
+        // Return the max row found, or 0 if the column is currently empty
+        return rows.isEmpty() ? 0 : rows.get(0);
+    }
+
+    @Override
     public Link insert(Link link) {
         final String sql = "INSERT INTO links (name, localurl, remoteurl, imgurl, \"column\", row) VALUES (?, ?, ?, ?, ?, ?)";
 

@@ -8,6 +8,8 @@ import java.util.List;
 
      Link findById(int id);
 
+     int findMaxRowInColumn(int col);
+
      Link insert(Link link);
 
      void delete(int id);

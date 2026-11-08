@@ -72,9 +72,7 @@ export function DiscoveryModal({
                 localUrl: link.localUrl,
             }))
 
-            const response = await dataApi.post<CardLinkItem[]>('/create-multiple', {
-                links: payload,
-            })
+            const response = await dataApi.post<CardLinkItem[]>('/links', payload)
 
             console.log("Links successfully imported:", response.data)
 

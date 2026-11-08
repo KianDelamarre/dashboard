@@ -60,6 +60,13 @@ public class DashboardController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    @PostMapping("/links")
+    public ResponseEntity<?> createLink(@RequestBody List<Link> links) {
+        List<Link> created = linksService.createLink(links);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+
     @DeleteMapping("/link/{id}")
     public ResponseEntity<?> deleteLink(@PathVariable Integer id){
         linksService.deleteLink(id);

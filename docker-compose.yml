@@ -2,8 +2,7 @@ services:
   dashboard:
     build: .
     container_name: dashboard
-    ports:
-      - "7676:7676"
+    network_mode: host
     environment:
           - SPRING_DATASOURCE_URL=jdbc:sqlite:/app/data/database.db
     volumes:

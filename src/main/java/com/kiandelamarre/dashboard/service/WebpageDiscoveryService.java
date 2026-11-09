@@ -26,7 +26,7 @@ public class WebpageDiscoveryService {
 
         try {
             // 1. Map every port in the range to an asynchronous task
-            List<CompletableFuture<Link>> futures = IntStream.range(8000, 9000)
+            List<CompletableFuture<Link>> futures = IntStream.range(4000, 9000)
                     .mapToObj(port -> CompletableFuture.supplyAsync(() -> {
                         String urlString = "http://" + host + ":" + port;
 

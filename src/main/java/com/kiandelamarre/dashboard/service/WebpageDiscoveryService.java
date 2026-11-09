@@ -22,11 +22,11 @@ public class WebpageDiscoveryService {
 
     public List<Link> findActiveWebpages(String host, int timeoutMs) {
         // Create a fixed thread pool.
-        ExecutorService executor = Executors.newFixedThreadPool(200);
+        ExecutorService executor = Executors.newFixedThreadPool(50);
 
         try {
             // 1. Map every port in the range to an asynchronous task
-            List<CompletableFuture<Link>> futures = IntStream.range(3000, 9000)
+            List<CompletableFuture<Link>> futures = IntStream.range(8000, 9000)
                     .mapToObj(port -> CompletableFuture.supplyAsync(() -> {
                         String urlString = "http://" + host + ":" + port;
 

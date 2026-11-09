@@ -27,7 +27,7 @@ public class NetworkDiscoveryController {
         }
         int timeoutMs = 200;
 
-        System.out.println("\n\nScanning ports...\n");
+        System.out.println("\n\nScanning ports on " + host+ "...\n");
         List<Link> activeWebpages = discoveryService.findActiveWebpages(host, timeoutMs);
 
         if (activeWebpages.isEmpty()) {

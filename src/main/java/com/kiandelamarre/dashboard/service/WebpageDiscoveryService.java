@@ -26,9 +26,11 @@ public class WebpageDiscoveryService {
 
         try {
             // 1. Map every port in the range to an asynchronous task
-            List<CompletableFuture<Link>> futures = IntStream.range(1024, 49151)
+            List<CompletableFuture<Link>> futures = IntStream.range(3000, 9000)
                     .mapToObj(port -> CompletableFuture.supplyAsync(() -> {
                         String urlString = "http://" + host + ":" + port;
+
+                        System.out.println("checking "+ urlString);
 
                         if (checkPortTcp(host, port, timeoutMs)) {
                             System.out.println("Success: Something is listening on " + host + ":" + port);

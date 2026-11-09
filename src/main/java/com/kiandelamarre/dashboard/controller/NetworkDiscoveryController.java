@@ -23,7 +23,7 @@ public class NetworkDiscoveryController {
     public ResponseEntity<List<Link>> scanLocalNetwork() {
         String host = System.getenv("HOST_IP");
         if (host == null || host.isEmpty()) {
-            host = "192.168.1.34";
+            host = "localhost";
         }
         int timeoutMs = 200;
 

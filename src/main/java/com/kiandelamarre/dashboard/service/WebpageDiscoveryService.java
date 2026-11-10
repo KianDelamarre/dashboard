@@ -22,10 +22,10 @@ public class WebpageDiscoveryService {
 
     public List<Link> findActiveWebpages(String host, int timeoutMs) {
         System.out.println("Starting discovery scan on host: " + host + " with timeout: " + timeoutMs + "ms");
-        ExecutorService executor = Executors.newFixedThreadPool(1);
+        ExecutorService executor = Executors.newFixedThreadPool(50);
 
         try {
-            List<CompletableFuture<Link>> futures = IntStream.range(8980, 8990)
+            List<CompletableFuture<Link>> futures = IntStream.range(4000, 10000)
                     .mapToObj(port -> CompletableFuture.supplyAsync(() -> {
                         String urlString = "http://" + host + ":" + port;
 

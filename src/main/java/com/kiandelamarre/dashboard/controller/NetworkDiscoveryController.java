@@ -2,6 +2,7 @@ package com.kiandelamarre.dashboard.controller;
 
 import com.kiandelamarre.dashboard.dto.*;
 import com.kiandelamarre.dashboard.service.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,13 +19,12 @@ public class NetworkDiscoveryController {
         this.discoveryService = discoveryService;
     }
 
+    @Value("${HOST_IP:localhost}")
+    private String host;
 
     @GetMapping("/discover")
     public ResponseEntity<List<Link>> scanLocalNetwork() {
-        String host = System.getenv("HOST_IP");
-        if (host == null || host.isEmpty()) {
-            host = "localhost";
-        }
+
         int timeoutMs = 200;
 
         System.out.println("\n\nScanning ports on " + host+ "...\n");

@@ -2,9 +2,14 @@ services:
   dashboard:
     build: .
     container_name: dashboard
-    network_mode: host
+#    network_mode: host
+    ports:
+      - "7676:7676"
     environment:
           - SPRING_DATASOURCE_URL=jdbc:sqlite:/app/data/database.db
           - HOST_IP=192.168.1.194
+          - THREAD_POOL:200
+          - START_PORT:8000
+          - END_PORT:9000
     volumes:
       - /home/kian/dashboard-data:/app/data # Keeps your SQLite database safe across container restarts

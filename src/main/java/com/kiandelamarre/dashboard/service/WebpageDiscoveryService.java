@@ -1,6 +1,7 @@
 package com.kiandelamarre.dashboard.service;
 
 import com.kiandelamarre.dashboard.dto.Link;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -20,12 +21,21 @@ import java.util.stream.IntStream;
 @Service
 public class WebpageDiscoveryService {
 
+    @Value("${THREAD_POOL:50}")
+    private int threadPoolSize;
+
+    @Value("${START_PORT:4000}")
+    private int startPort;
+
+    @Value("${END_PORT:9000}")
+    private int endPort;
+
     public List<Link> findActiveWebpages(String host, int timeoutMs) {
         System.out.println("Starting discovery scan on host: " + host + " with timeout: " + timeoutMs + "ms");
-        ExecutorService executor = Executors.newFixedThreadPool(50);
+        ExecutorService executor = Executors.newFixedThreadPool(threadPoolSize);
 
         try {
-            List<CompletableFuture<Link>> futures = IntStream.range(4000, 10000)
+            List<CompletableFuture<Link>> futures = IntStream.range(startPort, endPort)
                     .mapToObj(port -> CompletableFuture.supplyAsync(() -> {
                         String urlString = "http://" + host + ":" + port;
 

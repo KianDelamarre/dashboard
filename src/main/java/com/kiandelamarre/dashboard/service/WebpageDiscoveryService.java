@@ -21,44 +21,40 @@ import java.util.stream.IntStream;
 public class WebpageDiscoveryService {
 
     public List<Link> findActiveWebpages(String host, int timeoutMs) {
-        // Create a fixed thread pool.
-        ExecutorService executor = Executors.newFixedThreadPool(50);
+        System.out.println("Starting discovery scan on host: " + host + " with timeout: " + timeoutMs + "ms");
+        ExecutorService executor = Executors.newFixedThreadPool(1);
 
         try {
-            // 1. Map every port in the range to an asynchronous task
-            List<CompletableFuture<Link>> futures = IntStream.range(4000, 9000)
+            List<CompletableFuture<Link>> futures = IntStream.range(8980, 8990)
                     .mapToObj(port -> CompletableFuture.supplyAsync(() -> {
                         String urlString = "http://" + host + ":" + port;
 
-                        System.out.println("checking "+ urlString);
-
                         if (checkPortTcp(host, port, timeoutMs)) {
-                            System.out.println("Success: Something is listening on " + host + ":" + port);
+                            System.out.println("Success: TCP port open on " + host + ":" + port);
 
                             String title = extractWebpageTitle(urlString);
                             if (title != null) {
-                                System.out.println("-> Found webpage with title: " + title);
+                                System.out.println("-> Found webpage at " + urlString + " with title: " + title);
                                 Link webPageInfo = new Link();
                                 webPageInfo.setLocalUrl(urlString);
                                 webPageInfo.setName(title);
                                 return webPageInfo;
                             } else {
-                                System.out.println("-> TCP open, but not a valid HTML webpage.");
+                                System.out.println("-> TCP open on " + port + ", but extraction returned null (not HTML or no title).");
                             }
                         }
-                        return null; // Return null if it's closed or not a webpage
+                        return null;
                     }, executor))
                     .toList();
 
-            // 2. Wait for all futures to complete, join their results, and filter out nulls
             return futures.stream()
-                    .map(CompletableFuture::join) // Blocks until this specific thread finishes
-                    .filter(info -> info != null)    // Keep only successful webpages
+                    .map(CompletableFuture::join)
+                    .filter(info -> info != null)
                     .collect(Collectors.toList());
 
         } finally {
-            // Always shut down the executor service to prevent thread leaks
             executor.shutdown();
+            System.out.println("Discovery scan completed and executor shut down.");
         }
     }
 
@@ -66,7 +62,17 @@ public class WebpageDiscoveryService {
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, port), timeout);
             return true;
+        } catch (java.net.SocketTimeoutException e) {
+            // This means the packet was sent, but nothing answered in time (often firewall drop or silent block)
+            System.out.println("-> Port " + port + " TIMED OUT after " + timeout + "ms");
+            return false;
+        } catch (java.net.ConnectException e) {
+            // This means the server actively rejected the connection (normal for closed ports)
+            // System.out.println("-> Port " + port + " Connection Refused");
+            return false;
         } catch (IOException e) {
+            // Any other unexpected IO error
+            System.out.println("-> Port " + port + " IO Error: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             return false;
         }
     }
@@ -83,24 +89,22 @@ public class WebpageDiscoveryService {
 
             int responseCode = connection.getResponseCode();
             String contentType = connection.getContentType();
+            System.out.println("HTTP Connection to " + urlString + " -> Response Code: " + responseCode + ", Content-Type: " + contentType);
 
             if (responseCode >= 200 && responseCode < 400) {
                 if (contentType != null && contentType.toLowerCase().contains("text/html")) {
 
-                    // Read HTML stream and search for <title>
                     StringBuilder htmlContent = new StringBuilder();
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             htmlContent.append(line);
-                            // Stop reading early once we pass the closing title tag to save time
                             if (line.toLowerCase().contains("</title>")) {
                                 break;
                             }
                         }
                     }
 
-                    // Parse title tag using string matching
                     String html = htmlContent.toString();
                     int startIdx = html.toLowerCase().indexOf("<title>");
                     int endIdx = html.toLowerCase().indexOf("</title>");
@@ -108,15 +112,14 @@ public class WebpageDiscoveryService {
                     if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
                         int tagCloseIdx = html.indexOf(">", startIdx);
                         if (tagCloseIdx != -1 && tagCloseIdx < endIdx) {
-                            // Extract and clean up whitespace
                             return html.substring(tagCloseIdx + 1, endIdx).trim();
                         }
                     }
                 }
             }
         } catch (Exception e) {
-            // Failed to fetch or parse title
+            System.out.println("Failed to fetch/parse title for " + urlString + " -> Error: " + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
-        return null; // Return null if it's not a webpage or has no title
+        return null;
     }
 }

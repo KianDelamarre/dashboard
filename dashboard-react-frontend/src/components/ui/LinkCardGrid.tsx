@@ -5,6 +5,9 @@ import { type CardLinkItem } from "@/models/CardLinkItem.tsx";
 import { type MoveData } from "@/models/MoveData.tsx";
 import { type BatchSavePayload } from "@/models/BatchSavePayload.tsx";
 import { type LinkStatusResponse } from "@/models/LinkStatusResponse.tsx";
+import { Search } from "lucide-react"
+import { SearchModal } from "./SearchModal"
+
 
 interface LinkCardGridProps {
     columns: ColumnItem[]
@@ -35,6 +38,35 @@ export function LinkCardGrid({
     const [localColumns, setLocalColumns] = React.useState<ColumnItem[]>(columns)
     const [pendingMoves, setPendingMoves] = React.useState<MoveData[]>([])
     const [draggedId, setDraggedId] = React.useState<string | null>(null)
+
+    const [searchQuery, setSearchQuery] = React.useState("")
+    const [searchTopOffset, setSearchTopOffset] = React.useState(0)
+    const searchWrapperRef = React.useRef<HTMLDivElement>(null)
+    const inputKeyDownRef = React.useRef<((e: React.KeyboardEvent<HTMLInputElement>) => void) | null>(null)
+
+    const isSearchOpen = searchQuery.trim().length > 0
+
+    const handleCloseSearch = React.useCallback(() => {
+        setSearchQuery("")
+    }, [])
+
+    const updateSearchOffset = React.useCallback(() => {
+        if (!searchWrapperRef.current) return
+        const rect = searchWrapperRef.current.getBoundingClientRect()
+        // 12px breathing room below the search bar
+        setSearchTopOffset(Math.round(rect.bottom + 12))
+    }, [])
+
+    React.useEffect(() => {
+        if (!isSearchOpen) return
+        updateSearchOffset()
+        window.addEventListener("resize", updateSearchOffset)
+        window.addEventListener("scroll", updateSearchOffset, { passive: true })
+        return () => {
+            window.removeEventListener("resize", updateSearchOffset)
+            window.removeEventListener("scroll", updateSearchOffset)
+        }
+    }, [isSearchOpen, updateSearchOffset])
 
     // Sync localItems when items prop updates
     const prevItemsRef = React.useRef(items)
@@ -173,6 +205,34 @@ export function LinkCardGrid({
                     </button>
                 </div>
             )}
+
+            {/* 2. Static Centered Search Bar */}
+            <div ref={searchWrapperRef} className="relative z-50 flex justify-center mb-6">
+                <div className="relative w-full max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                        type="search"
+                        value={searchQuery}
+                        onChange={(e) => {
+                            setSearchQuery(e.target.value)
+                            updateSearchOffset()
+                        }}
+                        onKeyDown={(e) => inputKeyDownRef.current?.(e)}
+                        placeholder="Search..."
+                        className="w-full pl-9 pr-4 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                </div>
+            </div>
+
+            <SearchModal
+                isOpen={isSearchOpen}
+                query={searchQuery}
+                onClose={handleCloseSearch}
+                items={localItems}
+                statuses={statuses}
+                topOffset={searchTopOffset}
+                inputKeyDownRef={inputKeyDownRef}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {sortedColumns.map((col) => {

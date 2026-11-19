@@ -1,6 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { Search, Edit, Plus, LogOut, X, Compass, Loader2 } from "lucide-react"
+import { Edit, Plus, LogOut, X, Compass, Loader2 } from "lucide-react"
 import { Button } from "./Button"
 import { logout } from "@/api/client.tsx"
 
@@ -47,15 +47,6 @@ export function TopBar({
                 />
             </div>
 
-            {/* 2. Search Bar */}
-            <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                    type="search"
-                    placeholder="Search..."
-                    className="w-full pl-9 pr-4 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-            </div>
 
             {/* 3. Action Buttons */}
             <div className="flex items-center gap-2 shrink-0">

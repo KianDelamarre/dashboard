@@ -78,7 +78,8 @@ public class LinkServiceImpl implements LinksService{
              java.net.URI uri = java.net.URI.create(trimmedUrl);
 
              // Ensure a valid host exists and contains a dot (e.g., "google.com")
-             if (uri.getHost() == null || !uri.getHost().contains(".")) {
+             String host = uri.getHost();
+             if (host == null || (!host.equals("localhost") && !host.contains("."))) {
                  throw new IllegalArgumentException(invalidUrlMsg);
              }
 

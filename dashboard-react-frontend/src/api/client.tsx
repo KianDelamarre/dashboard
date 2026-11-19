@@ -4,7 +4,7 @@ import axios from "axios";
 // If in development (Vite), fallback to localhost:8080.
 const baseURL = import.meta.env.PROD
     ? ""
-    : "http://localhost:8080";
+    : "http://localhost:7676";
 
 export const authApi = axios.create({
     baseURL: `${baseURL}/auth`,
